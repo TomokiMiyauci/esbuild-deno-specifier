@@ -1,15 +1,23 @@
 import { toFileUrl } from "jsr:@std/path@^0.221.0/to-file-url";
 import {
+  esmFileFormat,
+  type Format,
   type Loader,
   type MediaType,
   type Module,
   type NpmModule,
+  packageExportsResolve,
+  type PackageJson,
   type Plugin,
+  readPackageJson,
   type Source,
 } from "./deps.ts";
 import { exists } from "jsr:@std/fs@^0.221.0";
 import { join } from "jsr:@std/url@^0.221.0";
 import { info } from "./modules/deno/info.ts";
+import { DenoDir, fromFileUrl } from "../deno-module-resolution/deps.ts";
+import { isBuiltin } from "node:module";
+import { resolve } from "../deno-module-resolution/algorithms/resolve.ts";
 
 interface PluginData {
   // mediaType: MediaType;
@@ -17,6 +25,7 @@ interface PluginData {
   // url: URL;
   // context: any;
   pjson: PackageJson | null;
+  packageURL: URL;
   module: Module;
   source: Source;
   mediaType: MediaType;
@@ -72,16 +81,6 @@ async function existDir(url: URL) {
   return result;
 }
 
-import {
-  esmFileFormat,
-  type Format,
-  packageExportsResolve,
-  type PackageJson,
-  readPackageJson,
-} from "jsr:@miyauci/node-esm-resolver@1.0.0-beta.8";
-import { DenoDir, fromFileUrl } from "../deno-module-resolution/deps.ts";
-import { isBuiltin } from "node:module";
-
 export function denoPlugin(options?: {
   existDir(url: URL): Promise<boolean>;
   readFile(url: URL): Promise<string | null | undefined>;
@@ -122,7 +121,10 @@ export function denoPlugin(options?: {
             }
 
             case "npm": {
-              const { url, pjson, format } = await npmResolve(module, source);
+              const { url, pjson, format, packageURL } = await npmResolve(
+                module,
+                source,
+              );
               const sideEffects = typeof pjson?.sideEffects === "boolean"
                 ? pjson.sideEffects
                 : undefined;
@@ -143,6 +145,7 @@ export function denoPlugin(options?: {
                 module,
                 source,
                 mediaType,
+                packageURL,
               } satisfies PluginData;
 
               return {
@@ -161,13 +164,35 @@ export function denoPlugin(options?: {
         const module = pluginData.module;
         const pjson = pluginData.pjson;
         const source = pluginData.source;
-        const specifier = args.path;
+        const packageURL = pluginData.packageURL;
+        let specifier = args.path;
+        const sideEffects = typeof pjson?.sideEffects === "boolean"
+          ? pjson.sideEffects
+          : undefined;
 
         switch (module.kind) {
           case "npm": {
+            const base = toFileUrl(args.importer);
+            let url = new URL(specifier, base);
+
+            if (pjson && "browser" in pjson) {
+              const resolved = resolveBrowser(specifier, pjson.browser);
+
+              if (resolved) {
+                if (resolved.specifier === null) {
+                  return {
+                    path: `${args.path}`,
+                    namespace: "(disabled)",
+                    sideEffects,
+                  };
+                }
+
+                url = join(packageURL, specifier);
+                specifier = resolved.specifier;
+              }
+            }
+
             if (specifier.startsWith("./") || specifier.startsWith("../")) {
-              const base = toFileUrl(args.importer);
-              const url = new URL(specifier, base);
               const fileResult = await loadAsFile(url);
 
               if (fileResult) {
@@ -183,6 +208,7 @@ export function denoPlugin(options?: {
                   module,
                   pjson,
                   source,
+                  packageURL,
                 } satisfies PluginData;
                 return {
                   path: fromFileUrl(fileResult),
@@ -191,11 +217,14 @@ export function denoPlugin(options?: {
                 };
               }
 
+              const dirResult = await loadAsDirectory(url, pjson);
+
               throw new Error("not found");
             }
 
             if (isBuiltin(specifier)) {
-              console.log(pjson?.browser, specifier, args.importer);
+              console.log(specifier);
+              throw new Error();
               return { external: true };
             }
 
@@ -214,7 +243,7 @@ export function denoPlugin(options?: {
                 npmPackage: module.npmPackage,
               } satisfies NpmModule;
 
-              const { pjson, url, format } = await npmResolve(
+              const { pjson, url, format, packageURL } = await npmResolve(
                 childModule,
                 source,
               );
@@ -227,10 +256,8 @@ export function denoPlugin(options?: {
                 module,
                 pjson,
                 mediaType,
+                packageURL,
               } satisfies PluginData;
-              const sideEffects = typeof pjson?.sideEffects === "boolean"
-                ? pjson.sideEffects
-                : undefined;
 
               if (!url) {
                 return {
@@ -264,7 +291,7 @@ export function denoPlugin(options?: {
                 specifier: `npm:/${dep.name}@${dep.version}${subpath.slice(1)}`,
                 npmPackage: nameWithVersion,
               } satisfies NpmModule;
-              const { pjson, url, format } = await npmResolve(
+              const { pjson, url, format, packageURL } = await npmResolve(
                 module,
                 source,
                 // options,
@@ -278,6 +305,7 @@ export function denoPlugin(options?: {
                 module,
                 pjson,
                 mediaType,
+                packageURL,
               } satisfies PluginData;
               const sideEffects = typeof pjson?.sideEffects === "boolean"
                 ? pjson.sideEffects
@@ -313,45 +341,6 @@ export function denoPlugin(options?: {
             throw new Error("module not supported");
           }
         }
-
-        const browser = pjson?.browser;
-        if (pjson && isObject(browser)) {
-          const mappedValue = resolveBrowser(specifier, browser);
-
-          if (mappedValue === false) {
-            return { path: args.path, namespace: "(disabled)" };
-          }
-
-          if (typeof mappedValue === "string") {
-            throw new Error("");
-          }
-        }
-
-        if (isBuiltin(specifier)) {
-          throw new Error();
-        }
-
-        if (specifier.startsWith("./")) {
-          const url = new URL(specifier, toFileUrl(args.importer));
-
-          const fileResult = await loadAsFile(url);
-          const pluginData = {
-            pjson,
-          } satisfies PluginData;
-
-          if (fileResult) {
-            return {
-              path: fromFileUrl(fileResult),
-              namespace: "deno",
-              pluginData,
-            };
-          }
-
-          const s = await loadAsDirectory(url, pluginData.pjson);
-          throw new Error("");
-        }
-
-        throw new Error();
       });
 
       build.onLoad({ filter: /.*/, namespace: "deno" }, async (args) => {
@@ -375,9 +364,10 @@ export function denoPlugin(options?: {
 }
 
 interface NpmResult {
-  url: URL | null | undefined;
+  url: URL | null;
   pjson: PackageJson | null;
   format: Format | null;
+  packageURL: URL;
 }
 
 async function npmResolve(
@@ -413,21 +403,32 @@ async function npmResolve(
     url: result,
     pjson,
     format: format ?? null,
+    packageURL,
   };
 }
 
 function resolveBrowser(
   specifier: string,
-  browser: { [key: string]: unknown },
-): unknown {
+  browser: PackageJson,
+) {
   for (
     const key of [
       specifier,
       ...[".js", ".json", ".node"].map((ext) => specifier + ext),
     ]
   ) {
-    if (key in browser) return browser[key];
+    if (key in browser) {
+      return resolveBrowserValue(browser[key]);
+    }
   }
+}
+
+function resolveBrowserValue(value: unknown): {
+  specifier: string | null;
+} | undefined {
+  if (value === false) return { specifier: null };
+
+  if (typeof value === "string") return { specifier: value };
 }
 
 function formatToMediaType(format: Format): MediaType {
@@ -471,7 +472,7 @@ function resolveNodeModules(
   packageURL: URL,
   pjson: PackageJson | null,
   subpath: `.${string}`,
-): Promise<URL | null | undefined> | URL | null | undefined {
+): Promise<URL | null> | URL | null {
   const isEsModule = pjson?.type === "module";
 
   return isEsModule
@@ -479,7 +480,7 @@ function resolveNodeModules(
     : resolveCjsPackage(packageURL, pjson, subpath);
 }
 
-function resolveEsmPackage(
+async function resolveEsmPackage(
   packageURL: URL,
   pjson: PackageJson | null,
   subpath: `.${string}`,
@@ -498,30 +499,6 @@ function resolveEsmPackage(
     );
   }
 
-  if (pjson && pjson.browser) {
-    return packageBrowserResolve(packageURL, subpath, pjson.browser);
-  }
-
-  throw new Error();
-}
-
-const conditions = ["import"];
-
-async function resolveCjsPackage(
-  packageURL: URL,
-  pjson: PackageJson | null,
-  subpath: `.${string}`,
-) {
-  if (pjson && pjson.exports) {
-    return packageExportsResolve(
-      packageURL,
-      subpath,
-      pjson.exports,
-      conditions,
-      { existDir, existFile, readFile },
-    );
-  }
-
   if (pjson && "browser" in pjson) {
     if (typeof pjson.browser === "string") {
       const url = join(packageURL, pjson.browser);
@@ -529,15 +506,67 @@ async function resolveCjsPackage(
       if (await existFile(url)) return url;
     }
   }
+  throw new Error();
+}
 
-  const fileResult = await loadAsFile(packageURL);
-  if (fileResult) return fileResult;
+const conditions = ["import", "browser"];
 
-  const dirResult = await loadAsDirectory(packageURL, pjson);
-  if (dirResult) return dirResult;
+async function resolveCjsPackage(
+  packageURL: URL,
+  pjson: PackageJson | null,
+  subpath: `.${string}`,
+): Promise<URL | null> {
+  if (pjson) {
+    if ("exports" in pjson) {
+      return packageExportsResolve(
+        packageURL,
+        subpath,
+        pjson.exports,
+        conditions,
+        { existDir, existFile, readFile },
+      );
+    }
+
+    const fileResult = await loadAsFile(packageURL);
+    if (fileResult) return fileResult;
+
+    const fieldSet = mainFields.map((field) => ({ field, value: pjson[field] }))
+      .filter((v): v is { field: string; value: string } =>
+        typeof v.value === "string"
+      );
+
+    const browser = pjson.browser;
+    const isBrowser = isObject(browser);
+
+    for (const { value } of fieldSet) {
+      let url: URL;
+
+      if (isBrowser) {
+        const result = resolveBrowser(value, browser);
+
+        if (result) {
+          if (result.specifier === null) {
+            return null;
+          }
+
+          url = join(packageURL, result.specifier);
+        } else {
+          url = join(packageURL, value);
+        }
+      } else {
+        url = join(packageURL, value);
+      }
+
+      if (await existFile(url)) {
+        return url;
+      }
+    }
+  }
 
   throw new Error();
 }
+
+const mainFields = ["browser", "module", "main"];
 
 async function loadAsFile(packageURL: URL): Promise<URL | undefined> {
   // 1. If X is a file, load X as its file extension format. STOP
@@ -575,11 +604,12 @@ async function loadAsIndex(packageURL: URL): Promise<URL | undefined> {
 async function loadAsDirectory(
   packageURL: URL,
   pjson: PackageJson | null,
+  field: string = "main",
 ): Promise<URL | undefined> {
   //   1. If X/package.json is a file,
   if (pjson) {
     //   a. Parse X/package.json, and look for "main" field.
-    const main = pjson.main;
+    const main = pjson[field];
 
     //   b. If "main" is a falsy value, GOTO 2.
     if (typeof main !== "string") return loadAsIndex(packageURL);
@@ -597,22 +627,12 @@ async function loadAsDirectory(
     //   f. LOAD_INDEX(X) DEPRECATED
 
     //   g. THROW "not found"
-    throw new Error();
+    // throw new Error("not found");
+    return;
   }
 
   // 2. LOAD_INDEX(X)
   return loadAsIndex(packageURL);
-}
-
-function packageBrowserResolve(
-  packageURL: URL,
-  subpath: `.${string}`,
-  browser: unknown,
-): URL | undefined {
-  // 1. If subpath is equal to ".", then
-  if (subpath === "." && typeof browser === "string") {
-    return join(packageURL, browser);
-  }
 }
 
 export function isObject(value: unknown): value is Record<string, unknown> {
