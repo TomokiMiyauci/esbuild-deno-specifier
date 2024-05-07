@@ -1,14 +1,10 @@
 import {
-  type AssertedModule,
   esmFileFormat,
-  type EsmModule,
   type Format,
   fromFileUrl,
   type Loader,
   type MediaType,
   type Module,
-  type ModuleEntry,
-  type NodeModule,
   type NpmModule,
   type OnResolveResult,
   type PackageJson,
@@ -21,13 +17,15 @@ import { isBuiltin } from "node:module";
 import {
   loadAsFile,
   npmResolve,
-  resolveNpmModule,
   resolveSideEffects,
 } from "./src/modules/npm.ts";
 import { formatToMediaType, isObject } from "./src/utils.ts";
 import type { PluginData } from "./src/types.ts";
 import { existFile, readFile } from "./src/context.ts";
 import { resolveBrowser } from "./src/browser.ts";
+import { resolveModuleEntryLike } from "./src/modules/module.ts";
+import { resolveNodeModule } from "./src/modules/node.ts";
+import { resolveAssertedModule } from "./src/modules/asserted.ts";
 
 export function denoPlugin(options?: {
   existDir(url: URL): Promise<boolean>;
@@ -255,64 +253,6 @@ function npmResultToResolveResult(
   );
 
   return { path, namespace: "deno", pluginData, sideEffects };
-}
-
-function resolveModuleEntryLike(
-  moduleEntry: ModuleEntry | undefined,
-  source: Source,
-): Promise<OnResolveResult> | OnResolveResult {
-  if (!moduleEntry) throw new Error();
-
-  if ("error" in moduleEntry) throw new Error(moduleEntry.error);
-
-  switch (moduleEntry.kind) {
-    case "esm":
-      return resolveEsmModule(moduleEntry, source);
-
-    case "node":
-      return resolveNodeModule(moduleEntry);
-
-    case "asserted":
-      return resolveAssertedModule(moduleEntry, source);
-
-    case "npm":
-      return resolveNpmModule(moduleEntry, source);
-  }
-}
-
-function resolveEsmModule(module: EsmModule, source: Source): OnResolveResult {
-  const path = module.local;
-
-  if (!path) throw new Error();
-
-  const pluginData = {
-    mediaType: module.mediaType,
-    module,
-    source,
-  } satisfies PluginData;
-
-  return { path, namespace: "deno", pluginData };
-}
-
-function resolveNodeModule(module: NodeModule): OnResolveResult {
-  return { external: true, path: module.specifier };
-}
-
-function resolveAssertedModule(
-  module: AssertedModule,
-  source: Source,
-): OnResolveResult {
-  const path = module.local;
-
-  if (!path) throw new Error();
-
-  const pluginData = {
-    mediaType: module.mediaType,
-    module,
-    source,
-  } satisfies PluginData;
-
-  return { path, namespace: "deno", pluginData };
 }
 
 interface NpmResult {
