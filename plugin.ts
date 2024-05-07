@@ -22,6 +22,7 @@ import { resolveBrowser } from "./src/browser.ts";
 import { resolveModuleEntryLike } from "./src/modules/module.ts";
 import { resolveNodeModule } from "./src/modules/node.ts";
 import { resolveAssertedModule } from "./src/modules/asserted.ts";
+import { resolveDependency } from "./src/modules/esm.ts";
 
 export function denoPlugin(options?: {
   existDir(url: URL): Promise<boolean>;
@@ -117,9 +118,7 @@ export function denoPlugin(options?: {
               throw new Error("not found");
             }
 
-            if (isBuiltin(specifier)) {
-              return { external: true };
-            }
+            if (isBuiltin(specifier)) return { external: true };
 
             const npm = pluginData.source.npmPackages[module.npmPackage];
 
@@ -170,12 +169,7 @@ export function denoPlugin(options?: {
           }
 
           case "esm": {
-            const dep = module.dependencies?.find((dep) =>
-              dep.specifier === specifier
-            );
-
-            if (!dep) throw new Error();
-            if ("error" in dep.code) throw new Error(dep.code.error);
+            const dep = resolveDependency(specifier, module);
 
             const mod = source.modules.find((module) =>
               module.specifier === dep.code.specifier
