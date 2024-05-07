@@ -1,11 +1,16 @@
 import { toFileUrl } from "jsr:@std/path@^0.221.0/to-file-url";
 import {
+  type AssertedModule,
   esmFileFormat,
+  type EsmModule,
   type Format,
   type Loader,
   type MediaType,
   type Module,
+  type ModuleEntry,
+  type NodeModule,
   type NpmModule,
+  type OnResolveResult,
   packageExportsResolve,
   type PackageJson,
   type Plugin,
@@ -24,15 +29,15 @@ import {
 } from "./src/side_effects.ts";
 
 interface PluginData {
-  // mediaType: MediaType;
-  // resolveDir: string;
-  // url: URL;
-  // context: any;
-  pjson: PackageJson | null;
-  packageURL: URL;
   module: Module;
   source: Source;
   mediaType: MediaType;
+  npm?: NpmContext;
+}
+
+interface NpmContext {
+  pjson: PackageJson | null;
+  packageURL: URL;
 }
 
 async function readFile(url: URL): Promise<string | null> {
@@ -93,7 +98,7 @@ export function denoPlugin(options?: {
     name: "deno",
     setup(build) {
       build.onResolve(
-        { filter: /^npm:|^jsr:|^https?:|^data:/ },
+        { filter: /^npm:|^jsr:|^https?:|^data:|^node:/ },
         async (args) => {
           const { path: specifier } = args;
           const source = await info(specifier);
@@ -102,81 +107,28 @@ export function denoPlugin(options?: {
             module.specifier === normalized
           );
 
-          if (!module) throw new Error(`Cannot find module "${specifier}"`);
-          if ("error" in module) throw new Error(module.error);
-
-          switch (module.kind) {
-            case "node": {
-              return { external: true, path: module.specifier };
-            }
-
-            case "asserted":
-            case "esm": {
-              const path = module.local;
-
-              if (!path) throw new Error();
-
-              return {
-                path,
-                namespace: "deno",
-                pluginData: {
-                  mediaType: module.mediaType,
-                },
-              };
-            }
-
-            case "npm": {
-              const { url, pjson, format, packageURL } = await npmResolve(
-                module,
-                source,
-              );
-
-              if (!url) {
-                return { path: `${args.path}`, namespace: "(disabled)" };
-              }
-
-              const mediaType: MediaType = format
-                ? formatToMediaType(format)
-                : "Unknown";
-              const pluginData = {
-                pjson,
-                module,
-                source,
-                mediaType,
-                packageURL,
-              } satisfies PluginData;
-              const path = fromFileUrl(url);
-              const sideEffects = resolveSideEffects(
-                pjson?.sideEffects,
-                fromFileUrl(packageURL),
-                path,
-              );
-
-              return {
-                path,
-                namespace: "deno",
-                sideEffects,
-                pluginData,
-              };
-            }
-          }
+          return resolveModuleEntryLike(module, source);
         },
       );
 
       build.onResolve({ filter: /.*/, namespace: "deno" }, async (args) => {
         const pluginData = args.pluginData as PluginData;
         const module = pluginData.module;
-        const pjson = pluginData.pjson;
         const source = pluginData.source;
-        const packageURL = pluginData.packageURL;
         let specifier = args.path;
-        const browser = pjson?.browser;
         console.log(
           `⬥ [VERBOSE] Resolving import "${args.path}" from "${args.importer}"`,
         );
 
         switch (module.kind) {
           case "npm": {
+            const npmContext = pluginData.npm;
+
+            if (!npmContext) throw new Error();
+            const pjson = npmContext.pjson;
+            const packageURL = npmContext.packageURL;
+            const browser = pjson?.browser;
+
             if (isObject(browser)) {
               const result = resolveBrowser(specifier, browser);
 
@@ -208,9 +160,8 @@ export function denoPlugin(options?: {
                 const pluginData = {
                   mediaType,
                   module,
-                  pjson,
                   source,
-                  packageURL,
+                  npm: { pjson, packageURL },
                 } satisfies PluginData;
                 const path = fromFileUrl(fileResult);
                 const sideEffects = resolveSideEffects(
@@ -233,7 +184,7 @@ export function denoPlugin(options?: {
             }
 
             if (isBuiltin(specifier)) {
-              throw new Error(`Cannot find module ${specifier}`);
+              return { external: true };
             }
 
             const npm = pluginData.source.npmPackages[module.npmPackage];
@@ -262,9 +213,8 @@ export function denoPlugin(options?: {
               const pluginData = {
                 source,
                 module,
-                pjson,
                 mediaType,
-                packageURL,
+                npm: { pjson, packageURL },
               } satisfies PluginData;
 
               if (!url) {
@@ -310,9 +260,8 @@ export function denoPlugin(options?: {
               const pluginData = {
                 source,
                 module,
-                pjson,
                 mediaType,
-                packageURL,
+                npm: { pjson, packageURL },
               } satisfies PluginData;
 
               if (!url) {
@@ -344,9 +293,26 @@ export function denoPlugin(options?: {
             });
           }
 
-          default: {
-            throw new Error("module not supported");
+          case "esm": {
+            const dep = module.dependencies?.find((dep) =>
+              dep.specifier === specifier
+            );
+
+            if (!dep) throw new Error();
+            if ("error" in dep.code) throw new Error(dep.code.error);
+
+            const mod = source.modules.find((module) =>
+              module.specifier === dep.code.specifier
+            );
+
+            return resolveModuleEntryLike(mod, source);
           }
+
+          case "node":
+            return resolveNodeModule(module);
+
+          case "asserted":
+            return resolveAssertedModule(module, source);
         }
       });
 
@@ -368,6 +334,94 @@ export function denoPlugin(options?: {
       });
     },
   };
+}
+
+function resolveModuleEntryLike(
+  moduleEntry: ModuleEntry | undefined,
+  source: Source,
+): Promise<OnResolveResult> | OnResolveResult {
+  if (!moduleEntry) throw new Error();
+
+  if ("error" in moduleEntry) throw new Error(moduleEntry.error);
+
+  switch (moduleEntry.kind) {
+    case "esm":
+      return resolveEsmModule(moduleEntry, source);
+
+    case "node":
+      return resolveNodeModule(moduleEntry);
+
+    case "asserted":
+      return resolveAssertedModule(moduleEntry, source);
+
+    case "npm":
+      return resolveNpmModule(moduleEntry, source);
+  }
+}
+
+function resolveEsmModule(module: EsmModule, source: Source): OnResolveResult {
+  const path = module.local;
+
+  if (!path) throw new Error();
+
+  const pluginData = {
+    mediaType: module.mediaType,
+    module,
+    source,
+  } satisfies PluginData;
+
+  return { path, namespace: "deno", pluginData };
+}
+
+function resolveNodeModule(module: NodeModule): OnResolveResult {
+  return { external: true, path: module.specifier };
+}
+
+async function resolveNpmModule(
+  module: NpmModule,
+  source: Source,
+): Promise<OnResolveResult> {
+  const { url, pjson, format, packageURL } = await npmResolve(
+    module,
+    source,
+  );
+
+  if (!url) {
+    return { namespace: "(disabled)" };
+  }
+
+  const mediaType: MediaType = format ? formatToMediaType(format) : "Unknown";
+  const pluginData = {
+    module,
+    source,
+    mediaType,
+    npm: { pjson, packageURL },
+  } satisfies PluginData;
+  const path = fromFileUrl(url);
+  const sideEffects = resolveSideEffects(
+    pjson?.sideEffects,
+    fromFileUrl(packageURL),
+    path,
+  );
+
+  return { path, namespace: "deno", sideEffects, pluginData };
+}
+
+function resolveAssertedModule(
+  module: AssertedModule,
+  source: Source,
+): OnResolveResult {
+  const path = module.local;
+
+  if (!path) throw new Error();
+
+  const pluginData = {
+    mediaType: module.mediaType,
+    module,
+    source,
+  } satisfies PluginData;
+
+  return { path, namespace: "deno", pluginData };
 }
 
 function resolveSideEffects(
