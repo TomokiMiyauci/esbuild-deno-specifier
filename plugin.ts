@@ -17,6 +17,11 @@ import { join } from "jsr:@std/url@^0.221.0";
 import { info } from "./modules/deno/info.ts";
 import { DenoDir, fromFileUrl } from "../deno-module-resolution/deps.ts";
 import { isBuiltin } from "node:module";
+import {
+  matchSideEffects,
+  normalizeSideEffects,
+  validateSideEffects,
+} from "./src/side_effects.ts";
 
 interface PluginData {
   // mediaType: MediaType;
@@ -90,13 +95,14 @@ export function denoPlugin(options?: {
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:/ },
         async (args) => {
-          const source = await info(args.path);
+          const { path: specifier } = args;
+          const source = await info(specifier);
           const normalized = source.redirects[args.path] ?? args.path;
           const module = source.modules.find((module) =>
             module.specifier === normalized
           );
 
-          if (!module) throw new Error("Cannot find module");
+          if (!module) throw new Error(`Cannot find module "${specifier}"`);
           if ("error" in module) throw new Error(module.error);
 
           switch (module.kind) {
@@ -124,16 +130,9 @@ export function denoPlugin(options?: {
                 module,
                 source,
               );
-              const sideEffects = typeof pjson?.sideEffects === "boolean"
-                ? pjson.sideEffects
-                : undefined;
 
               if (!url) {
-                return {
-                  path: `${args.path}`,
-                  namespace: "(disabled)",
-                  sideEffects,
-                };
+                return { path: `${args.path}`, namespace: "(disabled)" };
               }
 
               const mediaType: MediaType = format
@@ -146,9 +145,15 @@ export function denoPlugin(options?: {
                 mediaType,
                 packageURL,
               } satisfies PluginData;
+              const path = fromFileUrl(url);
+              const sideEffects = resolveSideEffects(
+                pjson?.sideEffects,
+                fromFileUrl(packageURL),
+                path,
+              );
 
               return {
-                path: fromFileUrl(url),
+                path,
                 namespace: "deno",
                 sideEffects,
                 pluginData,
@@ -165,9 +170,6 @@ export function denoPlugin(options?: {
         const source = pluginData.source;
         const packageURL = pluginData.packageURL;
         let specifier = args.path;
-        const sideEffects = typeof pjson?.sideEffects === "boolean"
-          ? pjson.sideEffects
-          : undefined;
         const browser = pjson?.browser;
         console.log(
           `⬥ [VERBOSE] Resolving import "${args.path}" from "${args.importer}"`,
@@ -183,7 +185,6 @@ export function denoPlugin(options?: {
                   return {
                     path: `${args.path}`,
                     namespace: "(disabled)",
-                    sideEffects,
                   };
                 } else {
                   specifier = result.specifier;
@@ -211,10 +212,18 @@ export function denoPlugin(options?: {
                   source,
                   packageURL,
                 } satisfies PluginData;
+                const path = fromFileUrl(fileResult);
+                const sideEffects = resolveSideEffects(
+                  pjson?.sideEffects,
+                  fromFileUrl(packageURL),
+                  path,
+                );
+
                 return {
-                  path: fromFileUrl(fileResult),
+                  path,
                   namespace: "deno",
                   pluginData,
+                  sideEffects,
                 };
               }
 
@@ -259,18 +268,17 @@ export function denoPlugin(options?: {
               } satisfies PluginData;
 
               if (!url) {
-                return {
-                  path: `${args.path}`,
-                  namespace: "(disabled)",
-                  sideEffects,
-                };
+                return { path: `${args.path}`, namespace: "(disabled)" };
               }
 
-              return {
-                path: fromFileUrl(url),
-                namespace: "deno",
-                pluginData,
-              };
+              const path = fromFileUrl(url);
+              const sideEffects = resolveSideEffects(
+                pjson?.sideEffects,
+                fromFileUrl(packageURL),
+                path,
+              );
+
+              return { path, namespace: "deno", pluginData, sideEffects };
             }
 
             const depsMap = new Map<string, string>(
@@ -306,20 +314,20 @@ export function denoPlugin(options?: {
                 mediaType,
                 packageURL,
               } satisfies PluginData;
-              const sideEffects = typeof pjson?.sideEffects === "boolean"
-                ? pjson.sideEffects
-                : undefined;
 
               if (!url) {
-                return {
-                  path: `${args.path}`,
-                  namespace: "(disabled)",
-                  sideEffects,
-                };
+                return { path: `${args.path}`, namespace: "(disabled)" };
               }
 
+              const path = fromFileUrl(url);
+              const sideEffects = resolveSideEffects(
+                pjson?.sideEffects,
+                fromFileUrl(packageURL),
+                path,
+              );
+
               return {
-                path: fromFileUrl(url),
+                path,
                 namespace: "deno",
                 pluginData,
                 sideEffects,
@@ -360,6 +368,21 @@ export function denoPlugin(options?: {
       });
     },
   };
+}
+
+function resolveSideEffects(
+  sideEffects: unknown,
+  packagePath: string,
+  path: string,
+): undefined | boolean {
+  if (!validateSideEffects(sideEffects)) return undefined;
+
+  const normalizedSideEffects = normalizeSideEffects(
+    sideEffects,
+    packagePath,
+  );
+
+  return matchSideEffects(normalizedSideEffects, path);
 }
 
 interface NpmResult {
