@@ -12,7 +12,12 @@ import {
   type Source,
   toFileUrl,
 } from "../../deps.ts";
-import { formatToMediaType, isLikePath, isObject } from "../utils.ts";
+import {
+  formatToMediaType,
+  isLikePath,
+  isObject,
+  parseNpmPkg,
+} from "../utils.ts";
 import type { PluginData } from "../types.ts";
 import {
   denoDir,
@@ -293,4 +298,48 @@ export function resolveSideEffects(
   );
 
   return matchSideEffects(normalizedSideEffects, path);
+}
+
+export function resolveNpmDependency(
+  module: NpmModule,
+  source: Source,
+  context: {
+    specifier: string;
+  },
+): Promise<OnResolveResult> | undefined {
+  const npm = source.npmPackages[module.npmPackage];
+
+  if (!npm) throw new Error("npm not found");
+
+  const { name, subpath } = parseNpmPkg(context.specifier);
+
+  if (npm.name === name) {
+    const childModule = {
+      kind: "npm",
+      specifier: `npm:/${npm.name}@${npm.version}${subpath.slice(1)}`,
+      npmPackage: module.npmPackage,
+    } satisfies NpmModule;
+
+    return resolveNpmModule(childModule, source, context);
+  }
+
+  const mapped = npm.dependencies.map((fullSpecifier) => {
+    return [
+      fullSpecifier,
+      source.npmPackages[fullSpecifier],
+    ] as const;
+  });
+
+  const depEntry = mapped.find(([_, npm]) => npm.name === name);
+
+  if (depEntry) {
+    const [npmPackage, dep] = depEntry;
+    const module = {
+      kind: "npm",
+      specifier: `npm:/${dep.name}@${dep.version}${subpath.slice(1)}`,
+      npmPackage,
+    } satisfies NpmModule;
+
+    return resolveNpmModule(module, source, context);
+  }
 }

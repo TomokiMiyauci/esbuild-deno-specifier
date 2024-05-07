@@ -4,7 +4,6 @@ import {
   join,
   type Loader,
   type MediaType,
-  type NpmModule,
   type Plugin,
   toFileUrl,
 } from "./deps.ts";
@@ -12,7 +11,7 @@ import { info } from "./modules/deno/info.ts";
 import { isBuiltin } from "node:module";
 import {
   loadAsFile,
-  resolveNpmModule,
+  resolveNpmDependency,
   resolveSideEffects,
 } from "./src/modules/npm.ts";
 import {
@@ -125,42 +124,11 @@ export function denoPlugin(options?: {
 
             if (isBuiltin(specifier)) return { external: true };
 
-            const npm = pluginData.source.npmPackages[module.npmPackage];
+            const result = resolveNpmDependency(module, source, { specifier });
 
-            if (!npm) throw new Error("npm not found");
+            if (result) return result;
 
-            const { name, subpath } = parseNpmPkg(specifier);
-
-            if (npm.name === name) {
-              const childModule = {
-                kind: "npm",
-                specifier: `npm:/${npm.name}@${npm.version}${subpath.slice(1)}`,
-                npmPackage: module.npmPackage,
-              } satisfies NpmModule;
-
-              return resolveNpmModule(childModule, source, { specifier });
-            }
-
-            const mapped = npm.dependencies.map((fullSpecifier) => {
-              return [
-                fullSpecifier,
-                source.npmPackages[fullSpecifier],
-              ] as const;
-            });
-
-            const depEntry = mapped.find(([_, npm]) => npm.name === name);
-
-            if (depEntry) {
-              const [npmPackage, dep] = depEntry;
-              const module = {
-                kind: "npm",
-                specifier: `npm:/${dep.name}@${dep.version}${subpath.slice(1)}`,
-                npmPackage,
-              } satisfies NpmModule;
-
-              return resolveNpmModule(module, source, { specifier });
-            }
-
+            const { subpath } = parseNpmPkg(specifier);
             // The case where dependencies cannot be detected is when optional: true in peerDependency.
             // In this case, version resolution is left to the user
             const pkg = `npm:/${specifier}${subpath.slice(1)}`;
