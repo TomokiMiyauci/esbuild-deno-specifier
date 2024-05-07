@@ -12,7 +12,7 @@ import {
   type Source,
   toFileUrl,
 } from "../../deps.ts";
-import { formatToMediaType, isObject } from "../utils.ts";
+import { formatToMediaType, isLikePath, isObject } from "../utils.ts";
 import type { PluginData } from "../types.ts";
 import {
   denoDir,
@@ -28,9 +28,14 @@ import {
   validateSideEffects,
 } from "../side_effects.ts";
 
+export interface Context {
+  specifier: string;
+}
+
 export async function resolveNpmModule(
   module: NpmModule,
   source: Source,
+  context: Context,
 ): Promise<OnResolveResult> {
   const { url, pjson, format, packageURL } = await npmResolve(
     module,
@@ -38,7 +43,11 @@ export async function resolveNpmModule(
   );
 
   if (!url) {
-    return { namespace: "(disabled)" };
+    const path = isLikePath(context.specifier)
+      ? fromFileUrl(join(packageURL, context.specifier))
+      : context.specifier;
+
+    return { path, namespace: "(disabled)" };
   }
 
   const mediaType: MediaType = format ? formatToMediaType(format) : "Unknown";

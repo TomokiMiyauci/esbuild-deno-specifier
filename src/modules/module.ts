@@ -4,7 +4,7 @@ import {
   type OnResolveResult,
   type Source,
 } from "../../deps.ts";
-import { resolveNpmModule } from "./npm.ts";
+import { type Context, resolveNpmModule } from "./npm.ts";
 import { resolveEsmModule } from "./esm.ts";
 import { resolveNodeModule } from "./node.ts";
 import { resolveAssertedModule } from "./asserted.ts";
@@ -12,14 +12,19 @@ import { resolveAssertedModule } from "./asserted.ts";
 export function resolveModuleEntryLike(
   moduleEntry: ModuleEntry | undefined,
   source: Source,
+  context: Context,
 ): Promise<OnResolveResult> | OnResolveResult {
   if (!moduleEntry) throw new Error();
   if ("error" in moduleEntry) throw new Error(moduleEntry.error);
 
-  return resolveModule(moduleEntry, source);
+  return resolveModule(moduleEntry, source, context);
 }
 
-export function resolveModule(module: Module, source: Source) {
+export function resolveModule(
+  module: Module,
+  source: Source,
+  context: Context,
+): OnResolveResult | Promise<OnResolveResult> {
   switch (module.kind) {
     case "esm":
       return resolveEsmModule(module, source);
@@ -31,6 +36,6 @@ export function resolveModule(module: Module, source: Source) {
       return resolveAssertedModule(module, source);
 
     case "npm":
-      return resolveNpmModule(module, source);
+      return resolveNpmModule(module, source, context);
   }
 }

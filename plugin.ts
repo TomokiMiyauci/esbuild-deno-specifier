@@ -1,25 +1,21 @@
 import {
   esmFileFormat,
-  type Format,
   fromFileUrl,
+  join,
   type Loader,
   type MediaType,
-  type Module,
   type NpmModule,
-  type OnResolveResult,
-  type PackageJson,
   type Plugin,
-  type Source,
   toFileUrl,
 } from "./deps.ts";
 import { info } from "./modules/deno/info.ts";
 import { isBuiltin } from "node:module";
 import {
   loadAsFile,
-  npmResolve,
+  resolveNpmModule,
   resolveSideEffects,
 } from "./src/modules/npm.ts";
-import { formatToMediaType, isObject } from "./src/utils.ts";
+import { formatToMediaType, isLikePath, isObject } from "./src/utils.ts";
 import type { PluginData } from "./src/types.ts";
 import { existFile, readFile } from "./src/context.ts";
 import { resolveBrowser } from "./src/browser.ts";
@@ -44,7 +40,7 @@ export function denoPlugin(options?: {
             module.specifier === normalized
           );
 
-          return resolveModuleEntryLike(module, source);
+          return resolveModuleEntryLike(module, source, { specifier });
         },
       );
 
@@ -71,10 +67,11 @@ export function denoPlugin(options?: {
 
               if (result) {
                 if (result.specifier === null) {
-                  return {
-                    path: `${args.path}`,
-                    namespace: "(disabled)",
-                  };
+                  const path = isLikePath(specifier)
+                    ? fromFileUrl(join(packageURL, specifier))
+                    : specifier;
+
+                  return { path, namespace: "(disabled)" };
                 } else {
                   specifier = result.specifier;
                 }
@@ -137,13 +134,7 @@ export function denoPlugin(options?: {
                 npmPackage: module.npmPackage,
               } satisfies NpmModule;
 
-              const result = await npmResolve(childModule, source);
-
-              return npmResultToResolveResult(result, {
-                module: childModule,
-                source,
-                path: args.path,
-              });
+              return resolveNpmModule(childModule, source, { specifier });
             }
 
             const nameWithVersion = npm.dependencies.find((nameWithVersion) => {
@@ -162,13 +153,7 @@ export function denoPlugin(options?: {
                 npmPackage: nameWithVersion,
               } satisfies NpmModule;
 
-              const result = await npmResolve(module, source);
-
-              return npmResultToResolveResult(result, {
-                source,
-                module,
-                path: args.path,
-              });
+              return resolveNpmModule(module, source, { specifier });
             }
 
             // The case where dependencies cannot be detected is when optional: true in peerDependency.
@@ -196,7 +181,7 @@ export function denoPlugin(options?: {
               module.specifier === dep.code.specifier
             );
 
-            return resolveModuleEntryLike(mod, source);
+            return resolveModuleEntryLike(mod, source, { specifier });
           }
 
           case "node":
@@ -225,41 +210,6 @@ export function denoPlugin(options?: {
       });
     },
   };
-}
-
-function npmResultToResolveResult(
-  result: NpmResult,
-  context: { module: Module; source: Source; path: string },
-): OnResolveResult {
-  const { url, format, pjson, packageURL } = result;
-
-  if (!url) {
-    return { path: `${context.path}`, namespace: "(disabled)" };
-  }
-
-  const mediaType: MediaType = format ? formatToMediaType(format) : "Unknown";
-  const pluginData = {
-    source: context.source,
-    module: context.module,
-    mediaType,
-    npm: { pjson, packageURL },
-  } satisfies PluginData;
-
-  const path = fromFileUrl(url);
-  const sideEffects = resolveSideEffects(
-    pjson?.sideEffects,
-    fromFileUrl(packageURL),
-    path,
-  );
-
-  return { path, namespace: "deno", pluginData, sideEffects };
-}
-
-interface NpmResult {
-  url: URL | null;
-  pjson: PackageJson | null;
-  format: Format | null;
-  packageURL: URL;
 }
 
 function mediaTypeToLoader(mediaType: MediaType): Loader {
