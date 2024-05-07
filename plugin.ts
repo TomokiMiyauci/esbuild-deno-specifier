@@ -15,7 +15,12 @@ import {
   resolveNpmModule,
   resolveSideEffects,
 } from "./src/modules/npm.ts";
-import { formatToMediaType, isLikePath, isObject } from "./src/utils.ts";
+import {
+  formatToMediaType,
+  isLikePath,
+  isObject,
+  parseNpmPkg,
+} from "./src/utils.ts";
 import type { PluginData } from "./src/types.ts";
 import { existFile, readFile } from "./src/context.ts";
 import { resolveBrowser } from "./src/browser.ts";
@@ -136,20 +141,21 @@ export function denoPlugin(options?: {
               return resolveNpmModule(childModule, source, { specifier });
             }
 
-            const nameWithVersion = npm.dependencies.find((nameWithVersion) => {
-              const onlyName = extractName(nameWithVersion);
-
-              return onlyName === name;
+            const mapped = npm.dependencies.map((fullSpecifier) => {
+              return [
+                fullSpecifier,
+                source.npmPackages[fullSpecifier],
+              ] as const;
             });
 
-            const dep = nameWithVersion &&
-              source.npmPackages[nameWithVersion];
+            const depEntry = mapped.find(([_, npm]) => npm.name === name);
 
-            if (dep) {
+            if (depEntry) {
+              const [npmPackage, dep] = depEntry;
               const module = {
                 kind: "npm",
                 specifier: `npm:/${dep.name}@${dep.version}${subpath.slice(1)}`,
-                npmPackage: nameWithVersion,
+                npmPackage,
               } satisfies NpmModule;
 
               return resolveNpmModule(module, source, { specifier });
@@ -228,32 +234,4 @@ function mediaTypeToLoader(mediaType: MediaType): Loader {
     default:
       return "default";
   }
-}
-
-function parseNpmPkg(specifier: string) {
-  const index = specifier.startsWith("@")
-    ? secondIndexOf(specifier, "/")
-    : specifier.indexOf("/");
-
-  const name = index === -1 ? specifier : specifier.slice(0, index);
-
-  return {
-    name,
-    subpath: `.${specifier.slice(name.length)}`,
-  };
-}
-
-function extractName(input: string): string {
-  const at = input.startsWith("@")
-    ? secondIndexOf(input, "@")
-    : input.indexOf("@");
-  return at === -1 ? input : input.slice(0, at);
-}
-
-function secondIndexOf(input: string, searchString: string): number {
-  const firstIndex = input.indexOf(searchString);
-
-  if (firstIndex === -1) return -1;
-
-  return input.indexOf(searchString, firstIndex + 1);
 }
