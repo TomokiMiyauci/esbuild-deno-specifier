@@ -1,13 +1,14 @@
 import {
   esmFileFormat,
   fromFileUrl,
+  info,
   join,
   type Loader,
   type MediaType,
   type Plugin,
+  Source,
   toFileUrl,
 } from "./deps.ts";
-import { info } from "./modules/deno/info.ts";
 import { isBuiltin } from "node:module";
 import {
   loadAsFile,
@@ -35,12 +36,17 @@ export function denoPlugin(options?: {
   return {
     name: "deno",
     setup(build) {
+      const sourceCache = new Map<string, Source>();
+
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:/ },
-        async (args) => {
-          const { path: specifier } = args;
-          const source = await info(specifier);
-          const normalized = source.redirects[args.path] ?? args.path;
+        async ({ path: specifier }) => {
+          const source = sourceCache.has(specifier)
+            ? sourceCache.get(specifier)!
+            : await info(specifier);
+
+          sourceCache.set(specifier, source);
+          const normalized = source.redirects[specifier] ?? specifier;
           const module = source.modules.find((module) =>
             module.specifier === normalized
           );
@@ -63,6 +69,7 @@ export function denoPlugin(options?: {
             const npmContext = pluginData.npm;
 
             if (!npmContext) throw new Error();
+
             const pjson = npmContext.pjson;
             const packageURL = npmContext.packageURL;
             const browser = pjson?.browser;
