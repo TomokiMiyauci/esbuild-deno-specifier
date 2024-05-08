@@ -6,28 +6,28 @@ import {
   type Loader,
   type MediaType,
   type Plugin,
-  Source,
+  type Source,
   toFileUrl,
-} from "./deps.ts";
+} from "../deps.ts";
 import { isBuiltin } from "node:module";
 import {
   loadAsFile,
   resolveNpmDependency,
   resolveSideEffects,
-} from "./src/modules/npm.ts";
+} from "./modules/npm.ts";
 import {
   formatToMediaType,
   isLikePath,
   isObject,
   parseNpmPkg,
-} from "./src/utils.ts";
-import type { PluginData } from "./src/types.ts";
-import { existFile, readFile } from "./src/context.ts";
-import { resolveBrowser } from "./src/browser.ts";
-import { resolveModuleEntryLike } from "./src/modules/module.ts";
-import { resolveNodeModule } from "./src/modules/node.ts";
-import { resolveAssertedModule } from "./src/modules/asserted.ts";
-import { resolveDependency } from "./src/modules/esm.ts";
+} from "./utils.ts";
+import type { PluginData } from "./types.ts";
+import { existFile, readFile } from "./context.ts";
+import { resolveBrowser } from "./browser.ts";
+import { resolveModuleEntryLike } from "./modules/module.ts";
+import { resolveNodeModule } from "./modules/node.ts";
+import { resolveAssertedModule } from "./modules/asserted.ts";
+import { resolveDependency } from "./modules/esm.ts";
 
 export function denoPlugin(options?: {
   existDir(url: URL): Promise<boolean>;
