@@ -28,6 +28,7 @@ import { resolveModuleEntryLike } from "./modules/module.ts";
 import { resolveNodeModule } from "./modules/node.ts";
 import { resolveAssertedModule } from "./modules/asserted.ts";
 import { resolveDependency } from "./modules/esm.ts";
+import { resolveConditions } from "./conditions.ts";
 
 export function denoPlugin(options?: {
   existDir(url: URL): Promise<boolean>;
@@ -40,7 +41,7 @@ export function denoPlugin(options?: {
 
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:/ },
-        async ({ path: specifier }) => {
+        async ({ path: specifier, kind }) => {
           const source = sourceCache.has(specifier)
             ? sourceCache.get(specifier)!
             : await info(specifier);
@@ -51,7 +52,16 @@ export function denoPlugin(options?: {
             module.specifier === normalized
           );
 
-          return resolveModuleEntryLike(module, source, { specifier });
+          const conditions = resolveConditions({
+            kind,
+            platform: build.initialOptions.platform,
+            conditions: build.initialOptions.conditions,
+          });
+
+          return resolveModuleEntryLike(module, source, {
+            specifier,
+            conditions,
+          });
         },
       );
 
@@ -63,6 +73,11 @@ export function denoPlugin(options?: {
         console.log(
           `⬥ [VERBOSE] Resolving import "${args.path}" from "${args.importer}"`,
         );
+        const conditions = resolveConditions({
+          kind: args.kind,
+          platform: build.initialOptions.platform,
+          conditions: build.initialOptions.conditions,
+        });
 
         switch (module.kind) {
           case "npm": {
@@ -131,7 +146,10 @@ export function denoPlugin(options?: {
 
             if (isBuiltin(specifier)) return { external: true };
 
-            const result = resolveNpmDependency(module, source, { specifier });
+            const result = resolveNpmDependency(module, source, {
+              specifier,
+              conditions,
+            });
 
             if (result) return result;
 
@@ -156,7 +174,10 @@ export function denoPlugin(options?: {
               module.specifier === dep.code.specifier
             );
 
-            return resolveModuleEntryLike(mod, source, { specifier });
+            return resolveModuleEntryLike(mod, source, {
+              specifier,
+              conditions,
+            });
           }
 
           case "node":

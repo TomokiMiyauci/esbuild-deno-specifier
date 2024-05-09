@@ -3,7 +3,9 @@ export {
   type Loader,
   type OnResolveArgs,
   type OnResolveResult,
+  type Platform,
   type Plugin,
+  type PluginBuild,
   type ResolveOptions,
   type ResolveResult,
 } from "npm:esbuild@^0.20.2";

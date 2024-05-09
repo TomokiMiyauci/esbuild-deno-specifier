@@ -45,6 +45,7 @@ export async function resolveNpmModule(
   const { url, pjson, format, packageURL } = await npmResolve(
     module,
     source,
+    context,
   );
 
   if (!url) {
@@ -82,6 +83,7 @@ export interface NpmResult {
 export async function npmResolve(
   module: NpmModule,
   source: Source,
+  context: Context,
 ): Promise<NpmResult> {
   const npm = source.npmPackages[module.npmPackage];
 
@@ -104,6 +106,7 @@ export async function npmResolve(
     packageURL,
     pjson,
     packageSubpath,
+    context,
   );
   const format = result && await esmFileFormat(result, { existFile, readFile });
 
@@ -119,25 +122,31 @@ function resolveNodeModules(
   packageURL: URL,
   pjson: PackageJson | null,
   subpath: `.${string}`,
+  context: Context,
 ): Promise<URL | null> | URL | null {
   const isEsModule = pjson?.type === "module";
 
   return isEsModule
-    ? resolveEsmPackage(packageURL, pjson, subpath)
-    : resolveCjsPackage(packageURL, pjson, subpath);
+    ? resolveEsmPackage(packageURL, pjson, subpath, context)
+    : resolveCjsPackage(packageURL, pjson, subpath, context);
+}
+
+export interface Context {
+  conditions: string[];
 }
 
 async function resolveEsmPackage(
   packageURL: URL,
   pjson: PackageJson | null,
   subpath: `.${string}`,
+  context: Context,
 ) {
   if (pjson && pjson.exports) {
     return packageExportsResolve(
       packageURL,
       subpath,
       pjson.exports,
-      conditions,
+      context.conditions,
       {
         existDir,
         existFile,
@@ -156,19 +165,18 @@ async function resolveEsmPackage(
   throw new Error("ESM");
 }
 
-const conditions = ["import", "browser", "module"];
-
 async function resolveCjsPackage(
   packageURL: URL,
   pjson: PackageJson | null,
   subpath: `.${string}`,
+  context: Context,
 ): Promise<URL | null> {
   if (pjson && "exports" in pjson) {
     return packageExportsResolve(
       packageURL,
       subpath,
       pjson.exports,
-      conditions,
+      context.conditions,
       { existDir, existFile, readFile },
     );
   }
@@ -303,9 +311,7 @@ export function resolveSideEffects(
 export function resolveNpmDependency(
   module: NpmModule,
   source: Source,
-  context: {
-    specifier: string;
-  },
+  context: Context,
 ): Promise<OnResolveResult> | undefined {
   const npm = source.npmPackages[module.npmPackage];
 
