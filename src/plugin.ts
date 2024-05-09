@@ -1,34 +1,15 @@
 import {
-  esmFileFormat,
-  fromFileUrl,
   info,
-  join,
   type Loader,
   type MediaType,
   type Plugin,
   type Source,
-  toFileUrl,
 } from "../deps.ts";
-import { isBuiltin } from "node:module";
-import {
-  loadAsFile,
-  resolveNpmDependency,
-  resolveSideEffects,
-} from "./modules/npm.ts";
-import {
-  formatToMediaType,
-  isLikePath,
-  isObject,
-  normalizePlatform,
-  parseNpmPkg,
-} from "./utils.ts";
 import type { PluginData } from "./types.ts";
-import { existFile, readFile } from "./context.ts";
-import { resolveBrowser } from "./browser.ts";
-import { resolveModuleEntryLike } from "./modules/module.ts";
-import { resolveNodeModule } from "./modules/node.ts";
-import { resolveAssertedModule } from "./modules/asserted.ts";
-import { resolveDependency } from "./modules/esm.ts";
+import {
+  resolveModuleDependency,
+  resolveModuleEntryLike,
+} from "./modules/module.ts";
 import { resolveConditions } from "./conditions.ts";
 
 export function denoPlugin(options?: {
@@ -66,11 +47,11 @@ export function denoPlugin(options?: {
         },
       );
 
-      build.onResolve({ filter: /.*/, namespace: "deno" }, async (args) => {
+      build.onResolve({ filter: /.*/, namespace: "deno" }, (args) => {
         const pluginData = args.pluginData as PluginData;
         const module = pluginData.module;
         const source = pluginData.source;
-        let specifier = args.path;
+        const specifier = args.path;
         // console.log(
         //   `⬥ [VERBOSE] Resolving import "${args.path}" from "${args.importer}"`,
         // );
@@ -80,114 +61,13 @@ export function denoPlugin(options?: {
           conditions: build.initialOptions.conditions,
         });
 
-        switch (module.kind) {
-          case "npm": {
-            const npmContext = pluginData.npm;
-
-            if (!npmContext) throw new Error();
-
-            const pjson = npmContext.pjson;
-            const packageURL = npmContext.packageURL;
-            const browser = pjson?.browser;
-            const platform = normalizePlatform(build.initialOptions.platform);
-
-            if (platform === "browser" && isObject(browser)) {
-              const result = resolveBrowser(specifier, browser);
-
-              if (result) {
-                if (result.specifier === null) {
-                  const path = isLikePath(specifier)
-                    ? fromFileUrl(join(packageURL, specifier))
-                    : specifier;
-
-                  return { path, namespace: "(disabled)" };
-                } else {
-                  specifier = result.specifier;
-                }
-              }
-            }
-
-            if (specifier.startsWith("./") || specifier.startsWith("../")) {
-              const base = toFileUrl(args.importer);
-              const url = new URL(specifier, base);
-              const fileResult = await loadAsFile(url);
-
-              if (fileResult) {
-                const format = await esmFileFormat(fileResult, {
-                  readFile,
-                  existFile,
-                });
-                const mediaType: MediaType = format
-                  ? formatToMediaType(format)
-                  : "Unknown";
-                const pluginData = {
-                  mediaType,
-                  module,
-                  source,
-                  npm: { pjson, packageURL },
-                } satisfies PluginData;
-                const path = fromFileUrl(fileResult);
-                const sideEffects = resolveSideEffects(
-                  pjson?.sideEffects,
-                  fromFileUrl(packageURL),
-                  path,
-                );
-
-                return {
-                  path,
-                  namespace: "deno",
-                  pluginData,
-                  sideEffects,
-                };
-              }
-
-              // const dirResult = await loadAsDirectory(url);
-
-              throw new Error("not found");
-            }
-
-            if (isBuiltin(specifier)) return { external: true };
-
-            const result = resolveNpmDependency(module, source, {
-              specifier,
-              conditions,
-            });
-
-            if (result) return result;
-
-            const { subpath } = parseNpmPkg(specifier);
-            // The case where dependencies cannot be detected is when optional: true in peerDependency.
-            // In this case, version resolution is left to the user
-            const pkg = `npm:/${specifier}${subpath.slice(1)}`;
-
-            return build.resolve(pkg, {
-              importer: args.importer,
-              kind: args.kind,
-              pluginData: args.pluginData,
-              resolveDir: args.resolveDir,
-              pluginName: "deno",
-            });
-          }
-
-          case "esm": {
-            const dep = resolveDependency(specifier, module);
-
-            const mod = source.modules.find((module) =>
-              module.specifier === dep.code.specifier
-            );
-
-            return resolveModuleEntryLike(mod, source, {
-              specifier,
-              conditions,
-            });
-          }
-
-          case "node":
-            return resolveNodeModule(module);
-
-          case "asserted":
-            return resolveAssertedModule(module, source);
-        }
+        return resolveModuleDependency(module, source, {
+          conditions,
+          specifier,
+          npm: pluginData.npm,
+          build,
+          ...args,
+        });
       });
 
       build.onLoad({ filter: /.*/, namespace: "deno" }, async (args) => {
