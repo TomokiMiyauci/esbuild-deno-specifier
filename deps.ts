@@ -19,7 +19,7 @@ export {
 export {
   type AssertedModule,
   type Dependency,
-  type EsmModule,
+  type EsModule,
   info,
   type MediaType,
   type Module,
@@ -33,3 +33,4 @@ export { join } from "jsr:@std/url@^0.221.0";
 export { exists } from "jsr:@std/fs@^0.221.0";
 export { toFileUrl } from "jsr:@std/path@^0.221.0/to-file-url";
 export { DenoDir } from "jsr:@deno/cache-dir@^0.8.0";
+export { format } from "jsr:@miyauci/format@^1";

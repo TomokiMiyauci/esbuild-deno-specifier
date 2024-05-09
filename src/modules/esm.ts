@@ -1,18 +1,27 @@
 import type { PluginData } from "../types.ts";
 import {
   type Dependency,
-  type EsmModule,
+  type EsModule,
+  format,
   type OnResolveResult,
   type Source,
 } from "../../deps.ts";
+import { Msg } from "../constants.ts";
+import type { Context } from "./types.ts";
+import { resolveModuleEntryLike } from "./module.ts";
 
-export function resolveEsmModule(
-  module: EsmModule,
+export function resolveEsModule(
+  module: EsModule,
   source: Source,
+  context: Context,
 ): OnResolveResult {
   const path = module.local;
 
-  if (!path) throw new Error();
+  if (typeof path !== "string") {
+    const message = format(Msg.LocalPathNotFound, context);
+
+    throw new Error(message);
+  }
 
   const pluginData = {
     mediaType: module.mediaType,
@@ -23,14 +32,33 @@ export function resolveEsmModule(
   return { path, namespace: "deno", pluginData };
 }
 
-export function resolveDependency(
+function resolveDependency(
   specifier: string,
-  module: EsmModule,
+  module: EsModule,
 ): Dependency {
   const dep = module.dependencies?.find((dep) => dep.specifier === specifier);
 
-  if (!dep) throw new Error();
+  if (!dep) {
+    const message = format(Msg.DependencyNotFound, { specifier });
+
+    throw new Error(message);
+  }
+
   if ("error" in dep.code) throw new Error(dep.code.error);
 
   return dep;
+}
+
+export function resolveEsModuleDependency(
+  module: EsModule,
+  source: Source,
+  context: Context,
+): OnResolveResult | Promise<OnResolveResult> {
+  const dep = resolveDependency(context.specifier, module);
+
+  const mod = source.modules.find((module) =>
+    module.specifier === dep.code.specifier
+  );
+
+  return resolveModuleEntryLike(mod, source, context);
 }
