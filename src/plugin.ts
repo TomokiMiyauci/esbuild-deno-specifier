@@ -19,6 +19,7 @@ import {
   formatToMediaType,
   isLikePath,
   isObject,
+  normalizePlatform,
   parseNpmPkg,
 } from "./utils.ts";
 import type { PluginData } from "./types.ts";
@@ -70,9 +71,9 @@ export function denoPlugin(options?: {
         const module = pluginData.module;
         const source = pluginData.source;
         let specifier = args.path;
-        console.log(
-          `⬥ [VERBOSE] Resolving import "${args.path}" from "${args.importer}"`,
-        );
+        // console.log(
+        //   `⬥ [VERBOSE] Resolving import "${args.path}" from "${args.importer}"`,
+        // );
         const conditions = resolveConditions({
           kind: args.kind,
           platform: build.initialOptions.platform,
@@ -88,8 +89,9 @@ export function denoPlugin(options?: {
             const pjson = npmContext.pjson;
             const packageURL = npmContext.packageURL;
             const browser = pjson?.browser;
+            const platform = normalizePlatform(build.initialOptions.platform);
 
-            if (isObject(browser)) {
+            if (platform === "browser" && isObject(browser)) {
               const result = resolveBrowser(specifier, browser);
 
               if (result) {

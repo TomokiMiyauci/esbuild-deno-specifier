@@ -2,6 +2,7 @@ import type {
   Format,
   MediaType,
   OnResolveArgs,
+  Platform,
   ResolveOptions,
 } from "../deps.ts";
 export function argsToOptions(args: OnResolveArgs): ResolveOptions {
@@ -66,4 +67,8 @@ function secondIndexOf(input: string, searchString: string): number {
   if (firstIndex === -1) return -1;
 
   return input.indexOf(searchString, firstIndex + 1);
+}
+
+export function normalizePlatform(platform?: Platform): Platform {
+  return platform ?? "browser";
 }
