@@ -6,9 +6,8 @@ import {
   type MediaType,
   type Module,
   type ModuleEntry,
-  OnResolveArgs,
   type OnResolveResult,
-  PluginBuild,
+  Platform,
   type Source,
   toFileUrl,
 } from "../../deps.ts";
@@ -74,9 +73,13 @@ export function resolveModule(
 export async function resolveModuleDependency(
   module: Module,
   source: Source,
-  context: Context & OnResolveArgs & { build: PluginBuild },
+  context: Context & {
+    platform: Platform | undefined;
+    referrer: string;
+    next: (specifier: string) => Promise<OnResolveResult> | OnResolveResult;
+  },
 ): Promise<OnResolveResult> {
-  let { specifier, conditions, npm, importer, build, kind, resolveDir } =
+  let { specifier, conditions, npm, next, platform: _platform, referrer } =
     context;
 
   switch (module.kind) {
@@ -86,7 +89,7 @@ export async function resolveModuleDependency(
       const pjson = npm.pjson;
       const packageURL = npm.packageURL;
       const browser = pjson?.browser;
-      const platform = normalizePlatform(build.initialOptions.platform);
+      const platform = normalizePlatform(_platform);
 
       if (platform === "browser" && isObject(browser)) {
         const result = resolveBrowser(specifier, browser);
@@ -105,7 +108,7 @@ export async function resolveModuleDependency(
       }
 
       if (specifier.startsWith("./") || specifier.startsWith("../")) {
-        const base = toFileUrl(importer);
+        const base = toFileUrl(referrer);
         const url = new URL(specifier, base);
         const fileResult = await loadAsFile(url);
 
@@ -157,12 +160,7 @@ export async function resolveModuleDependency(
       // In this case, version resolution is left to the user
       const pkg = `npm:/${specifier}${subpath.slice(1)}`;
 
-      return build.resolve(pkg, {
-        importer,
-        kind,
-        resolveDir,
-        pluginName: "deno",
-      });
+      return next(pkg);
     }
 
     case "esm": {

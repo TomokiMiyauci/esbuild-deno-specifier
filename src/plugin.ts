@@ -64,9 +64,17 @@ export function denoPlugin(options?: {
         return resolveModuleDependency(module, source, {
           conditions,
           specifier,
+          referrer: args.importer,
           npm: pluginData.npm,
-          build,
-          ...args,
+          platform: build.initialOptions.platform,
+          next: (specifier) => {
+            return build.resolve(specifier, {
+              kind: args.kind,
+              importer: args.importer,
+              pluginName: "deno",
+              resolveDir: args.resolveDir,
+            });
+          },
         });
       });
 
