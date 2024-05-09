@@ -9,6 +9,7 @@ import {
 import { Msg } from "../constants.ts";
 import type { Context } from "./types.ts";
 import { resolveModuleEntryLike } from "./module.ts";
+import { Namespace } from "../constants.ts";
 
 export function resolveEsModule(
   module: EsModule,
@@ -29,7 +30,7 @@ export function resolveEsModule(
     source,
   } satisfies PluginData;
 
-  return { path, namespace: "deno", pluginData };
+  return { path, namespace: Namespace.Deno, pluginData };
 }
 
 function resolveDependency(

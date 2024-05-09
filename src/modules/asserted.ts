@@ -4,6 +4,7 @@ import {
   type OnResolveResult,
   type Source,
 } from "../../deps.ts";
+import { Namespace } from "../constants.ts";
 
 export function resolveAssertedModule(
   module: AssertedModule,
@@ -19,5 +20,5 @@ export function resolveAssertedModule(
     source,
   } satisfies PluginData;
 
-  return { path, namespace: "deno", pluginData };
+  return { path, namespace: Namespace.Deno, pluginData };
 }

@@ -11,18 +11,21 @@ import {
   resolveModuleEntryLike,
 } from "./modules/module.ts";
 import { resolveConditions } from "./conditions.ts";
+import { Namespace } from "./constants.ts";
+
+const NAME = "deno";
 
 export function denoPlugin(options?: {
   existDir(url: URL): Promise<boolean>;
   readFile(url: URL): Promise<string | null | undefined>;
 }): Plugin {
   return {
-    name: "deno",
+    name: NAME,
     setup(build) {
       const sourceCache = new Map<string, Source>();
 
       build.onResolve(
-        { filter: /^npm:|^jsr:|^https?:|^data:|^node:/ },
+        { filter: /^npm:|^jsr:|^https?:|^data:|^node:|^file:/ },
         async ({ path: specifier, kind }) => {
           const source = sourceCache.has(specifier)
             ? sourceCache.get(specifier)!
@@ -47,7 +50,7 @@ export function denoPlugin(options?: {
         },
       );
 
-      build.onResolve({ filter: /.*/, namespace: "deno" }, (args) => {
+      build.onResolve({ filter: /.*/, namespace: Namespace.Deno }, (args) => {
         const pluginData = args.pluginData as PluginData;
         const module = pluginData.module;
         const source = pluginData.source;
@@ -71,27 +74,30 @@ export function denoPlugin(options?: {
             return build.resolve(specifier, {
               kind: args.kind,
               importer: args.importer,
-              pluginName: "deno",
+              pluginName: NAME,
               resolveDir: args.resolveDir,
             });
           },
         });
       });
 
-      build.onLoad({ filter: /.*/, namespace: "deno" }, async (args) => {
-        const pluginData = args.pluginData as PluginData;
-        const contents = await Deno.readTextFile(args.path);
-        const loader = mediaTypeToLoader(pluginData.mediaType);
+      build.onLoad(
+        { filter: /.*/, namespace: Namespace.Deno },
+        async (args) => {
+          const pluginData = args.pluginData as PluginData;
+          const contents = await Deno.readTextFile(args.path);
+          const loader = mediaTypeToLoader(pluginData.mediaType);
 
-        return {
-          contents,
-          loader,
-          pluginData: args.pluginData,
-          // resolveDir: pluginData.resolveDir,
-        };
-      });
+          return {
+            contents,
+            loader,
+            pluginData: args.pluginData,
+            // resolveDir: pluginData.resolveDir,
+          };
+        },
+      );
 
-      build.onLoad({ filter: /.*/, namespace: "(disabled)" }, () => {
+      build.onLoad({ filter: /.*/, namespace: Namespace.Disabled }, () => {
         return { contents: "" };
       });
     },

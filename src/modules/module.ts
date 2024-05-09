@@ -22,7 +22,7 @@ import { resolveNodeModule } from "./node.ts";
 import { resolveAssertedModule } from "./asserted.ts";
 import type { Context } from "./types.ts";
 import type { PluginData } from "../types.ts";
-import { Msg } from "../constants.ts";
+import { Msg, Namespace } from "../constants.ts";
 import {
   formatToMediaType,
   isLikePath,
@@ -100,7 +100,7 @@ export async function resolveModuleDependency(
               ? fromFileUrl(join(packageURL, specifier))
               : specifier;
 
-            return { path, namespace: "(disabled)" };
+            return { path, namespace: Namespace.Disabled };
           } else {
             specifier = result.specifier;
           }
@@ -133,12 +133,7 @@ export async function resolveModuleDependency(
             path,
           );
 
-          return {
-            path,
-            namespace: "deno",
-            pluginData,
-            sideEffects,
-          };
+          return { path, namespace: Namespace.Deno, pluginData, sideEffects };
         }
 
         // const dirResult = await loadAsDirectory(url);
