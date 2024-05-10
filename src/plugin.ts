@@ -1,10 +1,4 @@
-import {
-  info,
-  type Loader,
-  type MediaType,
-  type Plugin,
-  type Source,
-} from "../deps.ts";
+import { info, type Plugin, type Source } from "../deps.ts";
 import type { PluginData } from "./types.ts";
 import {
   resolveModuleDependency,
@@ -12,6 +6,7 @@ import {
 } from "./modules/module.ts";
 import { resolveConditions } from "./conditions.ts";
 import { Namespace } from "./constants.ts";
+import { mediaTypeToLoader } from "./utils.ts";
 
 const NAME = "deno";
 
@@ -43,10 +38,11 @@ export function denoPlugin(options?: {
             conditions: build.initialOptions.conditions,
           });
 
-          return resolveModuleEntryLike(module, source, {
+          return resolveModuleEntryLike(module, {
             specifier,
             referrer,
             conditions,
+            source,
           });
         },
       );
@@ -65,7 +61,8 @@ export function denoPlugin(options?: {
           conditions: build.initialOptions.conditions,
         });
 
-        return resolveModuleDependency(module, source, {
+        return resolveModuleDependency(module, {
+          source,
           conditions,
           specifier,
           referrer: args.importer,
@@ -103,28 +100,4 @@ export function denoPlugin(options?: {
       });
     },
   };
-}
-
-function mediaTypeToLoader(mediaType: MediaType): Loader {
-  switch (mediaType) {
-    case "Cjs":
-    case "Mjs":
-    case "JavaScript":
-      return "js";
-    case "Mts":
-    case "Cts":
-    case "Dcts":
-    case "Dmts":
-    case "Dts":
-    case "TypeScript":
-      return "ts";
-    case "JSX":
-      return "jsx";
-    case "TSX":
-      return "tsx";
-    case "Json":
-      return "json";
-    default:
-      return "default";
-  }
 }

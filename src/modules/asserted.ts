@@ -1,14 +1,11 @@
 import type { PluginData } from "../types.ts";
-import {
-  type AssertedModule,
-  type OnResolveResult,
-  type Source,
-} from "../../deps.ts";
+import { type AssertedModule, type OnResolveResult } from "../../deps.ts";
 import { Namespace } from "../constants.ts";
+import { Context } from "./types.ts";
 
 export function resolveAssertedModule(
   module: AssertedModule,
-  source: Source,
+  context: Context,
 ): OnResolveResult {
   const path = module.local;
 
@@ -17,7 +14,7 @@ export function resolveAssertedModule(
   const pluginData = {
     mediaType: module.mediaType,
     module,
-    source,
+    source: context.source,
   } satisfies PluginData;
 
   return { path, namespace: Namespace.Deno, pluginData };

@@ -4,7 +4,6 @@ import {
   type EsModule,
   format,
   type OnResolveResult,
-  type Source,
 } from "../../deps.ts";
 import { Msg } from "../constants.ts";
 import type { Context } from "./types.ts";
@@ -13,7 +12,6 @@ import { Namespace } from "../constants.ts";
 
 export function resolveEsModule(
   module: EsModule,
-  source: Source,
   context: Context,
 ): OnResolveResult {
   const path = module.local;
@@ -27,7 +25,7 @@ export function resolveEsModule(
   const pluginData = {
     mediaType: module.mediaType,
     module,
-    source,
+    source: context.source,
   } satisfies PluginData;
 
   return { path, namespace: Namespace.Deno, pluginData };
@@ -52,14 +50,13 @@ function resolveDependency(
 
 export function resolveEsModuleDependency(
   module: EsModule,
-  source: Source,
   context: Context,
 ): OnResolveResult | Promise<OnResolveResult> {
   const dep = resolveDependency(context.specifier, module);
 
-  const mod = source.modules.find((module) =>
+  const mod = context.source.modules.find((module) =>
     module.specifier === dep.code.specifier
   );
 
-  return resolveModuleEntryLike(mod, source, context);
+  return resolveModuleEntryLike(mod, context);
 }

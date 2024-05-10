@@ -1,5 +1,6 @@
 import type {
   Format,
+  Loader,
   MediaType,
   OnResolveArgs,
   Platform,
@@ -71,4 +72,28 @@ function secondIndexOf(input: string, searchString: string): number {
 
 export function normalizePlatform(platform?: Platform): Platform {
   return platform ?? "browser";
+}
+
+export function mediaTypeToLoader(mediaType: MediaType): Loader {
+  switch (mediaType) {
+    case "Cjs":
+    case "Mjs":
+    case "JavaScript":
+      return "js";
+    case "Mts":
+    case "Cts":
+    case "Dcts":
+    case "Dmts":
+    case "Dts":
+    case "TypeScript":
+      return "ts";
+    case "JSX":
+      return "jsx";
+    case "TSX":
+      return "tsx";
+    case "Json":
+      return "json";
+    default:
+      return "default";
+  }
 }

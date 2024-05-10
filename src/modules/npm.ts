@@ -28,12 +28,10 @@ import { loadAsDirectory, loadAsFile } from "../require.ts";
 
 export async function resolveNpmModule(
   module: NpmModule,
-  source: Source,
   context: Context,
 ): Promise<OnResolveResult> {
   const { url, pjson, format, packageURL } = await npmResolve(
     module,
-    source,
     context,
   );
 
@@ -48,7 +46,7 @@ export async function resolveNpmModule(
   const mediaType: MediaType = format ? formatToMediaType(format) : "Unknown";
   const pluginData = {
     module,
-    source,
+    source: context.source,
     mediaType,
     npm: { pjson, packageURL },
   } satisfies PluginData;
@@ -71,10 +69,9 @@ export interface NpmResult {
 
 export async function npmResolve(
   module: NpmModule,
-  source: Source,
   context: Context,
 ): Promise<NpmResult> {
-  const npm = source.npmPackages[module.npmPackage];
+  const npm = context.source.npmPackages[module.npmPackage];
 
   if (!npm) throw new Error("npm not found");
 
@@ -210,10 +207,9 @@ export function resolveSideEffects(
 
 export function resolveNpmDependency(
   module: NpmModule,
-  source: Source,
   context: Context,
 ): Promise<OnResolveResult> | undefined {
-  const npm = source.npmPackages[module.npmPackage];
+  const npm = context.source.npmPackages[module.npmPackage];
 
   if (!npm) throw new Error("npm not found");
 
@@ -226,13 +222,13 @@ export function resolveNpmDependency(
       npmPackage: module.npmPackage,
     } satisfies NpmModule;
 
-    return resolveNpmModule(childModule, source, context);
+    return resolveNpmModule(childModule, context);
   }
 
   const mapped = npm.dependencies.map((fullSpecifier) => {
     return [
       fullSpecifier,
-      source.npmPackages[fullSpecifier],
+      context.source.npmPackages[fullSpecifier],
     ] as const;
   });
 
@@ -246,7 +242,7 @@ export function resolveNpmDependency(
       npmPackage,
     } satisfies NpmModule;
 
-    return resolveNpmModule(module, source, context);
+    return resolveNpmModule(module, context);
   }
 }
 
@@ -338,9 +334,10 @@ export async function require(specifier: string, referrer: string, context: {
   }
 
   // 6. LOAD_NODE_MODULES(X, dirname(Y))
-  const result = resolveNpmDependency(context.module, context.source, {
+  const result = resolveNpmDependency(context.module, {
     specifier,
     referrer,
+    source: context.source,
     npm: { packageURL: context.packageURL, pjson: context.pjson },
     conditions: context.conditions,
   });

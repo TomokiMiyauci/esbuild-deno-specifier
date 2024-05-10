@@ -6,7 +6,6 @@ import {
   type ModuleEntry,
   type OnResolveResult,
   Platform,
-  type Source,
 } from "../../deps.ts";
 import { require, resolveNpmModule } from "./npm.ts";
 import { resolveEsModule, resolveEsModuleDependency } from "./esm.ts";
@@ -19,7 +18,6 @@ import { resolveBrowser } from "../browser.ts";
 
 export function resolveModuleEntryLike(
   moduleEntry: ModuleEntry | undefined,
-  source: Source,
   context: Context,
 ): Promise<OnResolveResult> | OnResolveResult {
   if (!moduleEntry) {
@@ -30,32 +28,30 @@ export function resolveModuleEntryLike(
 
   if ("error" in moduleEntry) throw new Error(moduleEntry.error);
 
-  return resolveModule(moduleEntry, source, context);
+  return resolveModule(moduleEntry, context);
 }
 
 export function resolveModule(
   module: Module,
-  source: Source,
   context: Context,
 ): OnResolveResult | Promise<OnResolveResult> {
   switch (module.kind) {
     case "esm":
-      return resolveEsModule(module, source, context);
+      return resolveEsModule(module, context);
 
     case "node":
       return resolveNodeModule(module);
 
     case "asserted":
-      return resolveAssertedModule(module, source);
+      return resolveAssertedModule(module, context);
 
     case "npm":
-      return resolveNpmModule(module, source, context);
+      return resolveNpmModule(module, context);
   }
 }
 
 export function resolveModuleDependency(
   module: Module,
-  source: Source,
   context: Context & {
     platform: Platform | undefined;
     next: (specifier: string) => Promise<OnResolveResult> | OnResolveResult;
@@ -91,7 +87,7 @@ export function resolveModuleDependency(
       return require(specifier, context.referrer, {
         conditions: context.conditions,
         module,
-        source,
+        source: context.source,
         packageURL,
         pjson,
         next: context.next.bind(context),
@@ -99,7 +95,7 @@ export function resolveModuleDependency(
     }
 
     case "esm": {
-      return resolveEsModuleDependency(module, source, context);
+      return resolveEsModuleDependency(module, context);
     }
 
     default: {
