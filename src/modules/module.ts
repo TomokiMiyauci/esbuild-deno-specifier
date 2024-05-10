@@ -1,37 +1,20 @@
 import {
-  esmFileFormat,
   format,
   fromFileUrl,
   join,
-  type MediaType,
   type Module,
   type ModuleEntry,
   type OnResolveResult,
   Platform,
   type Source,
-  toFileUrl,
 } from "../../deps.ts";
-import {
-  loadAsFile,
-  resolveNpmDependency,
-  resolveNpmModule,
-  resolveSideEffects,
-} from "./npm.ts";
+import { require, resolveNpmModule } from "./npm.ts";
 import { resolveEsModule, resolveEsModuleDependency } from "./esm.ts";
 import { resolveNodeModule } from "./node.ts";
 import { resolveAssertedModule } from "./asserted.ts";
 import type { Context } from "./types.ts";
-import type { PluginData } from "../types.ts";
 import { Msg, Namespace } from "../constants.ts";
-import {
-  formatToMediaType,
-  isLikePath,
-  isObject,
-  normalizePlatform,
-  parseNpmPkg,
-} from "../utils.ts";
-import { isBuiltin } from "node:module";
-import { existFile, readFile } from "../context.ts";
+import { isLikePath, isObject, normalizePlatform } from "../utils.ts";
 import { resolveBrowser } from "../browser.ts";
 
 export function resolveModuleEntryLike(
@@ -70,17 +53,15 @@ export function resolveModule(
   }
 }
 
-export async function resolveModuleDependency(
+export function resolveModuleDependency(
   module: Module,
   source: Source,
   context: Context & {
     platform: Platform | undefined;
-    referrer: string;
     next: (specifier: string) => Promise<OnResolveResult> | OnResolveResult;
   },
-): Promise<OnResolveResult> {
-  let { specifier, conditions, npm, next, platform: _platform, referrer } =
-    context;
+): Promise<OnResolveResult> | OnResolveResult {
+  let { specifier, npm } = context;
 
   switch (module.kind) {
     case "npm": {
@@ -89,7 +70,7 @@ export async function resolveModuleDependency(
       const pjson = npm.pjson;
       const packageURL = npm.packageURL;
       const browser = pjson?.browser;
-      const platform = normalizePlatform(_platform);
+      const platform = normalizePlatform(context.platform);
 
       if (platform === "browser" && isObject(browser)) {
         const result = resolveBrowser(specifier, browser);
@@ -107,62 +88,18 @@ export async function resolveModuleDependency(
         }
       }
 
-      if (specifier.startsWith("./") || specifier.startsWith("../")) {
-        const base = toFileUrl(referrer);
-        const url = new URL(specifier, base);
-        const fileResult = await loadAsFile(url);
-
-        if (fileResult) {
-          const format = await esmFileFormat(fileResult, {
-            readFile,
-            existFile,
-          });
-          const mediaType: MediaType = format
-            ? formatToMediaType(format)
-            : "Unknown";
-          const pluginData = {
-            mediaType,
-            module,
-            source,
-            npm: { pjson, packageURL },
-          } satisfies PluginData;
-          const path = fromFileUrl(fileResult);
-          const sideEffects = resolveSideEffects(
-            pjson?.sideEffects,
-            fromFileUrl(packageURL),
-            path,
-          );
-
-          return { path, namespace: Namespace.Deno, pluginData, sideEffects };
-        }
-
-        // const dirResult = await loadAsDirectory(url);
-
-        throw new Error("not found");
-      }
-
-      if (isBuiltin(specifier)) return { external: true };
-
-      const result = resolveNpmDependency(module, source, {
-        specifier,
-        conditions,
+      return require(specifier, context.referrer, {
+        conditions: context.conditions,
+        module,
+        source,
+        packageURL,
+        pjson,
+        next: context.next.bind(context),
       });
-
-      if (result) return result;
-
-      const { subpath } = parseNpmPkg(specifier);
-      // The case where dependencies cannot be detected is when optional: true in peerDependency.
-      // In this case, version resolution is left to the user
-      const pkg = `npm:/${specifier}${subpath.slice(1)}`;
-
-      return next(pkg);
     }
 
     case "esm": {
-      return resolveEsModuleDependency(module, source, {
-        specifier,
-        conditions,
-      });
+      return resolveEsModuleDependency(module, source, context);
     }
 
     default: {

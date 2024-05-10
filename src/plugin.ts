@@ -26,7 +26,7 @@ export function denoPlugin(options?: {
 
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:|^file:/ },
-        async ({ path: specifier, kind }) => {
+        async ({ path: specifier, kind, importer: referrer }) => {
           const source = sourceCache.has(specifier)
             ? sourceCache.get(specifier)!
             : await info(specifier);
@@ -45,6 +45,7 @@ export function denoPlugin(options?: {
 
           return resolveModuleEntryLike(module, source, {
             specifier,
+            referrer,
             conditions,
           });
         },
