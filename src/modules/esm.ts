@@ -3,6 +3,7 @@ import {
   type Dependency,
   type EsModule,
   format,
+  NpmModule,
   type OnResolveResult,
 } from "../../deps.ts";
 import { Msg } from "../constants.ts";
@@ -54,9 +55,16 @@ export function resolveEsModuleDependency(
 ): OnResolveResult | Promise<OnResolveResult> {
   const dep = resolveDependency(context.specifier, module);
 
-  const mod = context.source.modules.find((module) =>
-    module.specifier === dep.code.specifier
-  );
+  const mod = dep.npmPackage
+    ? {
+      kind: "npm",
+      npmPackage: dep.npmPackage,
+      specifier: context.source.redirects[dep.code.specifier] ??
+        dep.code.specifier,
+    } satisfies NpmModule
+    : context.source.modules.find((module) =>
+      module.specifier === dep.code.specifier
+    );
 
   return resolveModuleEntryLike(mod, context);
 }

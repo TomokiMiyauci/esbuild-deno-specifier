@@ -1,4 +1,3 @@
-import type { NpmContext } from "../types.ts";
 import type { Source } from "../../deps.ts";
 
 export interface Context {
@@ -6,5 +5,4 @@ export interface Context {
   referrer: string;
   conditions: string[];
   source: Source;
-  npm?: NpmContext;
 }

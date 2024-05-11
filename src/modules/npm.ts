@@ -48,7 +48,6 @@ export async function resolveNpmModule(
     module,
     source: context.source,
     mediaType,
-    npm: { pjson, packageURL },
   } satisfies PluginData;
   const path = fromFileUrl(url);
   const sideEffects = resolveSideEffects(
@@ -279,9 +278,8 @@ export async function require(specifier: string, referrer: string, context: {
         : "Unknown";
       const pluginData = {
         mediaType,
-        module: context.module,
         source: context.source,
-        npm: { pjson: context.pjson, packageURL: context.packageURL },
+        module: context.module,
       } satisfies PluginData;
       const path = fromFileUrl(fileResult);
       const sideEffects = resolveSideEffects(
@@ -314,9 +312,8 @@ export async function require(specifier: string, referrer: string, context: {
         : "Unknown";
       const pluginData = {
         mediaType,
-        module: context.module,
         source: context.source,
-        npm: { pjson: context.pjson, packageURL: context.packageURL },
+        module: context.module,
       } satisfies PluginData;
       const path = fromFileUrl(dirResult);
       const sideEffects = resolveSideEffects(
@@ -338,7 +335,6 @@ export async function require(specifier: string, referrer: string, context: {
     specifier,
     referrer,
     source: context.source,
-    npm: { packageURL: context.packageURL, pjson: context.pjson },
     conditions: context.conditions,
   });
 

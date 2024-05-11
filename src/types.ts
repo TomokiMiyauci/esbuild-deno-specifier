@@ -4,7 +4,6 @@ export interface PluginData {
   module: Module;
   source: Source;
   mediaType: MediaType;
-  npm?: NpmContext;
 }
 
 export interface NpmContext {
