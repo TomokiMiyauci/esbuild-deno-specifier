@@ -1,25 +1,8 @@
-import { format, type Module, type ModuleEntry } from "../../deps.ts";
+import { type Module } from "../../deps.ts";
 import { resolveNpmModule } from "./npm.ts";
 import { resolveEsModule } from "./esm.ts";
 import { resolveNodeModule } from "./node.ts";
-import { resolveAssertedModule } from "./asserted.ts";
 import type { Context, ResolveResult } from "./types.ts";
-import { Msg } from "../constants.ts";
-
-export function resolveModuleEntryLike(
-  moduleEntry: ModuleEntry | undefined,
-  context: Context,
-): Promise<ResolveResult | undefined> | ResolveResult | undefined {
-  if (!moduleEntry) {
-    const message = format(Msg.NotFound, { specifier: context.specifier });
-
-    throw new Error(message);
-  }
-
-  if ("error" in moduleEntry) throw new Error(moduleEntry.error);
-
-  return resolveModule(moduleEntry, context);
-}
 
 export function resolveModule(
   module: Module,
@@ -27,13 +10,11 @@ export function resolveModule(
 ): ResolveResult | undefined | Promise<ResolveResult | undefined> {
   switch (module.kind) {
     case "esm":
+    case "asserted":
       return resolveEsModule(module, context);
 
     case "node":
       return resolveNodeModule(module);
-
-    case "asserted":
-      return resolveAssertedModule(module, context);
 
     case "npm":
       return resolveNpmModule(module, context);
