@@ -1,20 +1,18 @@
-import type { PluginData } from "../types.ts";
 import {
   type Dependency,
   type EsModule,
   format,
+  ModuleEntry,
   NpmModule,
-  type OnResolveResult,
+  toFileUrl,
 } from "../../deps.ts";
 import { Msg } from "../constants.ts";
-import type { Context } from "./types.ts";
-import { resolveModuleEntryLike } from "./module.ts";
-import { Namespace } from "../constants.ts";
+import type { Context, ResolveResult } from "./types.ts";
 
 export function resolveEsModule(
   module: EsModule,
   context: Context,
-): OnResolveResult {
+): ResolveResult {
   const path = module.local;
 
   if (typeof path !== "string") {
@@ -23,13 +21,10 @@ export function resolveEsModule(
     throw new Error(message);
   }
 
-  const pluginData = {
+  return {
+    url: toFileUrl(path),
     mediaType: module.mediaType,
-    module,
-    source: context.source,
-  } satisfies PluginData;
-
-  return { path, namespace: Namespace.Deno, pluginData };
+  };
 }
 
 function resolveDependency(
@@ -52,7 +47,7 @@ function resolveDependency(
 export function resolveEsModuleDependency(
   module: EsModule,
   context: Context,
-): OnResolveResult | Promise<OnResolveResult> {
+): ModuleEntry | undefined {
   const dep = resolveDependency(context.specifier, module);
 
   const mod = dep.npmPackage
@@ -66,5 +61,5 @@ export function resolveEsModuleDependency(
       module.specifier === dep.code.specifier
     );
 
-  return resolveModuleEntryLike(mod, context);
+  return mod;
 }

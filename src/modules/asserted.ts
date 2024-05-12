@@ -1,21 +1,21 @@
-import type { PluginData } from "../types.ts";
-import { type AssertedModule, type OnResolveResult } from "../../deps.ts";
-import { Namespace } from "../constants.ts";
-import { Context } from "./types.ts";
+import { type AssertedModule, format, toFileUrl } from "../../deps.ts";
+import { Context, ResolveResult } from "./types.ts";
+import { Msg } from "../constants.ts";
 
 export function resolveAssertedModule(
   module: AssertedModule,
   context: Context,
-): OnResolveResult {
+): ResolveResult {
   const path = module.local;
 
-  if (!path) throw new Error();
+  if (typeof path !== "string") {
+    const message = format(Msg.LocalPathNotFound, context);
 
-  const pluginData = {
+    throw new Error(message);
+  }
+
+  return {
+    url: toFileUrl(path),
     mediaType: module.mediaType,
-    module,
-    source: context.source,
-  } satisfies PluginData;
-
-  return { path, namespace: Namespace.Deno, pluginData };
+  };
 }

@@ -1,20 +1,15 @@
-import {
-  format,
-  type Module,
-  type ModuleEntry,
-  type OnResolveResult,
-} from "../../deps.ts";
+import { format, type Module, type ModuleEntry } from "../../deps.ts";
 import { resolveNpmModule } from "./npm.ts";
 import { resolveEsModule } from "./esm.ts";
 import { resolveNodeModule } from "./node.ts";
 import { resolveAssertedModule } from "./asserted.ts";
-import type { Context } from "./types.ts";
+import type { Context, ResolveResult } from "./types.ts";
 import { Msg } from "../constants.ts";
 
 export function resolveModuleEntryLike(
   moduleEntry: ModuleEntry | undefined,
   context: Context,
-): Promise<OnResolveResult> | OnResolveResult {
+): Promise<ResolveResult | undefined> | ResolveResult | undefined {
   if (!moduleEntry) {
     const message = format(Msg.NotFound, { specifier: context.specifier });
 
@@ -29,7 +24,7 @@ export function resolveModuleEntryLike(
 export function resolveModule(
   module: Module,
   context: Context,
-): OnResolveResult | Promise<OnResolveResult> {
+): ResolveResult | undefined | Promise<ResolveResult | undefined> {
   switch (module.kind) {
     case "esm":
       return resolveEsModule(module, context);

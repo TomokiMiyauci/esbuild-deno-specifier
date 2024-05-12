@@ -1,5 +1,9 @@
-import type { NodeModule, OnResolveResult } from "../../deps.ts";
+import type { NodeModule } from "../../deps.ts";
+import type { ResolveResult } from "./types.ts";
 
-export function resolveNodeModule(module: NodeModule): OnResolveResult {
-  return { external: true, path: `node:${module.moduleName}` };
+export function resolveNodeModule(module: NodeModule): ResolveResult {
+  return {
+    url: new URL(`node:${module.moduleName}`),
+    mediaType: "Unknown",
+  };
 }
