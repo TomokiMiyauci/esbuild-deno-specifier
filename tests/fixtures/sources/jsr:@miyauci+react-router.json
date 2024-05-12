@@ -1,0 +1,462 @@
+{
+  "roots": [
+    "jsr:@miyauci/react-router"
+  ],
+  "modules": [
+    {
+      "kind": "esm",
+      "dependencies": [
+        {
+          "specifier": "npm:/react@^18",
+          "code": {
+            "specifier": "npm:/react@^18",
+            "span": {
+              "start": {
+                "line": 9,
+                "character": 7
+              },
+              "end": {
+                "line": 9,
+                "character": 23
+              }
+            }
+          },
+          "type": {
+            "specifier": "npm:/@types/react@^18",
+            "span": {
+              "start": {
+                "line": 0,
+                "character": 15
+              },
+              "end": {
+                "line": 0,
+                "character": 38
+              }
+            }
+          },
+          "npmPackage": "react@18.3.1"
+        },
+        {
+          "specifier": "./url_pattern_list/mod.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/url_pattern_list/mod.ts",
+            "span": {
+              "start": {
+                "line": 13,
+                "character": 7
+              },
+              "end": {
+                "line": 13,
+                "character": 34
+              }
+            }
+          }
+        }
+      ],
+      "local": "/path/to/cache/deno/deps/https/jsr.io/30e0f3bdca681d05ddffcfeb887af9b3972dc14256c53653265c0924160ddd8c",
+      "emit": null,
+      "map": null,
+      "size": 287,
+      "mediaType": "TypeScript",
+      "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/deps.ts"
+    },
+    {
+      "kind": "esm",
+      "dependencies": [
+        {
+          "specifier": "./src/route.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/route.ts",
+            "span": {
+              "start": {
+                "line": 35,
+                "character": 7
+              },
+              "end": {
+                "line": 35,
+                "character": 23
+              }
+            }
+          }
+        },
+        {
+          "specifier": "./src/router.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/router.ts",
+            "span": {
+              "start": {
+                "line": 42,
+                "character": 7
+              },
+              "end": {
+                "line": 42,
+                "character": 24
+              }
+            }
+          }
+        },
+        {
+          "specifier": "./src/switch.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/switch.ts",
+            "span": {
+              "start": {
+                "line": 43,
+                "character": 52
+              },
+              "end": {
+                "line": 43,
+                "character": 69
+              }
+            }
+          }
+        }
+      ],
+      "local": "/path/to/cache/deno/deps/https/jsr.io/e1920e7f636ca03ff729ead9d4773dbed242579bb3fbd22d41e418eb60603a15",
+      "emit": null,
+      "map": null,
+      "size": 937,
+      "mediaType": "TypeScript",
+      "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/mod.ts"
+    },
+    {
+      "kind": "esm",
+      "local": "/path/to/cache/deno/deps/https/jsr.io/f1596748fdadea3969e8b0be9dabc9aba84847eea7549a0dd3d2a95a7e67aeb0",
+      "emit": null,
+      "map": null,
+      "size": 132,
+      "mediaType": "TypeScript",
+      "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/constants.ts"
+    },
+    {
+      "kind": "esm",
+      "dependencies": [
+        {
+          "specifier": "../deps.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/deps.ts",
+            "span": {
+              "start": {
+                "line": 6,
+                "character": 7
+              },
+              "end": {
+                "line": 6,
+                "character": 19
+              }
+            }
+          }
+        },
+        {
+          "specifier": "./router.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/router.ts",
+            "span": {
+              "start": {
+                "line": 7,
+                "character": 23
+              },
+              "end": {
+                "line": 7,
+                "character": 36
+              }
+            }
+          }
+        },
+        {
+          "specifier": "./switch.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/switch.ts",
+            "span": {
+              "start": {
+                "line": 8,
+                "character": 29
+              },
+              "end": {
+                "line": 8,
+                "character": 42
+              }
+            }
+          }
+        },
+        {
+          "specifier": "./utils.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/utils.ts",
+            "span": {
+              "start": {
+                "line": 9,
+                "character": 30
+              },
+              "end": {
+                "line": 9,
+                "character": 42
+              }
+            }
+          }
+        },
+        {
+          "specifier": "./constants.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/constants.ts",
+            "span": {
+              "start": {
+                "line": 10,
+                "character": 20
+              },
+              "end": {
+                "line": 10,
+                "character": 36
+              }
+            }
+          }
+        }
+      ],
+      "local": "/path/to/cache/deno/deps/https/jsr.io/1ff5c34b7f9e1b7e247da25b43960c037b7baec8418413e92352931450b4a385",
+      "emit": null,
+      "map": null,
+      "size": 1873,
+      "mediaType": "TypeScript",
+      "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/route.ts"
+    },
+    {
+      "kind": "esm",
+      "dependencies": [
+        {
+          "specifier": "../deps.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/deps.ts",
+            "span": {
+              "start": {
+                "line": 7,
+                "character": 7
+              },
+              "end": {
+                "line": 7,
+                "character": 19
+              }
+            }
+          }
+        },
+        {
+          "specifier": "./constants.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/constants.ts",
+            "span": {
+              "start": {
+                "line": 8,
+                "character": 20
+              },
+              "end": {
+                "line": 8,
+                "character": 36
+              }
+            }
+          }
+        }
+      ],
+      "local": "/path/to/cache/deno/deps/https/jsr.io/aaefc049fbbab9387c81139868d776cb1ae67c93f6705fc36c74dde85ac4b03e",
+      "emit": null,
+      "map": null,
+      "size": 2528,
+      "mediaType": "TypeScript",
+      "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/router.ts"
+    },
+    {
+      "kind": "esm",
+      "dependencies": [
+        {
+          "specifier": "../deps.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/deps.ts",
+            "span": {
+              "start": {
+                "line": 0,
+                "character": 30
+              },
+              "end": {
+                "line": 0,
+                "character": 42
+              }
+            }
+          }
+        },
+        {
+          "specifier": "./router.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/router.ts",
+            "span": {
+              "start": {
+                "line": 9,
+                "character": 23
+              },
+              "end": {
+                "line": 9,
+                "character": 36
+              }
+            }
+          }
+        },
+        {
+          "specifier": "./utils.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/utils.ts",
+            "span": {
+              "start": {
+                "line": 10,
+                "character": 34
+              },
+              "end": {
+                "line": 10,
+                "character": 46
+              }
+            }
+          }
+        }
+      ],
+      "local": "/path/to/cache/deno/deps/https/jsr.io/b7682c1fa3a6b64c2fa53c329bff71bc5746b780b392755ca8393daa9c9fdc27",
+      "emit": null,
+      "map": null,
+      "size": 2204,
+      "mediaType": "TypeScript",
+      "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/switch.ts"
+    },
+    {
+      "kind": "esm",
+      "dependencies": [
+        {
+          "specifier": "../deps.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/deps.ts",
+            "span": {
+              "start": {
+                "line": 0,
+                "character": 40
+              },
+              "end": {
+                "line": 0,
+                "character": 52
+              }
+            }
+          }
+        }
+      ],
+      "local": "/path/to/cache/deno/deps/https/jsr.io/8e007ef64b325ccc4359b9a1b95f265902e7c822317ebd68a17bac78309f29e8",
+      "emit": null,
+      "map": null,
+      "size": 906,
+      "mediaType": "TypeScript",
+      "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/src/utils.ts"
+    },
+    {
+      "kind": "esm",
+      "local": "/path/to/cache/deno/deps/https/jsr.io/ac193f422fd7ef80bda31aaa810775c94a322451fddc8493f806237bf7139cc2",
+      "emit": null,
+      "map": null,
+      "size": 344,
+      "mediaType": "TypeScript",
+      "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/url_pattern_list/list.ts"
+    },
+    {
+      "kind": "esm",
+      "dependencies": [
+        {
+          "specifier": "./url_pattern_list.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/url_pattern_list/url_pattern_list.ts",
+            "span": {
+              "start": {
+                "line": 3,
+                "character": 7
+              },
+              "end": {
+                "line": 3,
+                "character": 30
+              }
+            }
+          }
+        }
+      ],
+      "local": "/path/to/cache/deno/deps/https/jsr.io/c5a1a52ba2a6c2c90220da812cf9c368760df338704b63f28b19140048671323",
+      "emit": null,
+      "map": null,
+      "size": 88,
+      "mediaType": "TypeScript",
+      "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/url_pattern_list/mod.ts"
+    },
+    {
+      "kind": "esm",
+      "dependencies": [
+        {
+          "specifier": "./list.ts",
+          "code": {
+            "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/url_pattern_list/list.ts",
+            "span": {
+              "start": {
+                "line": 0,
+                "character": 21
+              },
+              "end": {
+                "line": 0,
+                "character": 32
+              }
+            }
+          }
+        }
+      ],
+      "local": "/path/to/cache/deno/deps/https/jsr.io/80748997d738b73b28e4cd5fa9c43bbf0d0352b513d6081e4a64ffd08c58d8ae",
+      "emit": null,
+      "map": null,
+      "size": 2618,
+      "mediaType": "TypeScript",
+      "specifier": "https://jsr.io/@miyauci/react-router/1.2.0/url_pattern_list/url_pattern_list.ts"
+    }
+  ],
+  "redirects": {
+    "jsr:@miyauci/react-router": "https://jsr.io/@miyauci/react-router/1.2.0/mod.ts",
+    "npm:/@types/react@^18": "npm:/@types/react@18.3.1",
+    "npm:/react@^18": "npm:/react@18.3.1"
+  },
+  "packages": {
+    "@miyauci/react-router": "@miyauci/react-router@1.2.0"
+  },
+  "npmPackages": {
+    "@types/prop-types@15.7.12": {
+      "name": "@types/prop-types",
+      "version": "15.7.12",
+      "dependencies": []
+    },
+    "@types/react@18.3.1": {
+      "name": "@types/react",
+      "version": "18.3.1",
+      "dependencies": [
+        "@types/prop-types@15.7.12",
+        "csstype@3.1.3"
+      ]
+    },
+    "csstype@3.1.3": {
+      "name": "csstype",
+      "version": "3.1.3",
+      "dependencies": []
+    },
+    "js-tokens@4.0.0": {
+      "name": "js-tokens",
+      "version": "4.0.0",
+      "dependencies": []
+    },
+    "loose-envify@1.4.0": {
+      "name": "loose-envify",
+      "version": "1.4.0",
+      "dependencies": [
+        "js-tokens@4.0.0"
+      ]
+    },
+    "react@18.3.1": {
+      "name": "react",
+      "version": "18.3.1",
+      "dependencies": [
+        "loose-envify@1.4.0"
+      ]
+    }
+  }
+}
