@@ -1,6 +1,7 @@
 import {
   esmFileFormat,
   type Format,
+  format,
   join,
   type MediaType,
   type NpmModule,
@@ -18,6 +19,7 @@ import {
 } from "../side_effects.ts";
 import type { Context, ResolveResult } from "./types.ts";
 import { loadAsDirectory, loadAsFile } from "../require.ts";
+import { Msg } from "../constants.ts";
 
 export async function resolveNpmModule(
   module: NpmModule,
@@ -29,21 +31,20 @@ export async function resolveNpmModule(
 
   const { name, version } = npm;
 
-  const npmSpecifier = `npm:/${name}@${version}`;
-  const subpath = module.specifier.slice(npmSpecifier.length);
-  const packageSubpath = `.${subpath}` as const;
-
+  const subpath = parseSubpath(module.specifier, { name, version });
   const packageURL = createPackageURL(denoDir, name, version);
 
   if (!await existDir(packageURL)) {
-    throw new Error();
+    const message = format(Msg.NotFound, { specifier: context.specifier });
+
+    throw new Error(message);
   }
 
   const pjson = await readPackageJson(packageURL, { readFile });
   const url = await resolveNodeModules(
     packageURL,
     pjson,
-    packageSubpath,
+    subpath,
     context,
   );
 
@@ -60,18 +61,30 @@ export async function resolveNpmModule(
     // return { path, namespace: Namespace.Disabled };
   }
 
-  const format = await esmFileFormat(url, { existFile, readFile });
-  const mediaType: MediaType = format ? formatToMediaType(format) : "Unknown";
+  const fmt = await esmFileFormat(url, { existFile, readFile });
+  const mediaType: MediaType = fmt ? formatToMediaType(fmt) : "Unknown";
   // const sideEffects = resolveSideEffects(
   //   pjson?.sideEffects,
   //   fromFileUrl(packageURL),
   //   path,
   // );
 
-  return {
-    url,
-    mediaType,
-  };
+  return { url, mediaType };
+}
+
+export type Subpath = `.${string}`;
+
+export interface Hint {
+  name: string;
+  version: string;
+}
+
+export function parseSubpath(specifier: string, hint: Hint): Subpath {
+  const { name, version } = hint;
+  const npmSpecifier = `npm:/${name}@${version}`;
+  const subpath = specifier.slice(npmSpecifier.length);
+
+  return `.${subpath}`;
 }
 
 export interface NpmResult {
@@ -84,7 +97,7 @@ export interface NpmResult {
 function resolveNodeModules(
   packageURL: URL,
   pjson: PackageJson | null,
-  subpath: `.${string}`,
+  subpath: Subpath,
   context: Context,
 ): Promise<URL | undefined | false> | URL | undefined | false {
   const isEsModule = pjson?.type === "module";
@@ -97,7 +110,7 @@ function resolveNodeModules(
 async function resolveEsmPackage(
   packageURL: URL,
   pjson: PackageJson | null,
-  subpath: `.${string}`,
+  subpath: Subpath,
   context: Context,
 ) {
   if (pjson && pjson.exports) {
