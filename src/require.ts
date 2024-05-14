@@ -68,18 +68,33 @@ interface LoadResult {
 
 export type Format = "builtin" | "commonjs" | "json" | "module" | "wasm";
 
-function formatFromExt(ext: string): Format | undefined {
+export async function formatFromExt(
+  url: URL | string,
+): Promise<Format | undefined> {
+  const ext = extname(url);
+
   switch (ext) {
     case ".json":
       return "json";
     case ".wasm":
       return "wasm";
     case ".cjs":
-    case ".js":
       return "commonjs";
     case ".mjs":
       return "module";
+
+    case ".js": {
+      const result = await findClosest(url);
+
+      return detectFormat(result?.pjson);
+    }
   }
+}
+
+export function detectFormat(pjson: PackageJson | undefined | null): Format {
+  if (!pjson || pjson.type !== "module") return "commonjs";
+
+  return "module";
 }
 
 export async function loadAsFile(
@@ -87,8 +102,7 @@ export async function loadAsFile(
 ): Promise<LoadResult | undefined> {
   // 1. If X is a file, load X as its file extension format. STOP
   if (await existFile(url)) {
-    const ext = extname(url);
-    const format = formatFromExt(ext);
+    const format = await formatFromExt(url);
 
     return { url: new URL(url), format };
   }
@@ -302,8 +316,7 @@ export async function resolveEsmMatch(url: URL): Promise<LoadResult> {
   // 2. If the file at RESOLVED_PATH exists, load RESOLVED_PATH as its extension
   //    format. STOP
   if (await existFile(url)) {
-    const ext = extname(url);
-    const format = formatFromExt(ext);
+    const format = await formatFromExt(url);
 
     return { url: url, format };
   }
