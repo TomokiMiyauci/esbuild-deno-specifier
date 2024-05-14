@@ -82,20 +82,22 @@ function formatFromExt(ext: string): Format | undefined {
   }
 }
 
-export async function loadAsFile(X: URL): Promise<LoadResult | undefined> {
+export async function loadAsFile(
+  url: URL | string,
+): Promise<LoadResult | undefined> {
   // 1. If X is a file, load X as its file extension format. STOP
-  if (await existFile(X)) {
-    const ext = extname(X);
+  if (await existFile(url)) {
+    const ext = extname(url);
     const format = formatFromExt(ext);
 
-    return { url: X, format };
+    return { url: new URL(url), format };
   }
 
-  const withJs = concatPath(X, ".js");
+  const withJs = concatPath(url, ".js");
   // 2. If X.js is a file,
   if (await existFile(withJs)) {
     // a. Find the closest package scope SCOPE to X.
-    const result = await findClosest(X);
+    const result = await findClosest(url);
 
     // b. If no scope was found, load X.js as a CommonJS module. STOP.
     if (!result) {
@@ -114,11 +116,11 @@ export async function loadAsFile(X: URL): Promise<LoadResult | undefined> {
     return { url: withJs, format: "commonjs" };
   }
 
-  const withJson = concatPath(X, ".json");
+  const withJson = concatPath(url, ".json");
   // 3. If X.json is a file, load X.json to a JavaScript Object. STOP
   if (await existFile(withJson)) return { url: withJson, format: "json" };
 
-  const withNode = concatPath(X, ".node");
+  const withNode = concatPath(url, ".node");
   // 4. If X.node is a file, load X.node as binary addon. STOP
   if (await existFile(withNode)) {
     return { url: withNode, format: undefined };
@@ -145,9 +147,7 @@ export async function loadIndex(X: URL): Promise<LoadResult | undefined> {
     // a. Find the closest package scope SCOPE to X.
     const result = await findClosest(X);
     // b. If no scope was found, load X/index.js as a CommonJS module. STOP.
-    if (!result) {
-      return { url: indexJs, format: "commonjs" };
-    }
+    if (!result) return { url: indexJs, format: "commonjs" };
 
     // c. If the SCOPE/package.json contains "type" field,
     if ("type" in result.pjson) {
@@ -193,7 +193,7 @@ export async function loadNodeModules(
 }
 
 async function findClosest(
-  url: URL,
+  url: URL | string,
 ): Promise<{ pjson: PackageJson; packageURL: URL } | undefined> {
   for (const packageURL of parents(url)) {
     const pjson = await readPackageJson(packageURL, { readFile });
@@ -204,10 +204,11 @@ async function findClosest(
   }
 }
 
-function* parents(url: URL): Iterable<URL> {
+function* parents(url: URL | string): Iterable<URL> {
+  const pathname = new URL(url).pathname;
   const dir = dirname(url);
 
-  if (dir.pathname !== url.pathname) {
+  if (dir.pathname !== pathname) {
     yield dir;
     yield* parents(dir);
   }
