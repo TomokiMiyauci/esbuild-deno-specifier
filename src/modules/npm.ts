@@ -1,25 +1,18 @@
 import {
-  esmFileFormat,
-  type Format,
   format,
   join,
   type MediaType,
   type NpmModule,
-  packageExportsResolve,
+  NpmPackage,
   type PackageJson,
-  readPackageJson,
   toFileUrl,
 } from "../../deps.ts";
-import { formatToMediaType, parseNpmPkg } from "../utils.ts";
-import { denoDir, existDir, existFile, readFile } from "../context.ts";
-import {
-  matchSideEffects,
-  normalizeSideEffects,
-  validateSideEffects,
-} from "../side_effects.ts";
+import { parseNpmPkg } from "../utils.ts";
+import { denoDir, existDir } from "../context.ts";
 import type { Context, ResolveResult } from "./types.ts";
-import { loadAsDirectory, loadAsFile } from "../require.ts";
+import { Format } from "../require.ts";
 import { Msg } from "../constants.ts";
+import { loadNodeModules } from "../require.ts";
 
 export async function resolveNpmModule(
   module: NpmModule,
@@ -40,36 +33,34 @@ export async function resolveNpmModule(
     throw new Error(message);
   }
 
-  const pjson = await readPackageJson(packageURL, { readFile });
-  const url = await resolveNodeModules(
-    packageURL,
-    pjson,
-    subpath,
-    context,
-  );
+  const result = await loadNodeModules(packageURL, subpath, context);
 
-  if (url === undefined) {
-    throw new Error();
+  if (result) {
+    const { format } = result;
+    const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
+
+    return { url: result.url, mediaType };
   }
 
-  if (!url) {
-    return;
-    // const path = isLikePath(context.specifier)
-    //   ? fromFileUrl(join(packageURL, context.specifier))
-    //   : context.specifier;
+  if (result === false) return;
 
-    // return { path, namespace: Namespace.Disabled };
+  throw new Error();
+}
+
+export function formatToMediaType(format: Format): MediaType {
+  switch (format) {
+    case "commonjs":
+      return "Mjs";
+    case "module":
+      return "Mjs";
+    case "json":
+      return "Json";
+    case "wasm":
+      return "Wasm";
+
+    default:
+      return "Unknown";
   }
-
-  const fmt = await esmFileFormat(url, { existFile, readFile });
-  const mediaType: MediaType = fmt ? formatToMediaType(fmt) : "Unknown";
-  // const sideEffects = resolveSideEffects(
-  //   pjson?.sideEffects,
-  //   fromFileUrl(packageURL),
-  //   path,
-  // );
-
-  return { url, mediaType };
 }
 
 export type Subpath = `.${string}`;
@@ -94,75 +85,38 @@ export interface NpmResult {
   packageURL: URL;
 }
 
-function resolveNodeModules(
-  packageURL: URL,
-  pjson: PackageJson | null,
-  subpath: Subpath,
-  context: Context,
-): Promise<URL | undefined | false> | URL | undefined | false {
-  const isEsModule = pjson?.type === "module";
+// async function resolveEsmPackage(
+//   packageURL: URL,
+//   pjson: PackageJson | null,
+//   subpath: Subpath,
+//   context: Context,
+// ) {
+//   if (pjson && pjson.exports) {
+//     return packageExportsResolve(
+//       packageURL,
+//       subpath,
+//       pjson.exports,
+//       context.conditions,
+//       {
+//         existDir,
+//         existFile,
+//         readFile,
+//       },
+//     );
+//   }
 
-  return isEsModule
-    ? resolveEsmPackage(packageURL, pjson, subpath, context)
-    : resolveCjsPackage(packageURL, pjson, subpath, context);
-}
+//   if (pjson && "browser" in pjson) {
+//     if (typeof pjson.browser === "string") {
+//       const url = join(packageURL, pjson.browser);
 
-async function resolveEsmPackage(
-  packageURL: URL,
-  pjson: PackageJson | null,
-  subpath: Subpath,
-  context: Context,
-) {
-  if (pjson && pjson.exports) {
-    return packageExportsResolve(
-      packageURL,
-      subpath,
-      pjson.exports,
-      context.conditions,
-      {
-        existDir,
-        existFile,
-        readFile,
-      },
-    );
-  }
+//       if (await existFile(url)) return url;
+//     }
+//   }
 
-  if (pjson && "browser" in pjson) {
-    if (typeof pjson.browser === "string") {
-      const url = join(packageURL, pjson.browser);
+//   throw new Error("ESM");
+// }
 
-      if (await existFile(url)) return url;
-    }
-  }
-
-  throw new Error("ESM");
-}
-
-async function resolveCjsPackage(
-  packageURL: URL,
-  pjson: PackageJson | null,
-  subpath: `.${string}`,
-  context: Context,
-): Promise<URL | undefined | false> {
-  if (pjson && "exports" in pjson) {
-    return packageExportsResolve(
-      packageURL,
-      subpath,
-      pjson.exports,
-      context.conditions,
-      { existDir, existFile, readFile },
-    );
-  }
-
-  const url = join(packageURL, subpath);
-
-  const fileResult = await loadAsFile(url);
-  if (fileResult) return fileResult;
-
-  return loadAsDirectory(url);
-}
-
-function createPackageURL(
+export function createPackageURL(
   denoDir: string,
   name: string,
   version: string,
@@ -175,25 +129,10 @@ function createPackageURL(
   return packageURL;
 }
 
-export function resolveSideEffects(
-  sideEffects: unknown,
-  packagePath: string,
-  path: string,
-): undefined | boolean {
-  if (!validateSideEffects(sideEffects)) return undefined;
-
-  const normalizedSideEffects = normalizeSideEffects(
-    sideEffects,
-    packagePath,
-  );
-
-  return matchSideEffects(normalizedSideEffects, path);
-}
-
 export function resolveNpmDependency(
   module: NpmModule,
   context: Context,
-): NpmModule | undefined {
+): (NpmModule & NpmPackage) | undefined {
   const npm = context.source.npmPackages[module.npmPackage];
 
   if (!npm) throw new Error("npm not found");
@@ -207,7 +146,7 @@ export function resolveNpmDependency(
       npmPackage: module.npmPackage,
     } satisfies NpmModule;
 
-    return childModule;
+    return { ...childModule, ...npm };
   }
 
   const mapped = npm.dependencies.map((fullSpecifier) => {
@@ -227,6 +166,6 @@ export function resolveNpmDependency(
       npmPackage,
     } satisfies NpmModule;
 
-    return module;
+    return { ...module, ...dep };
   }
 }

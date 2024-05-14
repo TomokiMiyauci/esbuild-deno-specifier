@@ -13,36 +13,6 @@ export function denoPlugin(): Plugin {
   return {
     name: NAME,
     setup(build) {
-      build.onResolve({ filter: /.*/, namespace: Namespace.Deno }, (args) => {
-        const pluginData = args.pluginData as PluginData;
-        const module = pluginData.module;
-        const source = pluginData.source;
-        const { path: specifier, importer: referrer } = args;
-        console.log(
-          `⬥ [VERBOSE] Resolving import "${args.path}" from "${args.importer}"`,
-        );
-        const conditions = resolveConditions({
-          kind: args.kind,
-          platform: build.initialOptions.platform,
-          conditions: build.initialOptions.conditions,
-        });
-
-        return resolve(specifier, referrer, {
-          conditions,
-          module,
-          source,
-          next: (specifier) => {
-            return build.resolve(specifier, {
-              kind: args.kind,
-              importer: args.importer,
-              pluginName: NAME,
-              resolveDir: args.resolveDir,
-            });
-          },
-          platform: build.initialOptions.platform,
-        });
-      });
-
       const sourceCache = new Map<string, Source>();
 
       build.onResolve(
@@ -82,6 +52,36 @@ export function denoPlugin(): Plugin {
           });
         },
       );
+
+      build.onResolve({ filter: /.*/, namespace: Namespace.Deno }, (args) => {
+        const pluginData = args.pluginData as PluginData;
+        const module = pluginData.module;
+        const source = pluginData.source;
+        const { path: specifier, importer: referrer } = args;
+        console.log(
+          `⬥ [VERBOSE] Resolving import "${args.path}" from "${args.importer}"`,
+        );
+        const conditions = resolveConditions({
+          kind: args.kind,
+          platform: build.initialOptions.platform,
+          conditions: build.initialOptions.conditions,
+        });
+
+        return resolve(specifier, referrer, {
+          conditions,
+          module,
+          source,
+          next: (specifier) => {
+            return build.resolve(specifier, {
+              kind: args.kind,
+              importer: args.importer,
+              pluginName: NAME,
+              resolveDir: args.resolveDir,
+            });
+          },
+          platform: build.initialOptions.platform,
+        });
+      });
 
       build.onLoad(
         { filter: /.*/, namespace: Namespace.Deno },

@@ -1,13 +1,7 @@
 import {
   dirname,
-  esmFileFormat,
-  format,
   fromFileUrl,
-  isBuiltin,
-  join,
-  type MediaType,
   Module,
-  type NpmModule,
   type OnResolveResult,
   PackageJson,
   Platform,
@@ -15,29 +9,21 @@ import {
   type Source,
   toFileUrl,
 } from "../deps.ts";
-import { resolveEsModuleDependency } from "./modules/esm.ts";
-import {
-  formatToMediaType,
-  isLikePath,
-  isObject,
-  normalizePlatform,
-  parseNpmPkg,
-} from "./utils.ts";
+import { formatToMediaType, isObject, normalizePlatform } from "./utils.ts";
 import { resolveBrowser } from "./browser.ts";
 import { type ResolveResult } from "./modules/types.ts";
-import { loadAsDirectory, loadAsFile } from "./require.ts";
-import { Msg, Namespace } from "./constants.ts";
-import { existFile, readFile } from "./context.ts";
+import { require } from "./require.ts";
+import { Namespace } from "./constants.ts";
+import { denoDir, readFile } from "./context.ts";
 import type { PluginData } from "./types.ts";
-import { resolveSideEffects } from "./side_effects.ts";
-import { resolveNpmDependency, resolveNpmModule } from "./modules/npm.ts";
+import { createPackageURL, resolveNpmDependency } from "./modules/npm.ts";
 import { resolveModule } from "./modules/module.ts";
 import { assertModule, assertModuleEntry } from "./modules/utils.ts";
+import { findDependency, resolveDependency } from "./modules/dependency.ts";
 
 interface Context {
   module: Module;
   conditions: string[];
-  // npm: boolean;
   source: Source;
 }
 
@@ -56,12 +42,8 @@ export async function resolve(
     }
 
     case "esm": {
-      const module = resolveEsModuleDependency(context.module, {
-        conditions: context.conditions,
-        referrer,
-        source: context.source,
-        specifier,
-      });
+      const dep = findDependency(context.module.dependencies ?? [], specifier);
+      const module = resolveDependency(dep, { source: context.source });
 
       assertModuleEntry(module, specifier);
       assertModule(module);
@@ -103,14 +85,48 @@ export async function resolve(
         }
       }
 
-      return require(specifier, referrer, {
+      let module = context.module;
+
+      const result = await require(specifier, toFileUrl(referrer), {
         conditions: context.conditions,
-        module: context.module,
-        source: context.source,
-        packageURL,
-        pjson,
-        next: context.next.bind(context),
+        getPackageURL: () => {
+          const dep = resolveNpmDependency(module, {
+            referrer,
+            specifier,
+            conditions: context.conditions,
+            source: context.source,
+          });
+
+          if (!dep) throw new Error();
+
+          module = dep;
+
+          const url = createPackageURL(denoDir, dep.name, dep.version);
+          return url;
+        },
       });
+
+      if (!result) {
+        return { path: specifier, namespace: "(disabled)" };
+      }
+
+      if (result.format === "builtin") {
+        return { path: result.url.toString(), external: true };
+      }
+
+      const mediaType = (result.format && formatToMediaType(result.format)) ??
+        "Unknown";
+      const pluginData = {
+        mediaType,
+        source: context.source,
+        module,
+      } satisfies PluginData;
+
+      return {
+        path: fromFileUrl(result.url),
+        namespace: "deno",
+        pluginData,
+      };
     }
   }
 }
@@ -145,7 +161,7 @@ export function toOnResolveResult(
     }
 
     default: {
-      throw new Error("");
+      throw new Error("un");
     }
   }
 }
@@ -174,114 +190,114 @@ function* parents(url: URL): Iterable<URL> {
   }
 }
 
-export async function require(specifier: string, referrer: string, context: {
-  source: Source;
-  module: NpmModule;
-  pjson: PackageJson | null;
-  packageURL: URL;
-  conditions: string[];
-  next: (specifier: string) => Promise<OnResolveResult> | OnResolveResult;
-}): Promise<OnResolveResult> {
-  // 1. If X is a core module,
-  if (isBuiltin(specifier)) return { external: true };
+// export async function require(specifier: string, referrer: string, context: {
+//   source: Source;
+//   module: NpmModule;
+//   pjson: PackageJson | null;
+//   packageURL: URL;
+//   conditions: string[];
+//   next: (specifier: string) => Promise<OnResolveResult> | OnResolveResult;
+// }): Promise<OnResolveResult> {
+//   // 1. If X is a core module,
+//   if (isBuiltin(specifier)) return { external: true };
 
-  // 3. If X begins with './' or '/' or '../'
-  if (
-    specifier.startsWith("./") ||
-    specifier.startsWith("/") ||
-    specifier.startsWith("../")
-  ) {
-    const base = toFileUrl(referrer);
-    const url = new URL(specifier, base);
+//   // 3. If X begins with './' or '/' or '../'
+//   if (
+//     specifier.startsWith("./") ||
+//     specifier.startsWith("/") ||
+//     specifier.startsWith("../")
+//   ) {
+//     const base = toFileUrl(referrer);
+//     const url = new URL(specifier, base);
 
-    // a. LOAD_AS_FILE(Y + X)
-    const fileResult = await loadAsFile(url);
+//     // a. LOAD_AS_FILE(Y + X)
+//     const fileResult = await loadAsFile(url);
 
-    if (fileResult) {
-      const format = await esmFileFormat(fileResult, {
-        readFile,
-        existFile,
-      });
-      const mediaType: MediaType = format
-        ? formatToMediaType(format)
-        : "Unknown";
-      const pluginData = {
-        mediaType,
-        source: context.source,
-        module: context.module,
-      } satisfies PluginData;
-      const path = fromFileUrl(fileResult);
-      const sideEffects = resolveSideEffects(
-        context.pjson?.sideEffects,
-        fromFileUrl(context.packageURL),
-        path,
-      );
+//     if (fileResult) {
+//       const format = await esmFileFormat(fileResult, {
+//         readFile,
+//         existFile,
+//       });
+//       const mediaType: MediaType = format
+//         ? formatToMediaType(format)
+//         : "Unknown";
+//       const pluginData = {
+//         mediaType,
+//         source: context.source,
+//         module: context.module,
+//       } satisfies PluginData;
+//       const path = fromFileUrl(fileResult);
+//       const sideEffects = resolveSideEffects(
+//         context.pjson?.sideEffects,
+//         fromFileUrl(context.packageURL),
+//         path,
+//       );
 
-      return { path, namespace: Namespace.Deno, pluginData, sideEffects };
-    }
+//       return { path, namespace: Namespace.Deno, pluginData, sideEffects };
+//     }
 
-    // b. LOAD_AS_DIRECTORY(Y + X)
-    const dirResult = await loadAsDirectory(url);
+//     // b. LOAD_AS_DIRECTORY(Y + X)
+//     const dirResult = await loadAsDirectory(url);
 
-    if (dirResult === false) {
-      const path = isLikePath(specifier)
-        ? fromFileUrl(join(context.packageURL, specifier))
-        : specifier;
+//     if (dirResult === false) {
+//       const path = isLikePath(specifier)
+//         ? fromFileUrl(join(context.packageURL, specifier))
+//         : specifier;
 
-      return { path, namespace: Namespace.Disabled };
-    }
+//       return { path, namespace: Namespace.Disabled };
+//     }
 
-    if (dirResult) {
-      const format = await esmFileFormat(dirResult, {
-        readFile,
-        existFile,
-      });
-      const mediaType: MediaType = format
-        ? formatToMediaType(format)
-        : "Unknown";
-      const pluginData = {
-        mediaType,
-        source: context.source,
-        module: context.module,
-      } satisfies PluginData;
-      const path = fromFileUrl(dirResult);
-      const sideEffects = resolveSideEffects(
-        context.pjson?.sideEffects,
-        fromFileUrl(context.packageURL),
-        path,
-      );
+//     if (dirResult) {
+//       const format = await esmFileFormat(dirResult, {
+//         readFile,
+//         existFile,
+//       });
+//       const mediaType: MediaType = format
+//         ? formatToMediaType(format)
+//         : "Unknown";
+//       const pluginData = {
+//         mediaType,
+//         source: context.source,
+//         module: context.module,
+//       } satisfies PluginData;
+//       const path = fromFileUrl(dirResult);
+//       const sideEffects = resolveSideEffects(
+//         context.pjson?.sideEffects,
+//         fromFileUrl(context.packageURL),
+//         path,
+//       );
 
-      return { path, namespace: Namespace.Deno, pluginData, sideEffects };
-    }
+//       return { path, namespace: Namespace.Deno, pluginData, sideEffects };
+//     }
 
-    const message = format(Msg.NotFound, { specifier });
+//     const message = format(Msg.NotFound, { specifier });
 
-    throw new Error(message);
-  }
+//     throw new Error(message);
+//   }
 
-  // 6. LOAD_NODE_MODULES(X, dirname(Y))
-  const module = resolveNpmDependency(context.module, {
-    specifier,
-    referrer,
-    source: context.source,
-    conditions: context.conditions,
-  });
+//   // 6. LOAD_NODE_MODULES(X, dirname(Y))
+//   const module = resolveNpmDependency(context.module, {
+//     specifier,
+//     referrer,
+//     source: context.source,
+//     conditions: context.conditions,
+//   });
 
-  if (module) {
-    const result = await resolveNpmModule(module, {
-      conditions: context.conditions,
-      source: context.source,
-      referrer,
-      specifier,
-    });
+//   if (module) {
+//     const result = await resolveNpmModule(module, {
+//       conditions: context.conditions,
+//       source: context.source,
+//       referrer,
+//       specifier,
+//     });
 
-    return toOnResolveResult(result, { ...context, module, specifier });
-  }
+//     return toOnResolveResult(result, { ...context, module, specifier });
+//   }
 
-  const { subpath } = parseNpmPkg(specifier);
-  // The case where dependencies cannot be detected is when optional: true in peerDependency.
-  // In this case, version resolution is left to the user
-  const pkg = `npm:/${specifier}${subpath.slice(1)}`;
+//   const { subpath } = parseNpmPkg(specifier);
+//   // The case where dependencies cannot be detected is when optional: true in peerDependency.
+//   // In this case, version resolution is left to the user
+//   const pkg = `npm:/${specifier}${subpath.slice(1)}`;
 
-  return context.next(pkg);
-}
+//   return context.next(pkg);
+// }
