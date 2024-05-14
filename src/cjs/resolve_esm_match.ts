@@ -9,7 +9,7 @@ export async function resolveEsmMatch(url: URL): Promise<LoadResult> {
   if (await existFile(url)) {
     const format = await formatFromExt(url);
 
-    return { url: url, format };
+    return { url, format };
   }
 
   // 3. THROW "not found"

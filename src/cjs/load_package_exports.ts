@@ -1,6 +1,6 @@
 import { packageExportsResolve, readPackageJson } from "../../deps.ts";
 import { existDir, existFile, readFile } from "../context.ts";
-import { resolveEsmMatch } from "./resolver_esm_match.ts";
+import { resolveEsmMatch } from "./resolve_esm_match.ts";
 import type { LoadResult } from "./types.ts";
 
 export async function loadPackageExports(
