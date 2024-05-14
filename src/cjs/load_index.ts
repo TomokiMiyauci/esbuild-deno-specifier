@@ -1,28 +1,24 @@
 import { join } from "../../deps.ts";
 import { existFile } from "../context.ts";
-import { findClosest } from "./utils.ts";
+import { detectFormat, findClosest } from "./utils.ts";
 import type { LoadResult } from "./types.ts";
 
-export async function loadIndex(X: URL): Promise<LoadResult | undefined> {
+export async function loadIndex(
+  X: URL | string,
+): Promise<LoadResult | undefined> {
   const indexJs = join(X, "index.js");
 
   // 1. If X/index.js is a file
   if (await existFile(indexJs)) {
     // a. Find the closest package scope SCOPE to X.
-    const result = await findClosest(X);
     // b. If no scope was found, load X/index.js as a CommonJS module. STOP.
-    if (!result) return { url: indexJs, format: "commonjs" };
-
     // c. If the SCOPE/package.json contains "type" field,
-    if ("type" in result.pjson) {
-      // 1. If the "type" field is "module", load X/index.js as an ECMAScript module. STOP.
-      if (result.pjson.type === "module") {
-        return { url: indexJs, format: "module" };
-      }
-    }
-
+    // 1. If the "type" field is "module", load X/index.js as an ECMAScript module. STOP.
     // 2. Else, load X/index.js as an CommonJS module. STOP.
-    return { url: indexJs, format: "commonjs" };
+    const result = await findClosest(X);
+    const format = detectFormat(result?.pjson);
+
+    return { url: indexJs, format };
   }
 
   const indexJson = join(X, "index.json");
