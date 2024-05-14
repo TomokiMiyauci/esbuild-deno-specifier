@@ -1,21 +1,17 @@
 import { packageExportsResolve, readPackageJson } from "../../deps.ts";
 import { existDir, existFile, readFile } from "../context.ts";
 import { resolveEsmMatch } from "./resolve_esm_match.ts";
-import type { LoadResult } from "./types.ts";
+import type { Context, LoadResult, Subpath } from "./types.ts";
 
 export async function loadPackageExports(
-  packageURL: URL,
-  subpath: `.${string}`,
-  context: {
-    conditions: string[];
-  },
+  packageURL: URL | string,
+  subpath: Subpath,
+  context: Context,
 ): Promise<LoadResult | undefined> {
   // 3. Parse DIR/NAME/package.json, and look for "exports" field.
   const pjson = await readPackageJson(packageURL, { readFile });
 
-  if (!pjson) return;
-
-  const exports = pjson.exports;
+  const exports = pjson?.exports;
   // 4. If "exports" is null or undefined, return.
   if (exports === null || exports === undefined) return;
 

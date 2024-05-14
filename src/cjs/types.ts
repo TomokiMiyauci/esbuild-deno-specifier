@@ -4,3 +4,9 @@ export interface LoadResult {
 }
 
 export type Format = "builtin" | "commonjs" | "json" | "module" | "wasm";
+
+export type Subpath = `.${string}`;
+
+export interface Context {
+  conditions: string[];
+}
