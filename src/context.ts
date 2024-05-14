@@ -2,7 +2,8 @@ import { DenoDir, exists } from "../deps.ts";
 
 const cacheForExist = new Map<string, boolean>();
 
-export async function existFile(url: URL): Promise<boolean> {
+export async function existFile(url: URL | string): Promise<boolean> {
+  url = new URL(url);
   const key = url.toString();
 
   if (cacheForExist.has(key)) {

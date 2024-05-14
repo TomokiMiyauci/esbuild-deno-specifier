@@ -12,7 +12,7 @@ import {
 import { formatToMediaType, isObject, normalizePlatform } from "./utils.ts";
 import { resolveBrowser } from "./browser.ts";
 import { type ResolveResult } from "./modules/types.ts";
-import { require } from "./require.ts";
+import { require } from "./cjs/require.ts";
 import { Namespace } from "./constants.ts";
 import { denoDir, readFile } from "./context.ts";
 import type { PluginData } from "./types.ts";

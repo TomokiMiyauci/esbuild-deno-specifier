@@ -10,9 +10,9 @@ import {
 import { parseNpmPkg } from "../utils.ts";
 import { denoDir, existDir } from "../context.ts";
 import type { Context, ResolveResult } from "./types.ts";
-import { Format } from "../require.ts";
+import { loadNodeModules } from "../cjs/load_node_modules.ts";
+import type { Format } from "../cjs/types.ts";
 import { Msg } from "../constants.ts";
-import { loadNodeModules } from "../require.ts";
 
 export async function resolveNpmModule(
   module: NpmModule,
