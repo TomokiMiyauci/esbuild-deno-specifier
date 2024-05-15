@@ -52,4 +52,3 @@ export async function readFile(url: URL): Promise<string | null> {
 }
 
 export const denoDir = new DenoDir().root;
-export const mainFields = ["browser", "module", "main"];

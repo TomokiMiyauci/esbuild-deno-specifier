@@ -12,6 +12,7 @@ import { Namespace } from "./constants.ts";
 import { logger, mediaTypeToLoader } from "./utils.ts";
 import { resolve, toOnResolveResult } from "./resolve.ts";
 import { assertModule, assertModuleEntry } from "./modules/utils.ts";
+import { resolveMainFields } from "./main_fields.ts";
 
 const NAME = "deno";
 
@@ -50,20 +51,25 @@ export function denoPlugin(): Plugin {
             module.specifier === normalized
           );
 
+          assertModuleEntry(module, specifier);
+          assertModule(module);
+
           const conditions = resolveConditions({
             kind,
             platform: build.initialOptions.platform,
             conditions: build.initialOptions.conditions,
           });
-
-          assertModuleEntry(module, specifier);
-          assertModule(module);
+          const mainFields = resolveMainFields({
+            platform: build.initialOptions.platform,
+            mainFields: build.initialOptions.mainFields,
+          });
 
           const result = await resolveModule(module, {
             specifier,
             referrer,
             conditions,
             source,
+            mainFields,
           });
 
           return toOnResolveResult(result, {
@@ -71,6 +77,7 @@ export function denoPlugin(): Plugin {
             module,
             source,
             specifier,
+            mainFields,
           });
         },
       );
@@ -88,6 +95,10 @@ export function denoPlugin(): Plugin {
           platform: build.initialOptions.platform,
           conditions: build.initialOptions.conditions,
         });
+        const mainFields = resolveMainFields({
+          platform: build.initialOptions.platform,
+          mainFields: build.initialOptions.mainFields,
+        });
 
         return resolve(specifier, referrer, {
           conditions,
@@ -102,6 +113,7 @@ export function denoPlugin(): Plugin {
             });
           },
           platform: build.initialOptions.platform,
+          mainFields,
         });
       });
 

@@ -1,9 +1,9 @@
 import type { MediaType, Source } from "../../deps.ts";
+import { Context as CjsContext } from "../cjs/types.ts";
 
-export interface Context {
+export interface Context extends Omit<CjsContext, "getPackageURL"> {
   specifier: string;
   referrer: string;
-  conditions: string[];
   source: Source;
 }
 

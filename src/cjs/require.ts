@@ -3,15 +3,12 @@ import { parseNpmPkg } from "../utils.ts";
 import { loadAsFile } from "./load_file.ts";
 import { loadAsDirectory } from "./load_as_directory.ts";
 import { loadNodeModules } from "./load_node_modules.ts";
-import type { LoadResult } from "./types.ts";
+import type { Context, LoadResult } from "./types.ts";
 
 export async function require(
   specifier: string,
   referrer: URL | string,
-  context: {
-    conditions: string[];
-    getPackageURL(pkg: string): Promise<URL> | URL;
-  },
+  context: Context,
 ): Promise<LoadResult | undefined> {
   // 1. If X is a core module,
   if (isBuiltin(specifier)) {
@@ -33,7 +30,7 @@ export async function require(
     if (fileResult) return fileResult;
 
     //  b. LOAD_AS_DIRECTORY(Y + X)
-    const dirResult = await loadAsDirectory(X);
+    const dirResult = await loadAsDirectory(X, context);
 
     if (dirResult || dirResult === false) {
       return dirResult || undefined;

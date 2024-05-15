@@ -9,4 +9,6 @@ export type Subpath = `.${string}`;
 
 export interface Context {
   conditions: string[];
+  mainFields: string[];
+  getPackageURL(pkg: string): Promise<URL> | URL;
 }
