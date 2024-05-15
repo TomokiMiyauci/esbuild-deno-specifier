@@ -3,7 +3,7 @@ import { Context as CjsContext } from "../cjs/types.ts";
 
 export interface Context extends Omit<CjsContext, "getPackageURL"> {
   specifier: string;
-  referrer: string;
+  referrer: URL;
   source: Source;
 }
 

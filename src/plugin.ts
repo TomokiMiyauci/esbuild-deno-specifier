@@ -4,13 +4,15 @@ import {
   type Plugin,
   setup,
   type Source,
+  toFileUrl,
 } from "../deps.ts";
 import type { PluginData } from "./types.ts";
 import { resolveModule } from "./modules/module.ts";
 import { resolveConditions } from "./conditions.ts";
 import { Namespace } from "./constants.ts";
 import { logger, mediaTypeToLoader, normalizePlatform } from "./utils.ts";
-import { resolve, resolveBrowserMap, toOnResolveResult } from "./resolve.ts";
+import { resolve, toOnResolveResult } from "./resolve.ts";
+import { resolveBrowserMap } from "./browser.ts";
 import { assertModule, assertModuleEntry } from "./modules/utils.ts";
 import { resolveMainFields } from "./main_fields.ts";
 
@@ -67,7 +69,6 @@ export function denoPlugin(): Plugin {
 
           const result = await resolveModule(module, {
             specifier,
-            referrer,
             conditions,
             source,
             mainFields,
@@ -103,7 +104,7 @@ export function denoPlugin(): Plugin {
         });
         const platform = normalizePlatform(build.initialOptions.platform);
 
-        return resolve(specifier, referrer, {
+        return resolve(specifier, toFileUrl(referrer), {
           conditions,
           module,
           source,

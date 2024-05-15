@@ -24,7 +24,7 @@ export function resolveEsModule(
   return { url, mediaType: module.mediaType };
 }
 
-export function resolveEsModuleDependency(
+export function resolveEsModuleDependencyModule(
   module: Pick<EsModule, "dependencies">,
   context: Pick<Context, "specifier" | "source">,
 ): Module {
