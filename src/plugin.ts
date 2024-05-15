@@ -7,20 +7,15 @@ import {
   toFileUrl,
 } from "../deps.ts";
 import type { PluginData } from "./types.ts";
-import { resolveModule } from "./modules/module.ts";
 import { resolveConditions } from "./conditions.ts";
 import { Namespace } from "./constants.ts";
 import { logger, mediaTypeToLoader, normalizePlatform } from "./utils.ts";
-import { resolve, toOnResolveResult } from "./resolve.ts";
-import { resolveBrowserMap } from "./browser.ts";
-import { assertModule, assertModuleEntry } from "./modules/utils.ts";
+import { resolve } from "./resolve.ts";
 import { resolveMainFields } from "./main_fields.ts";
-
-const NAME = "deno";
 
 export function denoPlugin(): Plugin {
   return {
-    name: NAME,
+    name: "deno",
     setup(build) {
       setup({
         handlers: {
@@ -36,25 +31,22 @@ export function denoPlugin(): Plugin {
 
       const sourceCache = new Map<string, Source>();
 
+      const cachedInfo = async (specifier: string): Promise<Source> => {
+        const source = sourceCache.has(specifier)
+          ? sourceCache.get(specifier)!
+          : await info(specifier);
+
+        sourceCache.set(specifier, source);
+
+        return source;
+      };
+
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:|^file:/ },
-        async ({ path: specifier, kind, importer: referrer }) => {
+        ({ path: specifier, kind, importer: referrer }) => {
           logger().info(
             `Resolving import "${specifier}" from "${referrer}"`,
           );
-
-          const source = sourceCache.has(specifier)
-            ? sourceCache.get(specifier)!
-            : await info(specifier);
-
-          sourceCache.set(specifier, source);
-          const normalized = source.redirects[specifier] ?? specifier;
-          const module = source.modules.find((module) =>
-            module.specifier === normalized
-          );
-
-          assertModuleEntry(module, specifier);
-          assertModule(module);
 
           const conditions = resolveConditions({
             kind,
@@ -67,32 +59,25 @@ export function denoPlugin(): Plugin {
           });
           const platform = normalizePlatform(build.initialOptions.platform);
 
-          const result = await resolveModule(module, {
-            specifier,
+          return resolve(specifier, "", {
             conditions,
-            source,
+            info: cachedInfo,
             mainFields,
-            resolve: platform === "browser" ? resolveBrowserMap : undefined,
-          });
-
-          return toOnResolveResult(result, {
-            conditions,
-            module,
-            source,
-            specifier,
-            mainFields,
+            platform,
           });
         },
       );
 
       build.onResolve({ filter: /.*/, namespace: Namespace.Deno }, (args) => {
-        const pluginData = args.pluginData as PluginData;
-        const module = pluginData.module;
-        const source = pluginData.source;
-        const { path: specifier, importer: referrer } = args;
         logger().info(
           `Resolving import "${args.path}" from "${args.importer}"`,
         );
+
+        const pluginData = args.pluginData as PluginData;
+        const { module, source } = pluginData;
+        const { path: specifier, importer } = args;
+        const referrer = toFileUrl(importer);
+
         const conditions = resolveConditions({
           kind: args.kind,
           platform: build.initialOptions.platform,
@@ -104,22 +89,12 @@ export function denoPlugin(): Plugin {
         });
         const platform = normalizePlatform(build.initialOptions.platform);
 
-        return resolve(specifier, toFileUrl(referrer), {
+        return resolve(specifier, referrer, {
           conditions,
-          module,
-          source,
-          info: async (specifier) => {
-            const source = sourceCache.has(specifier)
-              ? sourceCache.get(specifier)!
-              : await info(specifier);
-
-            sourceCache.set(specifier, source);
-
-            return source;
-          },
           platform,
           mainFields,
-        });
+          info: cachedInfo,
+        }, { module, source });
       });
 
       build.onLoad(

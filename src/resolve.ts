@@ -8,34 +8,70 @@ import {
 import { logger } from "./utils.ts";
 import { type ResolveResult } from "./modules/types.ts";
 import type { PluginData } from "./types.ts";
-import { resolveModuleDependency } from "./modules/module.ts";
+import { resolveModule, resolveModuleDependency } from "./modules/module.ts";
+import { resolveBrowserMap } from "./browser.ts";
 import { Context as CjsContext } from "./cjs/types.ts";
+import { assertModule, assertModuleEntry } from "./modules/utils.ts";
 
-interface Context extends Omit<CjsContext, "getPackageURL" | "resolve"> {
-  module: Module;
-  source: Source;
+interface ResolveOptions extends Omit<CjsContext, "getPackageURL" | "resolve"> {
+  platform: Platform;
+  info: (specifier: string) => Promise<Source> | Source;
 }
 
 export async function resolve(
   specifier: string,
   referrer: URL | string,
-  context: Context & {
-    platform: Platform;
-    info: (specifier: string) => Promise<Source> | Source;
+  options: ResolveOptions,
+  context?: {
+    module: Module;
+    source: Source;
   },
 ): Promise<OnResolveResult> {
-  const [result, { source = context.source, module }] =
-    await resolveModuleDependency(
-      context.module,
-      { ...context, referrer: new URL(referrer), specifier },
-    );
+  const resolve = options.platform === "browser"
+    ? resolveBrowserMap
+    : undefined;
 
-  return toOnResolveResult(result, { ...context, source, module, specifier });
+  if (context) {
+    const [result, { source = context.source, module }] =
+      await resolveModuleDependency(
+        context.module,
+        {
+          referrer: new URL(referrer),
+          specifier,
+          resolve,
+          conditions: options.conditions,
+          info: options.info,
+          mainFields: options.mainFields,
+          source: context.source,
+        },
+      );
+
+    return toOnResolveResult(result, { source, module, specifier });
+  }
+
+  const source = await options.info(specifier);
+  const normalized = source.redirects[specifier] ?? specifier;
+  const module = source.modules.find((module) =>
+    module.specifier === normalized
+  );
+
+  assertModuleEntry(module, specifier);
+  assertModule(module);
+
+  const result = await resolveModule(module, {
+    specifier,
+    conditions: options.conditions,
+    source,
+    mainFields: options.conditions,
+    resolve,
+  });
+
+  return toOnResolveResult(result, { source, module, specifier });
 }
 
 export function toOnResolveResult(
   result: undefined | ResolveResult,
-  context: Context & { specifier: string },
+  context: { specifier: string; source: Source; module: Module },
 ): OnResolveResult {
   if (!result) {
     return { namespace: "(disabled)", path: context.specifier };

@@ -2,14 +2,13 @@ import { resolveNpmModule } from "./npm.ts";
 import { resolveEsModule } from "./esm.ts";
 import { resolveNodeModule } from "./node.ts";
 import type { Context, ResolveResult } from "./types.ts";
-import { Module, Platform, type Source } from "../../deps.ts";
+import { Module, type Source } from "../../deps.ts";
 import { require } from "../cjs/require.ts";
 import { denoDir } from "../context.ts";
 import { createPackageURL, resolveNpmDependency } from "./npm.ts";
 import { resolveEsModuleDependencyModule } from "./esm.ts";
 import { assertModule, assertModuleEntry } from "./utils.ts";
 import { formatToMediaType } from "../utils.ts";
-import { resolveBrowserMap } from "../browser.ts";
 import { LoadResult } from "../cjs/types.ts";
 
 export function resolveModule(
@@ -35,7 +34,6 @@ export function resolveModule(
 export async function resolveModuleDependency(
   module: Module,
   context: Context & {
-    platform: Platform;
     info: (specifier: string) => Promise<Source> | Source;
   },
 ): Promise<
@@ -61,7 +59,7 @@ export async function resolveModuleDependency(
         source: context.source,
         specifier: context.specifier,
         mainFields: context.mainFields,
-        resolve: context.platform === "browser" ? resolveBrowserMap : undefined,
+        resolve: context.resolve,
       });
 
       return [result, { module }];
@@ -111,7 +109,7 @@ export async function resolveModuleDependency(
           return url;
         },
         mainFields: context.mainFields,
-        resolve: context.platform === "browser" ? resolveBrowserMap : undefined,
+        resolve: context.resolve,
       });
 
       const resolveResult = result && loadResultToResolveResult(result);
