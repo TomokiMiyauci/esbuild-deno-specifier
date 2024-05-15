@@ -44,7 +44,7 @@ export async function require(
   }
 
   const { subpath, name } = parseNpmPkg(specifier);
-  const packageURL = await context.getPackageURL(name);
+  const packageURL = await context.getPackageURL({ subpath, name });
   const nodeModulesResult = await loadNodeModules(packageURL, subpath, context);
 
   if (nodeModulesResult || nodeModulesResult === false) {

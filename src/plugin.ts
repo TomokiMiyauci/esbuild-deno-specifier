@@ -107,13 +107,14 @@ export function denoPlugin(): Plugin {
           conditions,
           module,
           source,
-          next: (specifier) => {
-            return build.resolve(specifier, {
-              kind: args.kind,
-              importer: args.importer,
-              pluginName: NAME,
-              resolveDir: args.resolveDir,
-            });
+          info: async (specifier) => {
+            const source = sourceCache.has(specifier)
+              ? sourceCache.get(specifier)!
+              : await info(specifier);
+
+            sourceCache.set(specifier, source);
+
+            return source;
           },
           platform,
           mainFields,
