@@ -1,10 +1,12 @@
-import type {
-  Format,
-  Loader,
-  MediaType,
-  OnResolveArgs,
-  Platform,
-  ResolveOptions,
+import {
+  type Format,
+  getLogger,
+  type Loader,
+  type Logger,
+  type MediaType,
+  type OnResolveArgs,
+  type Platform,
+  type ResolveOptions,
 } from "../deps.ts";
 export function argsToOptions(args: OnResolveArgs): ResolveOptions {
   return {
@@ -96,4 +98,12 @@ export function mediaTypeToLoader(mediaType: MediaType): Loader {
     default:
       return "default";
   }
+}
+
+export function logger(): Logger {
+  return getLogger("deno");
+}
+
+export function isString(input: unknown): input is string {
+  return typeof input === "string";
 }

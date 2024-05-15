@@ -1,9 +1,15 @@
-import { info, type Plugin, type Source } from "../deps.ts";
+import {
+  ConsoleHandler,
+  info,
+  type Plugin,
+  setup,
+  type Source,
+} from "../deps.ts";
 import type { PluginData } from "./types.ts";
 import { resolveModule } from "./modules/module.ts";
 import { resolveConditions } from "./conditions.ts";
 import { Namespace } from "./constants.ts";
-import { mediaTypeToLoader } from "./utils.ts";
+import { logger, mediaTypeToLoader } from "./utils.ts";
 import { resolve, toOnResolveResult } from "./resolve.ts";
 import { assertModule, assertModuleEntry } from "./modules/utils.ts";
 
@@ -13,11 +19,27 @@ export function denoPlugin(): Plugin {
   return {
     name: NAME,
     setup(build) {
+      setup({
+        handlers: {
+          console: new ConsoleHandler("INFO"),
+        },
+        loggers: {
+          "deno": {
+            level: "INFO",
+            handlers: ["console"],
+          },
+        },
+      });
+
       const sourceCache = new Map<string, Source>();
 
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:|^file:/ },
         async ({ path: specifier, kind, importer: referrer }) => {
+          logger().info(
+            `Resolving import "${specifier}" from "${referrer}"`,
+          );
+
           const source = sourceCache.has(specifier)
             ? sourceCache.get(specifier)!
             : await info(specifier);
@@ -58,8 +80,8 @@ export function denoPlugin(): Plugin {
         const module = pluginData.module;
         const source = pluginData.source;
         const { path: specifier, importer: referrer } = args;
-        console.log(
-          `⬥ [VERBOSE] Resolving import "${args.path}" from "${args.importer}"`,
+        logger().info(
+          `Resolving import "${args.path}" from "${args.importer}"`,
         );
         const conditions = resolveConditions({
           kind: args.kind,
