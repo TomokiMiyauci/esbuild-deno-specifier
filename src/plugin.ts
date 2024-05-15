@@ -9,8 +9,8 @@ import type { PluginData } from "./types.ts";
 import { resolveModule } from "./modules/module.ts";
 import { resolveConditions } from "./conditions.ts";
 import { Namespace } from "./constants.ts";
-import { logger, mediaTypeToLoader } from "./utils.ts";
-import { resolve, toOnResolveResult } from "./resolve.ts";
+import { logger, mediaTypeToLoader, normalizePlatform } from "./utils.ts";
+import { resolve, resolveBrowserMap, toOnResolveResult } from "./resolve.ts";
 import { assertModule, assertModuleEntry } from "./modules/utils.ts";
 import { resolveMainFields } from "./main_fields.ts";
 
@@ -63,6 +63,7 @@ export function denoPlugin(): Plugin {
             platform: build.initialOptions.platform,
             mainFields: build.initialOptions.mainFields,
           });
+          const platform = normalizePlatform(build.initialOptions.platform);
 
           const result = await resolveModule(module, {
             specifier,
@@ -70,6 +71,7 @@ export function denoPlugin(): Plugin {
             conditions,
             source,
             mainFields,
+            resolve: platform === "browser" ? resolveBrowserMap : undefined,
           });
 
           return toOnResolveResult(result, {
@@ -99,6 +101,7 @@ export function denoPlugin(): Plugin {
           platform: build.initialOptions.platform,
           mainFields: build.initialOptions.mainFields,
         });
+        const platform = normalizePlatform(build.initialOptions.platform);
 
         return resolve(specifier, referrer, {
           conditions,
@@ -112,7 +115,7 @@ export function denoPlugin(): Plugin {
               resolveDir: args.resolveDir,
             });
           },
-          platform: build.initialOptions.platform,
+          platform,
           mainFields,
         });
       });

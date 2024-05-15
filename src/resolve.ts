@@ -1,29 +1,27 @@
 import {
-  dirname,
   fromFileUrl,
+  join,
   Module,
   type OnResolveResult,
   PackageJson,
   Platform,
-  readPackageJson,
   type Source,
   toFileUrl,
 } from "../deps.ts";
-import { formatToMediaType, isObject, normalizePlatform } from "./utils.ts";
+import { formatToMediaType, isObject, logger } from "./utils.ts";
 import { resolveBrowser } from "./browser.ts";
 import { type ResolveResult } from "./modules/types.ts";
 import { require } from "./cjs/require.ts";
-import { Namespace } from "./constants.ts";
-import { denoDir, readFile } from "./context.ts";
+import { denoDir } from "./context.ts";
 import type { PluginData } from "./types.ts";
 import { createPackageURL, resolveNpmDependency } from "./modules/npm.ts";
 import { resolveModule } from "./modules/module.ts";
 import { assertModule, assertModuleEntry } from "./modules/utils.ts";
 import { findDependency, resolveDependency } from "./modules/dependency.ts";
+import { Context as CjsContext } from "./cjs/types.ts";
 
-interface Context {
+interface Context extends Omit<CjsContext, "getPackageURL" | "resolve"> {
   module: Module;
-  conditions: string[];
   source: Source;
 }
 
@@ -31,7 +29,7 @@ export async function resolve(
   specifier: string,
   referrer: string,
   context: Context & {
-    platform: Platform | undefined;
+    platform: Platform;
     next: (specifier: string) => Promise<OnResolveResult> | OnResolveResult;
   },
 ): Promise<OnResolveResult> {
@@ -53,47 +51,21 @@ export async function resolve(
         referrer,
         source: context.source,
         specifier,
+        mainFields: context.mainFields,
+        resolve: context.platform === "browser" ? resolveBrowserMap : undefined,
       });
 
       return toOnResolveResult(result, { ...context, module, specifier });
     }
 
     case "npm": {
-      const closest = await findClosest(toFileUrl(referrer));
-
-      if (!closest) throw new Error("Cannot find");
-
-      const { pjson, packageURL } = closest;
-
-      const browser = pjson?.browser;
-      const platform = normalizePlatform(context.platform);
-
-      if (platform === "browser" && isObject(browser)) {
-        const result = resolveBrowser(specifier, browser);
-
-        if (result) {
-          if (result.specifier === null) {
-            // TODO
-            // const path = isLikePath(specifier)
-            //   ? fromFileUrl(join(packageURL, specifier))
-            //   : specifier;
-
-            return { path: "xxx", namespace: Namespace.Disabled };
-          } else {
-            specifier = result.specifier;
-          }
-        }
-      }
-
       let module = context.module;
 
       const result = await require(specifier, toFileUrl(referrer), {
         conditions: context.conditions,
         getPackageURL: () => {
           const dep = resolveNpmDependency(module, {
-            referrer,
             specifier,
-            conditions: context.conditions,
             source: context.source,
           });
 
@@ -104,6 +76,8 @@ export async function resolve(
           const url = createPackageURL(denoDir, dep.name, dep.version);
           return url;
         },
+        mainFields: context.mainFields,
+        resolve: context.platform === "browser" ? resolveBrowserMap : undefined,
       });
 
       if (!result) {
@@ -121,12 +95,11 @@ export async function resolve(
         source: context.source,
         module,
       } satisfies PluginData;
+      const path = fromFileUrl(result.url);
 
-      return {
-        path: fromFileUrl(result.url),
-        namespace: "deno",
-        pluginData,
-      };
+      logger().info(`-> ${path}`);
+
+      return { path, namespace: "deno", pluginData };
     }
   }
 }
@@ -153,8 +126,11 @@ export function toOnResolveResult(
 
       // TODO: side effect
 
+      const path = fromFileUrl(result.url);
+      logger().info(`-> ${path}`);
+
       return {
-        path: fromFileUrl(result.url),
+        path,
         namespace: "deno",
         pluginData,
       };
@@ -166,27 +142,22 @@ export function toOnResolveResult(
   }
 }
 
-async function findClosest(
-  url: URL,
-): Promise<{ pjson: PackageJson; packageURL: URL } | undefined> {
-  for (const packageURL of parents(url)) {
-    const pjson = await readPackageJson(packageURL, { readFile });
+export function resolveBrowserMap(
+  path: string,
+  args: { pjson: PackageJson; packageURL: URL },
+): false | URL | undefined {
+  if (args.pjson) {
+    if (isObject(args.pjson.browser)) {
+      const result = resolveBrowser(path, args.pjson.browser);
 
-    if (pjson) {
-      return {
-        pjson,
-        packageURL,
-      };
+      if (result) {
+        if (result.specifier === null) {
+          return false;
+        }
+
+        return join(args.packageURL, result.specifier);
+      }
     }
-  }
-}
-
-function* parents(url: URL): Iterable<URL> {
-  const dir = dirname(url);
-
-  if (dir.pathname !== url.pathname) {
-    yield dir;
-    yield* parents(dir);
   }
 }
 

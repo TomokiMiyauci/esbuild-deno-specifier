@@ -131,7 +131,7 @@ export function createPackageURL(
 
 export function resolveNpmDependency(
   module: NpmModule,
-  context: Context,
+  context: Pick<Context, "source" | "specifier">,
 ): (NpmModule & NpmPackage) | undefined {
   const npm = context.source.npmPackages[module.npmPackage];
 
