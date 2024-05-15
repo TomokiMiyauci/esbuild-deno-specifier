@@ -1,8 +1,6 @@
 import { isBuiltin } from "../../deps.ts";
 import { parseNpmPkg } from "../utils.ts";
-import { loadAsFile } from "./load_file.ts";
-import { findClosest } from "./utils.ts";
-import { loadAsDirectory } from "./load_as_directory.ts";
+import { findClosest, loadAs } from "./utils.ts";
 import { loadNodeModules } from "./load_node_modules.ts";
 import type { Context, LoadResult } from "./types.ts";
 
@@ -16,19 +14,13 @@ export async function require(
     const closest = await findClosest(referrer);
 
     if (closest && context.resolve) {
-      const result = context.resolve(specifier, closest);
+      const result = await context.resolve(specifier, closest);
 
       if (result === false) return undefined;
-
-      if (result) {
-        throw new Error("unknown");
-      }
+      if (result) return loadAs(result, context);
     }
 
-    return {
-      url: new URL(`node:${specifier}`),
-      format: "builtin",
-    };
+    return { url: new URL(`node:${specifier}`), format: "builtin" };
   }
 
   // 3. If X begins with './' or '/' or '../'
@@ -44,19 +36,7 @@ export async function require(
 
     if (!url) return;
 
-    //  a. LOAD_AS_FILE(Y + X)
-    const fileResult = await loadAsFile(url);
-    if (fileResult) return fileResult;
-
-    //  b. LOAD_AS_DIRECTORY(Y + X)
-    const dirResult = await loadAsDirectory(url, context);
-
-    if (dirResult || dirResult === false) {
-      return dirResult || undefined;
-    }
-
-    //  c. THROW "not found"
-    throw new Error("not found");
+    return loadAs(url, context);
   }
 
   if (specifier.startsWith("#")) {

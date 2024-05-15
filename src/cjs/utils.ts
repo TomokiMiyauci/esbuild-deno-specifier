@@ -5,7 +5,9 @@ import {
   readPackageJson,
 } from "../../deps.ts";
 import { readFile } from "../context.ts";
-import type { Format } from "./types.ts";
+import { loadAsDirectory } from "./load_as_directory.ts";
+import { loadAsFile } from "./load_file.ts";
+import type { Context, Format, LoadResult } from "./types.ts";
 
 export async function formatFromExt(
   url: URL | string,
@@ -64,4 +66,26 @@ function* parents(url: URL | string): Iterable<URL> {
     yield dir;
     yield* parents(dir);
   }
+}
+
+/**
+ * @throws {Error}
+ */
+export async function loadAs(
+  url: URL | string,
+  context: Pick<Context, "mainFields" | "resolve">,
+): Promise<LoadResult | undefined> {
+  //  a. LOAD_AS_FILE(Y + X)
+  const fileResult = await loadAsFile(url);
+  if (fileResult) return fileResult;
+
+  //  b. LOAD_AS_DIRECTORY(Y + X)
+  const dirResult = await loadAsDirectory(url, context);
+
+  if (dirResult || dirResult === false) {
+    return dirResult || undefined;
+  }
+
+  //  c. THROW "not found"
+  throw new Error("not found");
 }
