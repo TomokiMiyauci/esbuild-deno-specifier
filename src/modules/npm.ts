@@ -16,7 +16,10 @@ import { Msg } from "../constants.ts";
 
 export async function resolveNpmModule(
   module: NpmModule,
-  context: Context,
+  context: Pick<
+    Context,
+    "conditions" | "mainFields" | "resolve" | "source" | "specifier"
+  >,
 ): Promise<ResolveResult | undefined> {
   const npm = context.source.npmPackages[module.npmPackage];
 

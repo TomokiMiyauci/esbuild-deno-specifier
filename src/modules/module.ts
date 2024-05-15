@@ -6,7 +6,10 @@ import type { Context, ResolveResult } from "./types.ts";
 
 export function resolveModule(
   module: Module,
-  context: Context,
+  context: Pick<
+    Context,
+    "conditions" | "mainFields" | "resolve" | "source" | "specifier"
+  >,
 ): ResolveResult | undefined | Promise<ResolveResult | undefined> {
   switch (module.kind) {
     case "esm":

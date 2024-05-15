@@ -16,8 +16,8 @@ import { denoDir } from "./context.ts";
 import type { PluginData } from "./types.ts";
 import { createPackageURL, resolveNpmDependency } from "./modules/npm.ts";
 import { resolveModule } from "./modules/module.ts";
+import { resolveEsModuleDependency } from "./modules/esm.ts";
 import { assertModule, assertModuleEntry } from "./modules/utils.ts";
-import { findDependency, resolveDependency } from "./modules/dependency.ts";
 import { Context as CjsContext, LoadResult } from "./cjs/types.ts";
 
 interface Context extends Omit<CjsContext, "getPackageURL" | "resolve"> {
@@ -40,15 +40,13 @@ export async function resolve(
     }
 
     case "esm": {
-      const dep = findDependency(context.module.dependencies ?? [], specifier);
-      const module = resolveDependency(dep, { source: context.source });
-
-      assertModuleEntry(module, specifier);
-      assertModule(module);
+      const module = resolveEsModuleDependency(context.module, {
+        specifier,
+        source: context.source,
+      });
 
       const result = await resolveModule(module, {
         conditions: context.conditions,
-        referrer,
         source: context.source,
         specifier,
         mainFields: context.mainFields,
