@@ -1,6 +1,5 @@
 import { join, readPackageJson } from "../../deps.ts";
 import { isString } from "../utils.ts";
-import { readFile } from "../context.ts";
 import { loadAsFile } from "./load_file.ts";
 import { loadIndex } from "./load_index.ts";
 import type { Context, LoadResult } from "./types.ts";
@@ -10,10 +9,10 @@ import type { Context, LoadResult } from "./types.ts";
  */
 export async function loadAsDirectory(
   packageURL: URL | string,
-  context: Pick<Context, "mainFields" | "resolve">,
+  context: Pick<Context, "mainFields" | "resolve" | "readFile" | "existFile">,
 ): Promise<LoadResult | undefined | false> {
   // 1. If X/package.json is a file,
-  const pjson = await readPackageJson(packageURL, { readFile });
+  const pjson = await readPackageJson(packageURL, context);
 
   if (pjson) {
     const values = context.mainFields.map((field) => pjson[field]).filter(
@@ -28,10 +27,10 @@ export async function loadAsDirectory(
 
         if (!url) return false;
 
-        const fileResult = await loadAsFile(url);
+        const fileResult = await loadAsFile(url, context);
         if (fileResult) return fileResult;
 
-        const indexResult = await loadIndex(url);
+        const indexResult = await loadIndex(url, context);
         if (indexResult) return indexResult;
       }
 
@@ -41,5 +40,5 @@ export async function loadAsDirectory(
   }
 
   // 2. LOAD_INDEX(X)
-  return loadIndex(packageURL);
+  return loadIndex(packageURL, context);
 }

@@ -7,7 +7,7 @@ import {
   toFileUrl,
 } from "../../deps.ts";
 import { parseNpmPkg } from "../utils.ts";
-import { denoDir, existDir } from "../context.ts";
+import { denoDir } from "../context.ts";
 import type {
   Context,
   DependencyContext,
@@ -25,7 +25,14 @@ export async function resolveNpmModule(
   module: NpmModule,
   context: Pick<
     Context,
-    "conditions" | "mainFields" | "resolve" | "source" | "specifier"
+    | "conditions"
+    | "mainFields"
+    | "resolve"
+    | "source"
+    | "specifier"
+    | "existDir"
+    | "readFile"
+    | "existFile"
   >,
 ): Promise<ResolveResult | undefined> {
   const npm = context.source.npmPackages[module.npmPackage];
@@ -37,7 +44,7 @@ export async function resolveNpmModule(
   const subpath = parseSubpath(module.specifier, { name, version });
   const packageURL = createPackageURL(denoDir, name, version);
 
-  if (!await existDir(packageURL)) {
+  if (!await context.existDir(packageURL)) {
     const message = format(Msg.NotFound, { specifier: context.specifier });
 
     throw new Error(message);
@@ -107,7 +114,7 @@ export async function resolveNpmModuleDependency(
   let source = context.source;
 
   const result = await require(context.specifier, context.referrer, {
-    conditions: context.conditions,
+    ...context,
     getPackageURL: async ({ name, subpath }) => {
       const dep = resolveNpmDependency(depModule, {
         specifier: context.specifier,
@@ -145,8 +152,6 @@ export async function resolveNpmModuleDependency(
       const url = createPackageURL(denoDir, dep.name, dep.version);
       return url;
     },
-    mainFields: context.mainFields,
-    resolve: context.resolve,
   });
 
   const resolveResult = result && loadResultToResolveResult(result);

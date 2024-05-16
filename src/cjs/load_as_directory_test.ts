@@ -8,10 +8,17 @@ import {
   pjsonMainModule,
   pjsonNoMain,
 } from "../../tests/fixtures/node_modules.ts";
+import { existFile, readFile } from "../../tests/context.ts";
 
 describe("loadAsDirectory", () => {
   it("should resolve as index if the package.json does not exist and index.js exist", async () => {
-    await expect(loadAsDirectory(noPjson.packageURL, { mainFields: [] }))
+    await expect(
+      loadAsDirectory(noPjson.packageURL, {
+        mainFields: [],
+        readFile,
+        existFile,
+      }),
+    )
       .resolves.toEqual({
         url: new URL(noPjson.indexJs),
         format: "commonjs",
@@ -19,7 +26,13 @@ describe("loadAsDirectory", () => {
   });
 
   it("should resolve as index if the package.json does not includes any `mainFields`", async () => {
-    await expect(loadAsDirectory(emptyPjson.packageURL, { mainFields: [] }))
+    await expect(
+      loadAsDirectory(emptyPjson.packageURL, {
+        mainFields: [],
+        readFile,
+        existFile,
+      }),
+    )
       .resolves.toEqual({
         url: new URL(emptyPjson.indexJs),
         format: "commonjs",
@@ -28,7 +41,11 @@ describe("loadAsDirectory", () => {
 
   it("should resolve as index if the package.json does not have `mainFields`", async () => {
     await expect(
-      loadAsDirectory(emptyPjson.packageURL, { mainFields: ["unknown"] }),
+      loadAsDirectory(emptyPjson.packageURL, {
+        mainFields: ["unknown"],
+        readFile,
+        existFile,
+      }),
     )
       .resolves.toEqual({
         url: new URL(emptyPjson.indexJs),
@@ -38,7 +55,11 @@ describe("loadAsDirectory", () => {
 
   it("should resolve as file if the package.json includes `mainFields`", async () => {
     await expect(
-      loadAsDirectory(pjsonMain.packageURL, { mainFields: ["main"] }),
+      loadAsDirectory(pjsonMain.packageURL, {
+        mainFields: ["main"],
+        readFile,
+        existFile,
+      }),
     )
       .resolves.toEqual({
         url: new URL(pjsonMain.mainJs),
@@ -48,7 +69,11 @@ describe("loadAsDirectory", () => {
 
   it("should resolve as directory if the package.json includes `mainFields`", async () => {
     await expect(
-      loadAsDirectory(pjsonMain2.packageURL, { mainFields: ["main"] }),
+      loadAsDirectory(pjsonMain2.packageURL, {
+        mainFields: ["main"],
+        readFile,
+        existFile,
+      }),
     )
       .resolves.toEqual({
         url: new URL(pjsonMain2.indexJs),
@@ -60,6 +85,8 @@ describe("loadAsDirectory", () => {
     await expect(
       loadAsDirectory(pjsonMainModule.packageURL, {
         mainFields: ["main", "module"],
+        readFile,
+        existFile,
       }),
     )
       .resolves.toEqual({
@@ -72,6 +99,8 @@ describe("loadAsDirectory", () => {
     await expect(
       loadAsDirectory(pjsonMainModule.packageURL, {
         mainFields: ["module", "main"],
+        readFile,
+        existFile,
       }),
     )
       .resolves.toEqual({
@@ -82,7 +111,11 @@ describe("loadAsDirectory", () => {
 
   it("should throw error if `mainFields` cannot resolve", async () => {
     await expect(
-      loadAsDirectory(pjsonNoMain.packageURL, { mainFields: ["main"] }),
+      loadAsDirectory(pjsonNoMain.packageURL, {
+        mainFields: ["main"],
+        readFile,
+        existFile,
+      }),
     )
       .rejects.toThrow();
   });

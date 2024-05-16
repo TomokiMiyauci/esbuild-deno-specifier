@@ -15,7 +15,14 @@ export function resolveModule(
   module: Module,
   context: Pick<
     Context,
-    "conditions" | "mainFields" | "resolve" | "source" | "specifier"
+    | "conditions"
+    | "mainFields"
+    | "resolve"
+    | "source"
+    | "specifier"
+    | "existDir"
+    | "existFile"
+    | "readFile"
   >,
 ): ResolveResult | undefined | Promise<ResolveResult | undefined> {
   switch (module.kind) {

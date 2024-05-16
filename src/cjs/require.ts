@@ -11,7 +11,7 @@ export async function require(
 ): Promise<LoadResult | undefined> {
   // 1. If X is a core module,
   if (isBuiltin(specifier)) {
-    const closest = await findClosest(referrer);
+    const closest = await findClosest(referrer, context);
 
     if (closest && context.resolve) {
       const result = await context.resolve(specifier, closest);
@@ -29,7 +29,7 @@ export async function require(
     specifier.startsWith("/") ||
     specifier.startsWith("../")
   ) {
-    const closest = await findClosest(referrer);
+    const closest = await findClosest(referrer, context);
 
     const url = (closest && await context.resolve?.(specifier, closest)) ??
       new URL(specifier, referrer);

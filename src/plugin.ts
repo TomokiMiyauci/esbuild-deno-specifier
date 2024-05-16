@@ -1,5 +1,6 @@
 import {
   ConsoleHandler,
+  exists,
   info,
   type Plugin,
   setup,
@@ -10,7 +11,6 @@ import type { DataPluginData, PluginData } from "./types.ts";
 import { Namespace } from "./constants.ts";
 import { logger, mediaTypeToLoader } from "./utils.ts";
 import { createResolve } from "./resolve.ts";
-import { readFile } from "./context.ts";
 
 export function denoPlugin(): Plugin {
   return {
@@ -40,6 +40,68 @@ export function denoPlugin(): Plugin {
         return source;
       };
 
+      const cacheForExist = new Map<string, boolean>();
+
+      async function existFile(url: URL | string): Promise<boolean> {
+        url = new URL(url);
+        const key = url.toString();
+
+        if (cacheForExist.has(key)) {
+          return cacheForExist.get(key)!;
+        }
+
+        const result = await exists(url, { isFile: true });
+
+        cacheForExist.set(key, result);
+
+        return result;
+      }
+
+      const cacheForExistDir = new Map<string, boolean>();
+
+      async function existDir(url: URL): Promise<boolean> {
+        const key = url.toString();
+
+        if (cacheForExistDir.has(key)) {
+          // console.log("Cached exist dir", key);
+          return cacheForExistDir.get(key)!;
+        }
+
+        const result = await exists(url, { isDirectory: true });
+
+        cacheForExistDir.set(key, result);
+
+        return result;
+      }
+
+      const cacheForFile = new Map<string, string | null>();
+
+      async function readFile(url: URL): Promise<string | null> {
+        const key = url.toString();
+        if (cacheForFile.has(key)) return cacheForFile.get(key)!;
+
+        try {
+          const value = await Deno.readTextFile(url);
+
+          cacheForFile.set(key, value);
+
+          return value;
+        } catch (e) {
+          if (e instanceof Deno.errors.NotFound) {
+            cacheForFile.set(key, null);
+            return null;
+          }
+
+          if (e instanceof Deno.errors.IsADirectory) {
+            cacheForFile.set(key, null);
+
+            return null;
+          }
+
+          throw e;
+        }
+      }
+
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:|^file:/ },
         ({ path: specifier, kind, importer: referrer }) => {
@@ -49,7 +111,12 @@ export function denoPlugin(): Plugin {
 
           const resolve = createResolve(build.initialOptions, { kind });
 
-          return resolve(specifier, "", { info: cachedInfo });
+          return resolve(specifier, "", {
+            info: cachedInfo,
+            existDir,
+            existFile,
+            readFile,
+          });
         },
       );
 
@@ -64,7 +131,12 @@ export function denoPlugin(): Plugin {
         const referrer = toFileUrl(importer);
         const resolve = createResolve(build.initialOptions, { kind });
 
-        return resolve(specifier, referrer, { info: cachedInfo }, {
+        return resolve(specifier, referrer, {
+          info: cachedInfo,
+          existDir,
+          existFile,
+          readFile,
+        }, {
           module,
           source,
         });

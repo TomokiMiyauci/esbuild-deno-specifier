@@ -27,22 +27,19 @@ export async function resolveEsModuleDependency(
   module: Pick<EsModule, "dependencies">,
   context: Pick<
     DependencyContext,
-    "conditions" | "source" | "specifier" | "mainFields" | "resolve"
+    | "conditions"
+    | "source"
+    | "specifier"
+    | "mainFields"
+    | "resolve"
+    | "existDir"
+    | "existFile"
+    | "readFile"
   >,
 ): Promise<DependencyResolveResult> {
-  const { specifier, source, conditions, mainFields, resolve } = context;
-  const depModule = resolveEsModuleDependencyModule(module, {
-    specifier,
-    source,
-  });
+  const depModule = resolveEsModuleDependencyModule(module, context);
 
-  const result = await resolveModule(depModule, {
-    conditions,
-    source,
-    specifier,
-    mainFields,
-    resolve,
-  });
+  const result = await resolveModule(depModule, context);
 
   return [result, { module: depModule, source: undefined }];
 }

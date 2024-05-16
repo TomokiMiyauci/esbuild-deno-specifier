@@ -49,6 +49,9 @@ export async function resolve(
           info: options.info,
           mainFields: options.mainFields,
           source: context.source,
+          readFile: options.readFile,
+          existDir: options.existDir,
+          existFile: options.existFile,
         },
       );
 
@@ -70,6 +73,9 @@ export async function resolve(
     source,
     mainFields: options.conditions,
     resolve,
+    existDir: options.existDir,
+    existFile: options.existFile,
+    readFile: options.readFile,
   });
 
   return toOnResolveResult(result, { source, module, specifier, platform });
@@ -141,7 +147,7 @@ export function createResolve(
 ): (
   specifier: string,
   referrer: URL | string,
-  options: Pick<ResolveOptions, "info">,
+  options: Pick<ResolveOptions, "info" | "readFile" | "existDir" | "existFile">,
   context?: {
     module: Module;
     source: Source;
@@ -164,5 +170,8 @@ export function createResolve(
       mainFields,
       platform,
       info: options.info,
+      readFile: options.readFile,
+      existDir: options.existDir,
+      existFile: options.existFile,
     }, context);
 }

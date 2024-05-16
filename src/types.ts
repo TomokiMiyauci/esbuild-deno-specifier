@@ -1,4 +1,4 @@
-import type { MediaType, Module, PackageJson, Source } from "../deps.ts";
+import type { MediaType, Module, Source } from "../deps.ts";
 
 export interface PluginData {
   module: Module;
@@ -6,13 +6,14 @@ export interface PluginData {
   mediaType: MediaType;
 }
 
-export interface NpmContext {
-  pjson: PackageJson | null;
-  packageURL: URL;
-}
-
 export type Subpath = `.${string}`;
 
 export interface DataPluginData {
   mediaType: MediaType;
+}
+
+export interface IO {
+  existFile(url: URL): Promise<boolean> | boolean;
+  existDir(url: URL): Promise<boolean> | boolean;
+  readFile(ur: URL): Promise<string | null> | string | null;
 }

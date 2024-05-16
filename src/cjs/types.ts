@@ -1,5 +1,5 @@
 import { type PackageJson } from "../../deps.ts";
-import type { Subpath } from "../types.ts"
+import type { IO, Subpath } from "../types.ts";
 
 export interface LoadResult {
   url: URL;
@@ -8,7 +8,7 @@ export interface LoadResult {
 
 export type Format = "builtin" | "commonjs" | "json" | "module" | "wasm";
 
-export interface Context {
+export interface Context extends IO {
   conditions: string[];
   mainFields: string[];
   getPackageURL(pkg: { name: string; subpath: Subpath }): Promise<URL> | URL;
