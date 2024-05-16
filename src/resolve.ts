@@ -1,5 +1,6 @@
 import {
   type BuildOptions,
+  format,
   fromFileUrl,
   type Module,
   type OnResolveArgs,
@@ -16,6 +17,7 @@ import { type Context as CjsContext } from "./cjs/types.ts";
 import { assertModule, assertModuleEntry } from "./modules/utils.ts";
 import { resolveConditions } from "./conditions.ts";
 import { resolveMainFields } from "./main_fields.ts";
+import { Msg } from "./constants.ts";
 
 interface ResolveOptions extends Omit<CjsContext, "getPackageURL" | "resolve"> {
   platform: Platform;
@@ -31,9 +33,8 @@ export async function resolve(
     source: Source;
   },
 ): Promise<OnResolveResult> {
-  const resolve = options.platform === "browser"
-    ? resolveBrowserMap
-    : undefined;
+  const { platform } = options;
+  const resolve = platform === "browser" ? resolveBrowserMap : undefined;
 
   if (context) {
     const [result, { source = context.source, module }] =
@@ -50,7 +51,7 @@ export async function resolve(
         },
       );
 
-    return toOnResolveResult(result, { source, module, specifier });
+    return toOnResolveResult(result, { source, module, specifier, platform });
   }
 
   const source = await options.info(specifier);
@@ -70,19 +71,33 @@ export async function resolve(
     resolve,
   });
 
-  return toOnResolveResult(result, { source, module, specifier });
+  return toOnResolveResult(result, { source, module, specifier, platform });
 }
 
 export function toOnResolveResult(
   result: undefined | ResolveResult,
-  context: { specifier: string; source: Source; module: Module },
+  context: {
+    specifier: string;
+    source: Source;
+    module: Module;
+    platform: Platform;
+  },
 ): OnResolveResult {
+  const { specifier } = context;
+
   if (!result) {
-    return { namespace: "(disabled)", path: context.specifier };
+    return { namespace: "(disabled)", path: specifier };
   }
 
   switch (result.url.protocol) {
     case "node:": {
+      if (context.platform !== "node") {
+        const text = format(Msg.NotFound, { specifier });
+        const note = format(Msg.BuildInNodeModule, { specifier });
+
+        return { errors: [{ text, notes: [{ text: note }] }] };
+      }
+
       return { external: true, path: result.url.toString() };
     }
 
@@ -98,11 +113,7 @@ export function toOnResolveResult(
       const path = fromFileUrl(result.url);
       logger().info(`-> ${path}`);
 
-      return {
-        path,
-        namespace: "deno",
-        pluginData,
-      };
+      return { path, namespace: "deno", pluginData };
     }
 
     default: {
