@@ -1,4 +1,9 @@
-import { resolveEsModule, resolveEsModuleDependencyModule } from "./esm.ts";
+import {
+  resolveEsModule,
+  resolveEsModuleDependency,
+  resolveEsModuleDependencyModule,
+} from "./esm.ts";
+import { toFileUrl } from "../../deps.ts";
 import { describe, expect, it } from "../../dev_deps.ts";
 import _ from "../../tests/fixtures/sources/jsr:@miyauci+react-router.json" with {
   type: "json",
@@ -50,5 +55,36 @@ describe("resolveEsModuleDependencyModule", () => {
       specifier,
       source,
     })).toEqual(source.modules.find((v) => v.specifier === map[specifier]));
+  });
+});
+
+describe("resolveEsModuleDependency", () => {
+  it("should return esm", async () => {
+    const specifier = "./src/route.ts";
+    const module = source.modules.find((v) =>
+      v.specifier === map["jsr:@miyauci/react-router"]
+    );
+    assertModuleEntry(module, "");
+    assertModule(module);
+    assertEsModule(module);
+
+    const depModule = resolveEsModuleDependencyModule(module, {
+      specifier,
+      source,
+    });
+
+    assertEsModule(depModule);
+
+    await expect(
+      resolveEsModuleDependency(module, {
+        conditions: [],
+        mainFields: [],
+        source,
+        specifier,
+      }),
+    ).resolves.toEqual([{
+      url: toFileUrl(depModule.local!),
+      mediaType: depModule.mediaType,
+    }, { module: depModule, source: undefined }]);
   });
 });
