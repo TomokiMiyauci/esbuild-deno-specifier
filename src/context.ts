@@ -35,15 +35,27 @@ export async function existDir(url: URL) {
   return result;
 }
 
+const cacheForFile = new Map<string, string | null>();
+
 export async function readFile(url: URL): Promise<string | null> {
+  const key = url.toString();
+  if (cacheForFile.has(key)) return cacheForFile.get(key)!;
+
   try {
-    return await Deno.readTextFile(url);
+    const value = await Deno.readTextFile(url);
+
+    cacheForFile.set(key, value);
+
+    return value;
   } catch (e) {
     if (e instanceof Deno.errors.NotFound) {
+      cacheForFile.set(key, null);
       return null;
     }
 
     if (e instanceof Deno.errors.IsADirectory) {
+      cacheForFile.set(key, null);
+
       return null;
     }
 
