@@ -9,10 +9,18 @@ import {
 } from "../../deps.ts";
 import { parseNpmPkg } from "../utils.ts";
 import { denoDir, existDir } from "../context.ts";
-import type { Context, ResolveResult } from "./types.ts";
+import type {
+  Context,
+  DependencyContext,
+  DependencyResolveResult,
+  ResolveResult,
+} from "./types.ts";
 import { loadNodeModules } from "../cjs/load_node_modules.ts";
 import type { Format } from "../cjs/types.ts";
 import { Msg } from "../constants.ts";
+import { require } from "../cjs/require.ts";
+import { assertModule, assertModuleEntry } from "./utils.ts";
+import { type LoadResult } from "../cjs/types.ts";
 
 export async function resolveNpmModule(
   module: NpmModule,
@@ -88,37 +96,6 @@ export interface NpmResult {
   packageURL: URL;
 }
 
-// async function resolveEsmPackage(
-//   packageURL: URL,
-//   pjson: PackageJson | null,
-//   subpath: Subpath,
-//   context: Context,
-// ) {
-//   if (pjson && pjson.exports) {
-//     return packageExportsResolve(
-//       packageURL,
-//       subpath,
-//       pjson.exports,
-//       context.conditions,
-//       {
-//         existDir,
-//         existFile,
-//         readFile,
-//       },
-//     );
-//   }
-
-//   if (pjson && "browser" in pjson) {
-//     if (typeof pjson.browser === "string") {
-//       const url = join(packageURL, pjson.browser);
-
-//       if (await existFile(url)) return url;
-//     }
-//   }
-
-//   throw new Error("ESM");
-// }
-
 export function createPackageURL(
   denoDir: string,
   name: string,
@@ -130,6 +107,68 @@ export function createPackageURL(
   const packageURL = join(baseURL, name, version);
 
   return packageURL;
+}
+
+export async function resolveNpmModuleDependency(
+  module: NpmModule,
+  context: DependencyContext,
+): Promise<DependencyResolveResult> {
+  let depModule = module;
+  let source = context.source;
+
+  const result = await require(context.specifier, context.referrer, {
+    conditions: context.conditions,
+    getPackageURL: async ({ name, subpath }) => {
+      const dep = resolveNpmDependency(depModule, {
+        specifier: context.specifier,
+        source,
+      });
+
+      if (!dep) {
+        // The case where dependencies cannot be detected is when optional: true in peerDependency.
+        // In this case, version resolution is left to the user
+
+        const specifier = `npm:/${name}${subpath.slice(1)}`;
+        source = await context.info(specifier);
+
+        const normalized = source.redirects[specifier] ?? specifier;
+        const mod = source.modules.find((module) =>
+          module.specifier === normalized
+        );
+
+        assertModuleEntry(mod, specifier);
+        assertModule(mod);
+
+        if (mod.kind !== "npm") {
+          throw new Error("unreachable");
+        }
+
+        depModule = mod;
+
+        const npm = source.npmPackages[depModule.npmPackage];
+
+        return createPackageURL(denoDir, npm.name, npm.version);
+      }
+
+      depModule = dep;
+
+      const url = createPackageURL(denoDir, dep.name, dep.version);
+      return url;
+    },
+    mainFields: context.mainFields,
+    resolve: context.resolve,
+  });
+
+  const resolveResult = result && loadResultToResolveResult(result);
+
+  return [resolveResult, { module: depModule, source }];
+}
+
+function loadResultToResolveResult(result: LoadResult): ResolveResult {
+  const mediaType = (result.format && formatToMediaType(result.format)) ??
+    "Unknown";
+
+  return { url: result.url, mediaType };
 }
 
 export function resolveNpmDependency(

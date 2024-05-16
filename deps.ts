@@ -1,4 +1,5 @@
 export {
+  type BuildOptions,
   type ImportKind,
   type Loader,
   type OnResolveArgs,
@@ -11,7 +12,6 @@ export {
 } from "npm:esbuild@^0.20.2";
 export {
   esmFileFormat,
-  type Format,
   packageExportsResolve,
   type PackageJson,
   readPackageJson,
