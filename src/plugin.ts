@@ -10,6 +10,7 @@ import type { PluginData } from "./types.ts";
 import { Namespace } from "./constants.ts";
 import { logger, mediaTypeToLoader } from "./utils.ts";
 import { createResolve } from "./resolve.ts";
+import { readFile } from "./context.ts";
 
 export function denoPlugin(): Plugin {
   return {
@@ -73,7 +74,12 @@ export function denoPlugin(): Plugin {
         { filter: /.*/, namespace: Namespace.Deno },
         async (args) => {
           const pluginData = args.pluginData as PluginData;
-          const contents = await Deno.readTextFile(args.path);
+          const contents = await readFile(toFileUrl(args.path));
+
+          if (typeof contents !== "string") {
+            throw new Error("file does not exist");
+          }
+
           const loader = mediaTypeToLoader(pluginData.mediaType);
 
           return { contents, loader, pluginData: args.pluginData };
