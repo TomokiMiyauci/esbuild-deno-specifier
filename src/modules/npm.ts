@@ -4,7 +4,6 @@ import {
   type MediaType,
   type NpmModule,
   NpmPackage,
-  type PackageJson,
   toFileUrl,
 } from "../../deps.ts";
 import { parseNpmPkg } from "../utils.ts";
@@ -85,13 +84,6 @@ export function parseSubpath(specifier: string, hint: Hint): Subpath {
   const subpath = specifier.slice(npmSpecifier.length);
 
   return `.${subpath}`;
-}
-
-export interface NpmResult {
-  url: URL | null;
-  pjson: PackageJson | null;
-  format: Format | null;
-  packageURL: URL;
 }
 
 export function createPackageURL(
