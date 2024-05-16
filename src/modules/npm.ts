@@ -16,11 +16,11 @@ import type {
   ResolveResult,
 } from "./types.ts";
 import { loadNodeModules } from "../cjs/load_node_modules.ts";
-import type { Format } from "../cjs/types.ts";
+import type { Format, LoadResult } from "../cjs/types.ts";
 import { Msg } from "../constants.ts";
 import { require } from "../cjs/require.ts";
 import { assertModule, assertModuleEntry } from "./utils.ts";
-import { type LoadResult } from "../cjs/types.ts";
+import type { Subpath } from "../types.ts";
 
 export async function resolveNpmModule(
   module: NpmModule,
@@ -73,8 +73,6 @@ export function formatToMediaType(format: Format): MediaType {
       return "Unknown";
   }
 }
-
-export type Subpath = `.${string}`;
 
 export interface Hint {
   name: string;

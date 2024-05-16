@@ -1,5 +1,4 @@
 import {
-  type Format,
   getLogger,
   type Loader,
   type Logger,
@@ -8,6 +7,8 @@ import {
   type Platform,
   type ResolveOptions,
 } from "../deps.ts";
+import { type Format } from "./cjs/types.ts";
+import type { Subpath } from "./types.ts";
 export function argsToOptions(args: OnResolveArgs): ResolveOptions {
   return {
     importer: args.importer,
@@ -28,6 +29,8 @@ export function formatToMediaType(format: Format): MediaType {
       return "Json";
     case "wasm":
       return "Wasm";
+    case "builtin":
+      return "Unknown";
   }
 }
 
@@ -48,7 +51,7 @@ export function isLikePath(input: string): input is LikePath {
 
 export interface Package {
   name: string;
-  subpath: `.${string}`;
+  subpath: Subpath;
 }
 
 export function parseNpmPkg(specifier: string): Package {

@@ -10,3 +10,5 @@ export interface NpmContext {
   pjson: PackageJson | null;
   packageURL: URL;
 }
+
+export type Subpath = `.${string}`;

@@ -1,4 +1,5 @@
-import { type Hint, parseSubpath, type Subpath } from "./npm.ts";
+import { type Hint, parseSubpath } from "./npm.ts";
+import { type Subpath } from "../types.ts";
 import { describe, expect, it } from "../../dev_deps.ts";
 
 describe("parseSubpath", () => {

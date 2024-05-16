@@ -1,4 +1,5 @@
 import { type PackageJson } from "../../deps.ts";
+import type { Subpath } from "../types.ts"
 
 export interface LoadResult {
   url: URL;
@@ -6,8 +7,6 @@ export interface LoadResult {
 }
 
 export type Format = "builtin" | "commonjs" | "json" | "module" | "wasm";
-
-export type Subpath = `.${string}`;
 
 export interface Context {
   conditions: string[];
