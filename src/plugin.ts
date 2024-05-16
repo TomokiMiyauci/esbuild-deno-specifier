@@ -7,11 +7,9 @@ import {
   toFileUrl,
 } from "../deps.ts";
 import type { PluginData } from "./types.ts";
-import { resolveConditions } from "./conditions.ts";
 import { Namespace } from "./constants.ts";
-import { logger, mediaTypeToLoader, normalizePlatform } from "./utils.ts";
-import { resolve } from "./resolve.ts";
-import { resolveMainFields } from "./main_fields.ts";
+import { logger, mediaTypeToLoader } from "./utils.ts";
+import { createResolve } from "./resolve.ts";
 
 export function denoPlugin(): Plugin {
   return {
@@ -48,23 +46,9 @@ export function denoPlugin(): Plugin {
             `Resolving import "${specifier}" from "${referrer}"`,
           );
 
-          const conditions = resolveConditions({
-            kind,
-            platform: build.initialOptions.platform,
-            conditions: build.initialOptions.conditions,
-          });
-          const mainFields = resolveMainFields({
-            platform: build.initialOptions.platform,
-            mainFields: build.initialOptions.mainFields,
-          });
-          const platform = normalizePlatform(build.initialOptions.platform);
+          const resolve = createResolve(build.initialOptions, { kind });
 
-          return resolve(specifier, "", {
-            conditions,
-            info: cachedInfo,
-            mainFields,
-            platform,
-          });
+          return resolve(specifier, "", { info: cachedInfo });
         },
       );
 
@@ -75,26 +59,14 @@ export function denoPlugin(): Plugin {
 
         const pluginData = args.pluginData as PluginData;
         const { module, source } = pluginData;
-        const { path: specifier, importer } = args;
+        const { path: specifier, importer, kind } = args;
         const referrer = toFileUrl(importer);
+        const resolve = createResolve(build.initialOptions, { kind });
 
-        const conditions = resolveConditions({
-          kind: args.kind,
-          platform: build.initialOptions.platform,
-          conditions: build.initialOptions.conditions,
+        return resolve(specifier, referrer, { info: cachedInfo }, {
+          module,
+          source,
         });
-        const mainFields = resolveMainFields({
-          platform: build.initialOptions.platform,
-          mainFields: build.initialOptions.mainFields,
-        });
-        const platform = normalizePlatform(build.initialOptions.platform);
-
-        return resolve(specifier, referrer, {
-          conditions,
-          platform,
-          mainFields,
-          info: cachedInfo,
-        }, { module, source });
       });
 
       build.onLoad(

@@ -1,17 +1,21 @@
 import {
+  type BuildOptions,
   fromFileUrl,
-  Module,
+  type Module,
+  type OnResolveArgs,
   type OnResolveResult,
-  Platform,
+  type Platform,
   type Source,
 } from "../deps.ts";
-import { logger } from "./utils.ts";
+import { logger, normalizePlatform } from "./utils.ts";
 import { type ResolveResult } from "./modules/types.ts";
 import type { PluginData } from "./types.ts";
 import { resolveModule, resolveModuleDependency } from "./modules/module.ts";
 import { resolveBrowserMap } from "./browser.ts";
-import { Context as CjsContext } from "./cjs/types.ts";
+import { type Context as CjsContext } from "./cjs/types.ts";
 import { assertModule, assertModuleEntry } from "./modules/utils.ts";
+import { resolveConditions } from "./conditions.ts";
+import { resolveMainFields } from "./main_fields.ts";
 
 interface ResolveOptions extends Omit<CjsContext, "getPackageURL" | "resolve"> {
   platform: Platform;
@@ -105,4 +109,36 @@ export function toOnResolveResult(
       throw new Error("un");
     }
   }
+}
+
+export function createResolve(
+  buildOptions: BuildOptions,
+  args: Pick<OnResolveArgs, "kind">,
+): (
+  specifier: string,
+  referrer: URL | string,
+  options: Pick<ResolveOptions, "info">,
+  context?: {
+    module: Module;
+    source: Source;
+  },
+) => Promise<OnResolveResult> {
+  const conditions = resolveConditions({
+    kind: args.kind,
+    platform: buildOptions.platform,
+    conditions: buildOptions.conditions,
+  });
+  const mainFields = resolveMainFields({
+    platform: buildOptions.platform,
+    mainFields: buildOptions.mainFields,
+  });
+  const platform = normalizePlatform(buildOptions.platform);
+
+  return (specifier, referrer, options, context) =>
+    resolve(specifier, referrer, {
+      conditions,
+      mainFields,
+      platform,
+      info: options.info,
+    }, context);
 }
