@@ -21,7 +21,7 @@ export function resolveModule(
   switch (module.kind) {
     case "esm":
     case "asserted":
-      return resolveEsModule(module, context);
+      return resolveEsModule(module);
 
     case "node":
       return resolveNodeModule(module);

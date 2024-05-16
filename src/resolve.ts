@@ -10,7 +10,7 @@ import {
 } from "../deps.ts";
 import { logger, normalizePlatform } from "./utils.ts";
 import { type ResolveResult } from "./modules/types.ts";
-import type { PluginData } from "./types.ts";
+import type { DataPluginData, PluginData } from "./types.ts";
 import { resolveModule, resolveModuleDependency } from "./modules/module.ts";
 import { resolveBrowserMap } from "./browser.ts";
 import { type Context as CjsContext } from "./cjs/types.ts";
@@ -18,6 +18,7 @@ import { assertModule, assertModuleEntry } from "./modules/utils.ts";
 import { resolveConditions } from "./conditions.ts";
 import { resolveMainFields } from "./main_fields.ts";
 import { Msg } from "./constants.ts";
+import { Namespace } from "./constants.ts";
 
 interface ResolveOptions extends Omit<CjsContext, "getPackageURL" | "resolve"> {
   platform: Platform;
@@ -86,7 +87,7 @@ export function toOnResolveResult(
   const { specifier } = context;
 
   if (!result) {
-    return { namespace: "(disabled)", path: specifier };
+    return { namespace: Namespace.Disabled, path: specifier };
   }
 
   switch (result.url.protocol) {
@@ -113,11 +114,23 @@ export function toOnResolveResult(
       const path = fromFileUrl(result.url);
       logger().info(`-> ${path}`);
 
-      return { path, namespace: "deno", pluginData };
+      return { path, namespace: Namespace.Deno, pluginData };
+    }
+
+    case "data:": {
+      const pluginData = {
+        mediaType: result.mediaType,
+      } satisfies DataPluginData;
+
+      return {
+        path: result.url.toString(),
+        namespace: Namespace.Data,
+        pluginData,
+      };
     }
 
     default: {
-      throw new Error("un");
+      throw new Error("unsupported");
     }
   }
 }

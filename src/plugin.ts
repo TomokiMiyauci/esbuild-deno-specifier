@@ -6,7 +6,7 @@ import {
   type Source,
   toFileUrl,
 } from "../deps.ts";
-import type { PluginData } from "./types.ts";
+import type { DataPluginData, PluginData } from "./types.ts";
 import { Namespace } from "./constants.ts";
 import { logger, mediaTypeToLoader } from "./utils.ts";
 import { createResolve } from "./resolve.ts";
@@ -89,6 +89,18 @@ export function denoPlugin(): Plugin {
       build.onLoad({ filter: /.*/, namespace: Namespace.Disabled }, () => {
         return { contents: "" };
       });
+
+      build.onLoad(
+        { filter: /.*/, namespace: Namespace.Data },
+        async (args) => {
+          const pluginData = args.pluginData as DataPluginData;
+          const result = await fetch(args.path);
+          const contents = await result.text();
+          const loader = mediaTypeToLoader(pluginData.mediaType);
+
+          return { contents, loader };
+        },
+      );
     },
   };
 }

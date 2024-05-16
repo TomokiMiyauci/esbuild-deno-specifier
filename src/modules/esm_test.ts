@@ -21,19 +21,22 @@ const map = {
 
 describe("resolveEsModule", () => {
   it("should throw error if `local` property is not string", () => {
+    const data = "data:text/javascript,export default {};";
     expect(
-      () =>
-        resolveEsModule({ local: undefined, mediaType: "Unknown" }, {
-          specifier: "",
-        }),
-    ).toThrow();
+      resolveEsModule({
+        local: undefined,
+        mediaType: "JavaScript",
+        specifier: data,
+      }),
+    ).toEqual({
+      url: new URL(data),
+      mediaType: "JavaScript",
+    });
   });
 
   it("should return result", () => {
     expect(
-      resolveEsModule({ local: "/", mediaType: "JavaScript" }, {
-        specifier: "",
-      }),
+      resolveEsModule({ local: "/", mediaType: "JavaScript", specifier: "" }),
     ).toEqual({
       url: new URL("file:///"),
       mediaType: "JavaScript",

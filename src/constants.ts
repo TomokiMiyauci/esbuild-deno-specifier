@@ -1,6 +1,5 @@
 export const enum Msg {
   NotFound = `Cannot find module "{specifier}"`,
-  LocalPathNotFound = `Cannot find local path "{specifier}"`,
   DependencyNotFound = `Cannot find dependency of "{specifier}"`,
   BuildInNodeModule =
     `The package "{specifier}" wasn't found on the file system but is built into node. Are you trying
@@ -9,5 +8,6 @@ export const enum Msg {
 
 export const enum Namespace {
   Deno = "deno",
+  Data = "(deno-data)",
   Disabled = "(disabled)",
 }

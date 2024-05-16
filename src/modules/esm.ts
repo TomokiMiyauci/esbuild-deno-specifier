@@ -1,5 +1,4 @@
-import { type EsModule, format, type Module, toFileUrl } from "../../deps.ts";
-import { Msg } from "../constants.ts";
+import { type EsModule, type Module, toFileUrl } from "../../deps.ts";
 import type {
   Context,
   DependencyContext,
@@ -14,18 +13,12 @@ import { findDependency, resolveDependency } from "./dependency.ts";
  * @throws {Error} If module.local is not string
  */
 export function resolveEsModule(
-  module: Pick<EsModule, "local" | "mediaType">,
-  context: Pick<Context, "specifier">,
+  module: Pick<EsModule, "local" | "mediaType" | "specifier">,
 ): ResolveResult {
   const path = module.local;
-
-  if (typeof path !== "string") {
-    const message = format(Msg.LocalPathNotFound, context);
-
-    throw new Error(message);
-  }
-
-  const url = toFileUrl(path);
+  const url = typeof path === "string"
+    ? toFileUrl(path)
+    : new URL(module.specifier);
 
   return { url, mediaType: module.mediaType };
 }

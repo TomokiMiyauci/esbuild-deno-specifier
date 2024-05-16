@@ -12,3 +12,7 @@ export interface NpmContext {
 }
 
 export type Subpath = `.${string}`;
+
+export interface DataPluginData {
+  mediaType: MediaType;
+}
