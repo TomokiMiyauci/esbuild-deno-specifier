@@ -18,5 +18,10 @@ export interface ResolveResult {
 
 export type DependencyResolveResult = [
   result: ResolveResult | undefined,
-  context: { module: Module; source?: Source },
+  context: ResolveContext,
 ];
+
+export interface ResolveContext {
+  module: Module;
+  source: Source | undefined;
+}

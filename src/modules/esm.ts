@@ -31,23 +31,27 @@ export function resolveEsModule(
 }
 
 export async function resolveEsModuleDependency(
-  module: EsModule,
-  context: DependencyContext,
+  module: Pick<EsModule, "dependencies">,
+  context: Pick<
+    DependencyContext,
+    "conditions" | "source" | "specifier" | "mainFields" | "resolve"
+  >,
 ): Promise<DependencyResolveResult> {
+  const { specifier, source, conditions, mainFields, resolve } = context;
   const depModule = resolveEsModuleDependencyModule(module, {
-    specifier: context.specifier,
-    source: context.source,
+    specifier,
+    source,
   });
 
-  const result = await resolveModule(module, {
-    conditions: context.conditions,
-    source: context.source,
-    specifier: context.specifier,
-    mainFields: context.mainFields,
-    resolve: context.resolve,
+  const result = await resolveModule(depModule, {
+    conditions,
+    source,
+    specifier,
+    mainFields,
+    resolve,
   });
 
-  return [result, { module: depModule }];
+  return [result, { module: depModule, source: undefined }];
 }
 
 export function resolveEsModuleDependencyModule(
