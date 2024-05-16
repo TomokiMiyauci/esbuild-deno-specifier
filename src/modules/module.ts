@@ -23,6 +23,7 @@ export function resolveModule(
     | "existDir"
     | "existFile"
     | "readFile"
+    | "denoDir"
   >,
 ): ResolveResult | undefined | Promise<ResolveResult | undefined> {
   switch (module.kind) {

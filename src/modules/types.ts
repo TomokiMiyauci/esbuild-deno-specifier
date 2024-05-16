@@ -5,6 +5,7 @@ export interface Context extends Omit<CjsContext, "getPackageURL"> {
   specifier: string;
   referrer: URL;
   source: Source;
+  denoDir: string;
 }
 
 export interface DependencyContext extends Context {

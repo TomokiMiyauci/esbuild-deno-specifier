@@ -22,6 +22,7 @@ import { Namespace } from "./constants.ts";
 
 interface ResolveOptions extends Omit<CjsContext, "getPackageURL" | "resolve"> {
   platform: Platform;
+  denoDir: string;
   info: (specifier: string) => Promise<Source> | Source;
 }
 
@@ -52,6 +53,7 @@ export async function resolve(
           readFile: options.readFile,
           existDir: options.existDir,
           existFile: options.existFile,
+          denoDir: options.denoDir,
         },
       );
 
@@ -76,6 +78,7 @@ export async function resolve(
     existDir: options.existDir,
     existFile: options.existFile,
     readFile: options.readFile,
+    denoDir: options.denoDir,
   });
 
   return toOnResolveResult(result, { source, module, specifier, platform });
@@ -147,7 +150,10 @@ export function createResolve(
 ): (
   specifier: string,
   referrer: URL | string,
-  options: Pick<ResolveOptions, "info" | "readFile" | "existDir" | "existFile">,
+  options: Pick<
+    ResolveOptions,
+    "info" | "readFile" | "existDir" | "existFile" | "denoDir"
+  >,
   context?: {
     module: Module;
     source: Source;
@@ -173,5 +179,6 @@ export function createResolve(
       readFile: options.readFile,
       existDir: options.existDir,
       existFile: options.existFile,
+      denoDir: options.denoDir,
     }, context);
 }

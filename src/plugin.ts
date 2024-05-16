@@ -1,5 +1,6 @@
 import {
   ConsoleHandler,
+  DenoDir,
   exists,
   info,
   type Plugin,
@@ -102,6 +103,8 @@ export function denoPlugin(): Plugin {
         }
       }
 
+      const denoDir = new DenoDir().root;
+
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:|^file:/ },
         ({ path: specifier, kind, importer: referrer }) => {
@@ -116,6 +119,7 @@ export function denoPlugin(): Plugin {
             existDir,
             existFile,
             readFile,
+            denoDir,
           });
         },
       );
@@ -136,6 +140,7 @@ export function denoPlugin(): Plugin {
           existDir,
           existFile,
           readFile,
+          denoDir,
         }, {
           module,
           source,

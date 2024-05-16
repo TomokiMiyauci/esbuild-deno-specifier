@@ -35,6 +35,7 @@ export async function resolveEsModuleDependency(
     | "existDir"
     | "existFile"
     | "readFile"
+    | "denoDir"
   >,
 ): Promise<DependencyResolveResult> {
   const depModule = resolveEsModuleDependencyModule(module, context);

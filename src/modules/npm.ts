@@ -7,7 +7,6 @@ import {
   toFileUrl,
 } from "../../deps.ts";
 import { parseNpmPkg } from "../utils.ts";
-import { denoDir } from "../context.ts";
 import type {
   Context,
   DependencyContext,
@@ -33,6 +32,7 @@ export async function resolveNpmModule(
     | "existDir"
     | "readFile"
     | "existFile"
+    | "denoDir"
   >,
 ): Promise<ResolveResult | undefined> {
   const npm = context.source.npmPackages[module.npmPackage];
@@ -42,7 +42,7 @@ export async function resolveNpmModule(
   const { name, version } = npm;
 
   const subpath = parseSubpath(module.specifier, { name, version });
-  const packageURL = createPackageURL(denoDir, name, version);
+  const packageURL = createPackageURL(context.denoDir, name, version);
 
   if (!await context.existDir(packageURL)) {
     const message = format(Msg.NotFound, { specifier: context.specifier });
@@ -144,12 +144,12 @@ export async function resolveNpmModuleDependency(
 
         const npm = source.npmPackages[depModule.npmPackage];
 
-        return createPackageURL(denoDir, npm.name, npm.version);
+        return createPackageURL(context.denoDir, npm.name, npm.version);
       }
 
       depModule = dep;
 
-      const url = createPackageURL(denoDir, dep.name, dep.version);
+      const url = createPackageURL(context.denoDir, dep.name, dep.version);
       return url;
     },
   });
