@@ -5,7 +5,7 @@ export async function info(): Promise<Output>;
 export async function info(file: string): Promise<SourceFileInfo>;
 export async function info(file?: string): Promise<Output | SourceFileInfo> {
   const options = {
-    args: ["info", "--json"],
+    args: ["info", "--json", "--no-config"],
     stdout: "piped",
     stderr: "inherit",
   } satisfies Deno.CommandOptions;
@@ -50,7 +50,7 @@ export type ModuleEntry =
   | Module;
 
 export type Module =
-  | EsmModule
+  | EsModule
   | NpmModule
   | AssertedModule
   | NodeModule;
@@ -82,7 +82,7 @@ export type MediaType =
   | "SourceMap"
   | "Unknown";
 
-export interface EsmModule extends BaseEntry, CacheInfo {
+export interface EsModule extends BaseEntry, CacheInfo {
   kind: "esm";
   dependencies?: Dependency[];
   mediaType: MediaType;
