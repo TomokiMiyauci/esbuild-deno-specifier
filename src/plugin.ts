@@ -9,53 +9,10 @@ import {
 } from "../deps.ts";
 import type { DataPluginData, PluginData } from "./types.ts";
 import { Namespace } from "./constants.ts";
-import { logger, mediaTypeToLoader } from "./utils.ts";
+import { logger, mediaTypeToLoader, memo } from "./utils.ts";
 import { createResolve } from "./resolve.ts";
 
-function existFile(url: URL): Promise<boolean> {
-  return exists(url, { isFile: true });
-}
-
-function existDir(url: URL): Promise<boolean> {
-  return exists(url, { isDirectory: true });
-}
-
-async function readFile(url: URL): Promise<string | null> {
-  try {
-    const value = await Deno.readTextFile(url);
-
-    return value;
-  } catch (e) {
-    if (e instanceof Deno.errors.NotFound) {
-      return null;
-    }
-
-    if (e instanceof Deno.errors.IsADirectory) {
-      return null;
-    }
-
-    throw e;
-  }
-}
-
-function memo<Arg, R>(
-  fn: (arg: Arg) => Promise<R>,
-  cache: Map<string, R> = new Map(),
-): (arg: Arg) => Promise<R> {
-  return async (arg) => {
-    const key = String(arg);
-
-    if (cache.has(key)) return cache.get(key)!;
-
-    const result = await fn(arg);
-
-    cache.set(key, result);
-
-    return result;
-  };
-}
-
-export function denoPlugin(): Plugin {
+export function denoSpecifier(): Plugin {
   return {
     name: "deno",
     setup(build) {
@@ -145,4 +102,28 @@ export function denoPlugin(): Plugin {
       );
     },
   };
+}
+
+function existFile(url: URL): Promise<boolean> {
+  return exists(url, { isFile: true });
+}
+
+function existDir(url: URL): Promise<boolean> {
+  return exists(url, { isDirectory: true });
+}
+
+async function readFile(url: URL): Promise<string | null> {
+  try {
+    return await Deno.readTextFile(url);
+  } catch (e) {
+    if (e instanceof Deno.errors.NotFound) {
+      return null;
+    }
+
+    if (e instanceof Deno.errors.IsADirectory) {
+      return null;
+    }
+
+    throw e;
+  }
 }
