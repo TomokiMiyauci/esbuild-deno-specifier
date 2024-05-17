@@ -2,6 +2,7 @@ export {
   type BuildOptions,
   type ImportKind,
   type Loader,
+  type LogLevel,
   type OnResolveArgs,
   type OnResolveResult,
   type Platform,
@@ -38,5 +39,5 @@ export { format } from "jsr:@miyauci/format@^1";
 export { isBuiltin } from "node:module";
 export { getLogger } from "jsr:@std/log@^0.224.0/get-logger";
 export { type Logger } from "jsr:@std/log@^0.224.0/logger";
-export { setup } from "jsr:@std/log@^0.224.0/setup";
+export { type LevelName, setup } from "jsr:@std/log@^0.224.0";
 export { ConsoleHandler } from "jsr:@std/log@^0.224.0/console-handler";

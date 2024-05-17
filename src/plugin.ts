@@ -3,6 +3,8 @@ import {
   DenoDir,
   exists,
   info,
+  type LevelName,
+  type LogLevel,
   type Plugin,
   setup,
   toFileUrl,
@@ -14,20 +16,8 @@ import { createResolve } from "./resolve.ts";
 
 export function denoSpecifier(): Plugin {
   return {
-    name: "deno",
+    name: "deno-specifier",
     setup(build) {
-      setup({
-        handlers: {
-          console: new ConsoleHandler("INFO"),
-        },
-        loggers: {
-          "deno": {
-            level: "INFO",
-            handlers: ["console"],
-          },
-        },
-      });
-
       const cachedInfo = memo(info);
       const cachedExistFile = memo(existFile);
       const cachedExistDir = memo(existDir);
@@ -42,10 +32,24 @@ export function denoSpecifier(): Plugin {
         denoDir,
       };
 
+      build.onStart(() => {
+        const logLevel = normalizeLogLevel(build.initialOptions.logLevel);
+        const level = logLevelToLevelName(logLevel);
+
+        if (!level) return;
+
+        setup({
+          handlers: { console: new ConsoleHandler(level) },
+          loggers: {
+            "deno": { level, handlers: ["console"] },
+          },
+        });
+      });
+
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:|^file:/ },
         ({ path: specifier, kind, importer: referrer }) => {
-          logger().info(
+          logger().debug(
             `Resolving import "${specifier}" from "${referrer}"`,
           );
 
@@ -56,7 +60,7 @@ export function denoSpecifier(): Plugin {
       );
 
       build.onResolve({ filter: /.*/, namespace: Namespace.Deno }, (args) => {
-        logger().info(
+        logger().debug(
           `Resolving import "${args.path}" from "${args.importer}"`,
         );
 
@@ -126,4 +130,27 @@ async function readFile(url: URL): Promise<string | null> {
 
     throw e;
   }
+}
+
+function logLevelToLevelName(logLevel: LogLevel): LevelName | null {
+  switch (logLevel) {
+    case "debug":
+      return "DEBUG";
+    case "error":
+      return "ERROR";
+    case "info":
+      return "INFO";
+    case "warning":
+      return "WARN";
+    case "verbose":
+      return "NOTSET";
+    case "silent":
+      return null;
+  }
+}
+
+function normalizeLogLevel(logLevel: LogLevel | undefined): LogLevel {
+  if (!logLevel) return "warning";
+
+  return logLevel;
 }
