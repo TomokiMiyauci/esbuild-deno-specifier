@@ -110,3 +110,20 @@ export function logger(): Logger {
 export function isString(input: unknown): input is string {
   return typeof input === "string";
 }
+
+export function memo<Arg, R>(
+  fn: (arg: Arg) => Promise<R>,
+  cache: Map<string, R> = new Map(),
+): (arg: Arg) => Promise<R> {
+  return async (arg) => {
+    const key = String(arg);
+
+    if (cache.has(key)) return cache.get(key)!;
+
+    const result = await fn(arg);
+
+    cache.set(key, result);
+
+    return result;
+  };
+}

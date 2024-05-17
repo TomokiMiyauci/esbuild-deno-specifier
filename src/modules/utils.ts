@@ -1,4 +1,9 @@
-import { format, type Module, type ModuleEntry } from "../../deps.ts";
+import {
+  type EsModule,
+  format,
+  type Module,
+  type ModuleEntry,
+} from "../../deps.ts";
 import { Msg } from "../constants.ts";
 
 export function assertModuleEntry(
@@ -16,4 +21,8 @@ export function assertModule(
   moduleEntry: ModuleEntry,
 ): asserts moduleEntry is Module {
   if ("error" in moduleEntry) throw new Error(moduleEntry.error);
+}
+
+export function assertEsModule(module: Module): asserts module is EsModule {
+  if (module.kind !== "esm") throw new Error("module should be esm");
 }
