@@ -1,7 +1,9 @@
 import {
   dirname,
   extname,
+  normalize,
   type PackageJson,
+  pathEqual,
   readPackageJson,
 } from "../../deps.ts";
 import { loadAsDirectory } from "./load_as_directory.ts";
@@ -10,7 +12,7 @@ import type { Context, Format, LoadResult } from "./types.ts";
 
 export async function formatFromExt(
   url: URL | string,
-  context: Pick<Context, "readFile">,
+  context: Pick<Context, "readFile" | "root">,
 ): Promise<Format | undefined> {
   const ext = extname(url);
 
@@ -48,9 +50,9 @@ export function concatPath(url: URL | string, path: string): URL {
 
 export async function findClosest(
   url: URL | string,
-  context: Pick<Context, "readFile">,
+  context: Pick<Context, "readFile" | "root">,
 ): Promise<{ pjson: PackageJson; packageURL: URL } | undefined> {
-  for (const packageURL of parents(url)) {
+  for (const packageURL of getParents(url, context.root)) {
     const pjson = await readPackageJson(packageURL, context);
 
     if (pjson) {
@@ -59,14 +61,38 @@ export async function findClosest(
   }
 }
 
-function* parents(url: URL | string): Iterable<URL> {
-  const pathname = new URL(url).pathname;
-  const dir = dirname(url);
+export function* getParents(
+  url: URL | string,
+  root: URL | string,
+): Generator<URL> {
+  url = new URL(url);
+  root = new URL(root);
 
-  if (dir.pathname !== pathname) {
-    yield dir;
-    yield* parents(dir);
+  const rootPath = root.pathname;
+
+  if (
+    root.protocol !== url.protocol ||
+    !isSubpath(rootPath, url.pathname)
+  ) return;
+
+  while (!pathEqual(url.pathname, rootPath)) {
+    const parentURL = dirname(url);
+
+    if (parentURL.pathname === url.pathname) {
+      return;
+    }
+
+    yield parentURL;
+
+    url = parentURL;
   }
+}
+
+export function isSubpath(parent: string, child: string): boolean {
+  parent = normalize(parent);
+  child = normalize(child);
+
+  return parent === child || child.startsWith(parent);
 }
 
 /**
@@ -74,7 +100,10 @@ function* parents(url: URL | string): Iterable<URL> {
  */
 export async function loadAs(
   url: URL | string,
-  context: Pick<Context, "mainFields" | "resolve" | "existFile" | "readFile">,
+  context: Pick<
+    Context,
+    "mainFields" | "resolve" | "existFile" | "readFile" | "root"
+  >,
 ): Promise<LoadResult | undefined> {
   //  a. LOAD_AS_FILE(Y + X)
   const fileResult = await loadAsFile(url, context);

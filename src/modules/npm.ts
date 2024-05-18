@@ -4,7 +4,6 @@ import {
   type MediaType,
   type NpmModule,
   NpmPackage,
-  toFileUrl,
 } from "../../deps.ts";
 import { parseNpmPkg } from "../utils.ts";
 import type {
@@ -32,7 +31,7 @@ export async function resolveNpmModule(
     | "existDir"
     | "readFile"
     | "existFile"
-    | "denoDir"
+    | "root"
   >,
 ): Promise<ResolveResult | undefined> {
   const npm = context.source.npmPackages[module.npmPackage];
@@ -42,7 +41,7 @@ export async function resolveNpmModule(
   const { name, version } = npm;
 
   const subpath = parseSubpath(module.specifier, { name, version });
-  const packageURL = createPackageURL(context.denoDir, name, version);
+  const packageURL = createPackageURL(context.root, name, version);
 
   if (!await context.existDir(packageURL)) {
     const message = format(Msg.NotFound, { specifier: context.specifier });
@@ -50,7 +49,10 @@ export async function resolveNpmModule(
     throw new Error(message);
   }
 
-  const result = await loadNodeModules(packageURL, subpath, context);
+  const result = await loadNodeModules(packageURL, subpath, {
+    ...context,
+    root: packageURL,
+  });
 
   if (result) {
     const { format } = result;
@@ -94,14 +96,11 @@ export function parseSubpath(specifier: string, hint: Hint): Subpath {
 }
 
 export function createPackageURL(
-  denoDir: string,
+  npmRegistryURL: URL | string,
   name: string,
   version: string,
 ): URL {
-  const denoDirURL = toFileUrl(denoDir);
-  const baseURL = join(denoDirURL, "npm", "registry.npmjs.org");
-
-  const packageURL = join(baseURL, name, version);
+  const packageURL = join(npmRegistryURL, name, version);
 
   return packageURL;
 }
@@ -144,12 +143,12 @@ export async function resolveNpmModuleDependency(
 
         const npm = source.npmPackages[depModule.npmPackage];
 
-        return createPackageURL(context.denoDir, npm.name, npm.version);
+        return createPackageURL(context.root, npm.name, npm.version);
       }
 
       depModule = dep;
 
-      const url = createPackageURL(context.denoDir, dep.name, dep.version);
+      const url = createPackageURL(context.root, dep.name, dep.version);
       return url;
     },
   });

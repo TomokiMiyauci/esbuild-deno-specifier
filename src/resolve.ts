@@ -8,7 +8,7 @@ import {
   type Platform,
   type Source,
 } from "../deps.ts";
-import { logger, normalizePlatform } from "./utils.ts";
+import { createNpmRegistryURL, logger, normalizePlatform } from "./utils.ts";
 import { type ResolveResult } from "./modules/types.ts";
 import type { DataPluginData, PluginData } from "./types.ts";
 import { resolveModule, resolveModuleDependency } from "./modules/module.ts";
@@ -20,7 +20,8 @@ import { resolveMainFields } from "./main_fields.ts";
 import { Msg } from "./constants.ts";
 import { Namespace } from "./constants.ts";
 
-interface ResolveOptions extends Omit<CjsContext, "getPackageURL" | "resolve"> {
+interface ResolveOptions
+  extends Omit<CjsContext, "getPackageURL" | "resolve" | "root"> {
   platform: Platform;
   denoDir: string;
   info: (specifier: string) => Promise<Source> | Source;
@@ -37,6 +38,7 @@ export async function resolve(
 ): Promise<OnResolveResult> {
   const { platform } = options;
   const resolve = platform === "browser" ? resolveBrowserMap : undefined;
+  const root = createNpmRegistryURL(options.denoDir);
 
   if (context) {
     const [result, { source = context.source, module }] =
@@ -53,7 +55,7 @@ export async function resolve(
           readFile: options.readFile,
           existDir: options.existDir,
           existFile: options.existFile,
-          denoDir: options.denoDir,
+          root,
         },
       );
 
@@ -78,7 +80,7 @@ export async function resolve(
     existDir: options.existDir,
     existFile: options.existFile,
     readFile: options.readFile,
-    denoDir: options.denoDir,
+    root,
   });
 
   return toOnResolveResult(result, { source, module, specifier, platform });

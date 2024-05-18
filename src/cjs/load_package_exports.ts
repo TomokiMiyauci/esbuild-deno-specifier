@@ -6,7 +6,10 @@ import type { Subpath } from "../types.ts";
 export async function loadPackageExports(
   packageURL: URL | string,
   subpath: Subpath,
-  context: Pick<Context, "conditions" | "readFile" | "existDir" | "existFile">,
+  context: Pick<
+    Context,
+    "conditions" | "readFile" | "existDir" | "existFile" | "root"
+  >,
 ): Promise<LoadResult | undefined> {
   // 3. Parse DIR/NAME/package.json, and look for "exports" field.
   const pjson = await readPackageJson(packageURL, context);

@@ -5,7 +5,12 @@ import {
   pjsonExportsSugar,
   virtualPackageDir,
 } from "../../tests/fixtures/node_modules.ts";
-import { existDir, existFile, readFile } from "../../tests/context.ts";
+import {
+  existDir,
+  existFile,
+  nodeModules as root,
+  readFile,
+} from "../../tests/context.ts";
 
 describe("loadPackageExports", () => {
   it("should return undefined if the package.json does not exist", async () => {
@@ -15,6 +20,7 @@ describe("loadPackageExports", () => {
         existFile,
         readFile,
         existDir,
+        root,
       }),
     )
       .resolves
@@ -28,6 +34,7 @@ describe("loadPackageExports", () => {
         existFile,
         readFile,
         existDir,
+        root,
       }),
     )
       .resolves
@@ -41,6 +48,7 @@ describe("loadPackageExports", () => {
         existFile,
         readFile,
         existDir,
+        root,
       }),
     )
       .resolves

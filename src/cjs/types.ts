@@ -11,6 +11,7 @@ export type Format = "builtin" | "commonjs" | "json" | "module" | "wasm";
 export interface Context extends IO {
   conditions: string[];
   mainFields: string[];
+  root: URL;
   getPackageURL(pkg: { name: string; subpath: Subpath }): Promise<URL> | URL;
   resolve?(
     path: string,

@@ -41,3 +41,5 @@ export { getLogger } from "jsr:@std/log@^0.224.0/get-logger";
 export { type Logger } from "jsr:@std/log@^0.224.0/logger";
 export { type LevelName, setup } from "jsr:@std/log@^0.224.0";
 export { ConsoleHandler } from "jsr:@std/log@^0.224.0/console-handler";
+export { normalize } from "jsr:@std/path@^0.224.0";
+export { pathEqual } from "jsr:@unional/path-equal@^1.2.5";

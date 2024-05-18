@@ -1,11 +1,13 @@
 import {
   getLogger,
+  join,
   type Loader,
   type Logger,
   type MediaType,
   type OnResolveArgs,
   type Platform,
   type ResolveOptions,
+  toFileUrl,
 } from "../deps.ts";
 import { type Format } from "./cjs/types.ts";
 import type { Subpath } from "./types.ts";
@@ -126,4 +128,10 @@ export function memo<Arg, R>(
 
     return result;
   };
+}
+
+export function createNpmRegistryURL(denoDir: string): URL {
+  const denoDirURL = toFileUrl(denoDir);
+
+  return join(denoDirURL, "npm", "registry.npmjs.org");
 }

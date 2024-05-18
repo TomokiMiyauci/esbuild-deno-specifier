@@ -1,4 +1,4 @@
-import { DenoDir, exists } from "../dev_deps.ts";
+import { exists } from "../dev_deps.ts";
 
 export function existFile(url: URL): Promise<boolean> {
   return exists(url, { isFile: true });
@@ -26,4 +26,6 @@ export async function readFile(url: URL): Promise<string | null> {
   }
 }
 
-export const denoDir = new DenoDir().root;
+export const nodeModules = new URL(
+  import.meta.resolve("./fixtures/node_modules"),
+);

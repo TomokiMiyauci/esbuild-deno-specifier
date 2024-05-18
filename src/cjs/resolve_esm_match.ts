@@ -6,7 +6,7 @@ import type { Context, LoadResult } from "./types.ts";
  */
 export async function resolveEsmMatch(
   url: URL | string,
-  context: Pick<Context, "existFile" | "readFile">,
+  context: Pick<Context, "existFile" | "readFile" | "root">,
 ): Promise<LoadResult> {
   url = new URL(url);
   // 1. let RESOLVED_PATH = fileURLToPath(MATCH)

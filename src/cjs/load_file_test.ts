@@ -5,11 +5,16 @@ import {
   esmPjson,
   noPjson,
 } from "../../tests/fixtures/node_modules.ts";
-import { existFile, readFile } from "../../tests/context.ts";
+import {
+  existFile,
+  nodeModules as root,
+  readFile,
+} from "../../tests/context.ts";
 
 describe("loadAsFile", () => {
   it("should return result if the url exists", async () => {
-    await expect(loadAsFile(noPjson.indexJs, { existFile, readFile })).resolves
+    await expect(loadAsFile(noPjson.indexJs, { existFile, readFile, root }))
+      .resolves
       .toEqual({
         url: new URL(noPjson.indexJs),
         format: "commonjs",
@@ -21,10 +26,11 @@ describe("loadAsFile", () => {
       "../../tests/fixtures/node_modules/no-pjson/index",
     );
 
-    await expect(loadAsFile(url, { existFile, readFile })).resolves.toEqual({
-      url: noPjson.indexJs,
-      format: "commonjs",
-    });
+    await expect(loadAsFile(url, { existFile, readFile, root })).resolves
+      .toEqual({
+        url: noPjson.indexJs,
+        format: "commonjs",
+      });
   });
 
   it("should return result if the url with .js exists and the package.json of `type` field is empty", async () => {
@@ -32,10 +38,11 @@ describe("loadAsFile", () => {
       "../../tests/fixtures/node_modules/empty-pjson/index",
     );
 
-    await expect(loadAsFile(url, { existFile, readFile })).resolves.toEqual({
-      url: emptyPjson.indexJs,
-      format: "commonjs",
-    });
+    await expect(loadAsFile(url, { existFile, readFile, root })).resolves
+      .toEqual({
+        url: emptyPjson.indexJs,
+        format: "commonjs",
+      });
   });
 
   it("should return result if the url with .js exists and the package.json of `type` field is `module`", async () => {
@@ -43,10 +50,11 @@ describe("loadAsFile", () => {
       "../../tests/fixtures/node_modules/esm-pjson/index",
     );
 
-    await expect(loadAsFile(url, { existFile, readFile })).resolves.toEqual({
-      url: esmPjson.indexJs,
-      format: "module",
-    });
+    await expect(loadAsFile(url, { existFile, readFile, root })).resolves
+      .toEqual({
+        url: esmPjson.indexJs,
+        format: "module",
+      });
   });
 
   it("should return result if the url with .json exists", async () => {
@@ -54,10 +62,11 @@ describe("loadAsFile", () => {
       "../../tests/fixtures/node_modules/empty-pjson/package",
     );
 
-    await expect(loadAsFile(url, { existFile, readFile })).resolves.toEqual({
-      url: emptyPjson.pjson,
-      format: "json",
-    });
+    await expect(loadAsFile(url, { existFile, readFile, root })).resolves
+      .toEqual({
+        url: emptyPjson.pjson,
+        format: "json",
+      });
   });
 
   it("should return result if the url with .node exists", async () => {
@@ -65,10 +74,11 @@ describe("loadAsFile", () => {
       "../../tests/fixtures/node_modules/no-pjson/main",
     );
 
-    await expect(loadAsFile(url, { existFile, readFile })).resolves.toEqual({
-      url: noPjson.mainNode,
-      format: undefined,
-    });
+    await expect(loadAsFile(url, { existFile, readFile, root })).resolves
+      .toEqual({
+        url: noPjson.mainNode,
+        format: undefined,
+      });
   });
 
   it("should return result if the url does not exist", async () => {
@@ -76,7 +86,7 @@ describe("loadAsFile", () => {
       "../../tests/fixtures/node_modules/not-found",
     );
 
-    await expect(loadAsFile(url, { existFile, readFile })).resolves.toBe(
+    await expect(loadAsFile(url, { existFile, readFile, root })).resolves.toBe(
       undefined,
     );
   });
