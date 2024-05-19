@@ -26,15 +26,9 @@ export function* getCandidates(specifier: string): Generator<string> {
 
 const extensions = [".js", ".json", ".node"];
 
-export function resolveBrowserValue(value: unknown): {
-  specifier: string | null;
-} | undefined {
-  if (value === false) return { specifier: null };
+export type BrowserValue = string | false;
 
-  if (typeof value === "string") return { specifier: value };
-}
-
-export function validateBrowserValue(input: unknown): input is string | false {
+export function validateBrowserValue(input: unknown): input is BrowserValue {
   if (typeof input === "string" || input === false) return true;
 
   return false;
