@@ -20,8 +20,11 @@ import { resolveMainFields } from "./main_fields.ts";
 import { Msg } from "./constants.ts";
 import { Namespace } from "./constants.ts";
 
-interface ResolveOptions
-  extends Omit<CjsContext, "getPackageURL" | "resolve" | "root"> {
+interface ResolveOptions extends
+  Omit<
+    CjsContext,
+    "getPackageURL" | "resolve" | "root" | "nodeModulesPaths"
+  > {
   platform: Platform;
   denoDir: string;
   info: (specifier: string) => Promise<Source> | Source;

@@ -1,8 +1,8 @@
 import { isBuiltin } from "../../deps.ts";
-import { parseNpmPkg } from "../utils.ts";
 import { findClosest, loadAs } from "./utils.ts";
 import { loadNodeModules } from "./load_node_modules.ts";
 import type { Context, LoadResult } from "./types.ts";
+import { parseNpmPkg } from "../utils.ts";
 
 export async function require(
   specifier: string,
@@ -43,9 +43,12 @@ export async function require(
     throw new Error("not supported");
   }
 
-  const { subpath, name } = parseNpmPkg(specifier);
-  const packageURL = await context.getPackageURL({ subpath, name });
-  const nodeModulesResult = await loadNodeModules(packageURL, subpath, context);
+  const { name, subpath } = parseNpmPkg(specifier);
+  const nodeModulesResult = await loadNodeModules(
+    name,
+    subpath,
+    context,
+  );
 
   if (nodeModulesResult || nodeModulesResult === false) {
     return nodeModulesResult || undefined;

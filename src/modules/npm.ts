@@ -1,5 +1,4 @@
 import {
-  format,
   join,
   type MediaType,
   type NpmModule,
@@ -14,7 +13,6 @@ import type {
 } from "./types.ts";
 import { loadNodeModules } from "../cjs/load_node_modules.ts";
 import type { Format, LoadResult } from "../cjs/types.ts";
-import { Msg } from "../constants.ts";
 import { require } from "../cjs/require.ts";
 import { assertModule, assertModuleEntry } from "./utils.ts";
 import type { Subpath } from "../types.ts";
@@ -43,15 +41,16 @@ export async function resolveNpmModule(
   const subpath = parseSubpath(module.specifier, { name, version });
   const packageURL = createPackageURL(context.root, name, version);
 
-  if (!await context.existDir(packageURL)) {
-    const message = format(Msg.NotFound, { specifier: context.specifier });
+  async function* nodeModulesPaths({ name }: { name: string }) {
+    const packageURL = createPackageURL(context.root, name, version);
 
-    throw new Error(message);
+    yield packageURL;
   }
 
-  const result = await loadNodeModules(packageURL, subpath, {
+  const result = await loadNodeModules(name, subpath, {
     ...context,
     root: packageURL,
+    nodeModulesPaths,
   });
 
   if (result) {
@@ -114,7 +113,7 @@ export async function resolveNpmModuleDependency(
 
   const result = await require(context.specifier, context.referrer, {
     ...context,
-    getPackageURL: async ({ name, subpath }) => {
+    async *nodeModulesPaths({ name, subpath }) {
       const dep = resolveNpmDependency(depModule, {
         specifier: context.specifier,
         source,
@@ -143,13 +142,13 @@ export async function resolveNpmModuleDependency(
 
         const npm = source.npmPackages[depModule.npmPackage];
 
-        return createPackageURL(context.root, npm.name, npm.version);
+        return yield createPackageURL(context.root, npm.name, npm.version);
       }
 
       depModule = dep;
 
       const url = createPackageURL(context.root, dep.name, dep.version);
-      return url;
+      yield url;
     },
   });
 
