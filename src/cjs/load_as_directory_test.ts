@@ -8,11 +8,7 @@ import {
   pjsonMainModule,
   pjsonNoMain,
 } from "../../tests/fixtures/node_modules.ts";
-import {
-  existFile,
-  nodeModules as root,
-  readFile,
-} from "../../tests/context.ts";
+import { existFile, readFile, strategy } from "../../tests/context.ts";
 
 describe("loadAsDirectory", () => {
   it("should resolve as index if the package.json does not exist and index.js exist", async () => {
@@ -21,7 +17,7 @@ describe("loadAsDirectory", () => {
         mainFields: [],
         readFile,
         existFile,
-        root,
+        strategy,
       }),
     )
       .resolves.toEqual({
@@ -36,7 +32,7 @@ describe("loadAsDirectory", () => {
         mainFields: [],
         readFile,
         existFile,
-        root,
+        strategy,
       }),
     )
       .resolves.toEqual({
@@ -51,7 +47,7 @@ describe("loadAsDirectory", () => {
         mainFields: ["unknown"],
         readFile,
         existFile,
-        root,
+        strategy,
       }),
     )
       .resolves.toEqual({
@@ -66,7 +62,7 @@ describe("loadAsDirectory", () => {
         mainFields: ["main"],
         readFile,
         existFile,
-        root,
+        strategy,
       }),
     )
       .resolves.toEqual({
@@ -81,7 +77,7 @@ describe("loadAsDirectory", () => {
         mainFields: ["main"],
         readFile,
         existFile,
-        root,
+        strategy,
       }),
     )
       .resolves.toEqual({
@@ -96,7 +92,7 @@ describe("loadAsDirectory", () => {
         mainFields: ["main", "module"],
         readFile,
         existFile,
-        root,
+        strategy,
       }),
     )
       .resolves.toEqual({
@@ -111,7 +107,7 @@ describe("loadAsDirectory", () => {
         mainFields: ["module", "main"],
         readFile,
         existFile,
-        root,
+        strategy,
       }),
     )
       .resolves.toEqual({
@@ -126,7 +122,7 @@ describe("loadAsDirectory", () => {
         mainFields: ["main"],
         readFile,
         existFile,
-        root,
+        strategy,
       }),
     )
       .rejects.toThrow();

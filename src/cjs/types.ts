@@ -1,4 +1,5 @@
 import { type PackageJson } from "../../deps.ts";
+import { Strategy } from "../strategy.ts";
 import type { IO, Subpath } from "../types.ts";
 
 export interface LoadResult {
@@ -11,7 +12,6 @@ export type Format = "builtin" | "commonjs" | "json" | "module" | "wasm";
 export interface Context extends IO {
   conditions: string[];
   mainFields: string[];
-  root: URL;
   resolve?(
     path: string,
     args: { packageURL: URL | string; pjson: PackageJson },
@@ -19,4 +19,5 @@ export interface Context extends IO {
   nodeModulesPaths(
     args: { name: string; subpath: Subpath },
   ): AsyncIterable<URL> | Iterable<URL>;
+  strategy: Strategy;
 }

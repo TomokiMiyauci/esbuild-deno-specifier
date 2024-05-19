@@ -8,7 +8,7 @@ import type { Context, LoadResult } from "./types.ts";
 
 export async function loadAsFile(
   url: URL | string,
-  context: Pick<Context, "existFile" | "readFile" | "root">,
+  context: Pick<Context, "existFile" | "readFile" | "strategy">,
 ): Promise<LoadResult | undefined> {
   url = new URL(url);
   // 1. If X is a file, load X as its file extension format. STOP

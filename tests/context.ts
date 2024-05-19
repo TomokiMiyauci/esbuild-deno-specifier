@@ -1,4 +1,5 @@
-import { exists } from "../dev_deps.ts";
+import { exists, fromFileUrl } from "../dev_deps.ts";
+import { LocalStrategy } from "../src/strategy.ts";
 
 export function existFile(url: URL): Promise<boolean> {
   return exists(url, { isFile: true });
@@ -26,6 +27,6 @@ export async function readFile(url: URL): Promise<string | null> {
   }
 }
 
-export const nodeModules = new URL(
-  import.meta.resolve("./fixtures/node_modules"),
+export const strategy = new LocalStrategy(
+  fromFileUrl(import.meta.resolve("./fixtures")),
 );

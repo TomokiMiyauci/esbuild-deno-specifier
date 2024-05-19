@@ -12,7 +12,7 @@ import type { Context, Format, LoadResult } from "./types.ts";
 
 export async function formatFromExt(
   url: URL | string,
-  context: Pick<Context, "readFile" | "root">,
+  context: Pick<Context, "readFile" | "strategy">,
 ): Promise<Format | undefined> {
   const ext = extname(url);
 
@@ -50,9 +50,9 @@ export function concatPath(url: URL | string, path: string): URL {
 
 export async function findClosest(
   url: URL | string,
-  context: Pick<Context, "readFile" | "root">,
+  context: Pick<Context, "readFile" | "strategy">,
 ): Promise<{ pjson: PackageJson; packageURL: URL } | undefined> {
-  for (const packageURL of getParents(url, context.root)) {
+  for (const packageURL of getParents(url, context.strategy.root)) {
     const pjson = await readPackageJson(packageURL, context);
 
     if (pjson) {
@@ -102,7 +102,7 @@ export async function loadAs(
   url: URL | string,
   context: Pick<
     Context,
-    "mainFields" | "resolve" | "existFile" | "readFile" | "root"
+    "mainFields" | "resolve" | "existFile" | "readFile" | "strategy"
   >,
 ): Promise<LoadResult | undefined> {
   //  a. LOAD_AS_FILE(Y + X)

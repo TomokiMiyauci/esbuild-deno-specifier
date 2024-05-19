@@ -2,7 +2,7 @@ import { detectFormat, formatFromExt, getParents } from "./utils.ts";
 import type { Format } from "./types.ts";
 import { describe, expect, it } from "../../dev_deps.ts";
 import { emptyPjson, esmPjson } from "../../tests/fixtures/node_modules.ts";
-import { nodeModules, readFile } from "../../tests/context.ts";
+import { readFile, strategy } from "../../tests/context.ts";
 
 describe("formatFromExt", () => {
   it("should return format without IO", async () => {
@@ -14,7 +14,7 @@ describe("formatFromExt", () => {
     ];
 
     await Promise.all(table.map(async ([url, format]) => {
-      await expect(formatFromExt(url, { readFile, root: new URL("file:///") }))
+      await expect(formatFromExt(url, { readFile, strategy }))
         .resolves.toBe(
           format,
         );
@@ -28,7 +28,7 @@ describe("formatFromExt", () => {
     ];
 
     await Promise.all(table.map(async ([url, format]) => {
-      await expect(formatFromExt(url, { readFile, root: nodeModules })).resolves
+      await expect(formatFromExt(url, { readFile, strategy })).resolves
         .toBe(
           format,
         );

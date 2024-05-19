@@ -8,8 +8,8 @@ import {
 import {
   existDir,
   existFile,
-  nodeModules as root,
   readFile,
+  strategy,
 } from "../../tests/context.ts";
 
 describe("loadPackageExports", () => {
@@ -20,7 +20,7 @@ describe("loadPackageExports", () => {
         existFile,
         readFile,
         existDir,
-        root,
+        strategy,
       }),
     )
       .resolves
@@ -34,7 +34,7 @@ describe("loadPackageExports", () => {
         existFile,
         readFile,
         existDir,
-        root,
+        strategy,
       }),
     )
       .resolves
@@ -48,7 +48,7 @@ describe("loadPackageExports", () => {
         existFile,
         readFile,
         existDir,
-        root,
+        strategy,
       }),
     )
       .resolves

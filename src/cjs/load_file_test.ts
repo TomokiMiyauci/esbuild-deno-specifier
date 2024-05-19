@@ -5,15 +5,11 @@ import {
   esmPjson,
   noPjson,
 } from "../../tests/fixtures/node_modules.ts";
-import {
-  existFile,
-  nodeModules as root,
-  readFile,
-} from "../../tests/context.ts";
+import { existFile, readFile, strategy } from "../../tests/context.ts";
 
 describe("loadAsFile", () => {
   it("should return result if the url exists", async () => {
-    await expect(loadAsFile(noPjson.indexJs, { existFile, readFile, root }))
+    await expect(loadAsFile(noPjson.indexJs, { existFile, readFile, strategy }))
       .resolves
       .toEqual({
         url: new URL(noPjson.indexJs),
@@ -26,7 +22,7 @@ describe("loadAsFile", () => {
       "../../tests/fixtures/node_modules/no-pjson/index",
     );
 
-    await expect(loadAsFile(url, { existFile, readFile, root })).resolves
+    await expect(loadAsFile(url, { existFile, readFile, strategy })).resolves
       .toEqual({
         url: noPjson.indexJs,
         format: "commonjs",
@@ -38,7 +34,7 @@ describe("loadAsFile", () => {
       "../../tests/fixtures/node_modules/empty-pjson/index",
     );
 
-    await expect(loadAsFile(url, { existFile, readFile, root })).resolves
+    await expect(loadAsFile(url, { existFile, readFile, strategy })).resolves
       .toEqual({
         url: emptyPjson.indexJs,
         format: "commonjs",
@@ -50,7 +46,7 @@ describe("loadAsFile", () => {
       "../../tests/fixtures/node_modules/esm-pjson/index",
     );
 
-    await expect(loadAsFile(url, { existFile, readFile, root })).resolves
+    await expect(loadAsFile(url, { existFile, readFile, strategy })).resolves
       .toEqual({
         url: esmPjson.indexJs,
         format: "module",
@@ -62,7 +58,7 @@ describe("loadAsFile", () => {
       "../../tests/fixtures/node_modules/empty-pjson/package",
     );
 
-    await expect(loadAsFile(url, { existFile, readFile, root })).resolves
+    await expect(loadAsFile(url, { existFile, readFile, strategy })).resolves
       .toEqual({
         url: emptyPjson.pjson,
         format: "json",
@@ -74,7 +70,7 @@ describe("loadAsFile", () => {
       "../../tests/fixtures/node_modules/no-pjson/main",
     );
 
-    await expect(loadAsFile(url, { existFile, readFile, root })).resolves
+    await expect(loadAsFile(url, { existFile, readFile, strategy })).resolves
       .toEqual({
         url: noPjson.mainNode,
         format: undefined,
@@ -86,8 +82,9 @@ describe("loadAsFile", () => {
       "../../tests/fixtures/node_modules/not-found",
     );
 
-    await expect(loadAsFile(url, { existFile, readFile, root })).resolves.toBe(
-      undefined,
-    );
+    await expect(loadAsFile(url, { existFile, readFile, strategy })).resolves
+      .toBe(
+        undefined,
+      );
   });
 });

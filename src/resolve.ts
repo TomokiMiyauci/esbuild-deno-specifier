@@ -8,7 +8,7 @@ import {
   type Platform,
   type Source,
 } from "../deps.ts";
-import { createNpmRegistryURL, logger, normalizePlatform } from "./utils.ts";
+import { logger, normalizePlatform } from "./utils.ts";
 import { type ResolveResult } from "./modules/types.ts";
 import type { DataPluginData, PluginData } from "./types.ts";
 import { resolveModule, resolveModuleDependency } from "./modules/module.ts";
@@ -19,15 +19,17 @@ import { resolveConditions } from "./conditions.ts";
 import { resolveMainFields } from "./main_fields.ts";
 import { Msg } from "./constants.ts";
 import { Namespace } from "./constants.ts";
+import { GlobalStrategy } from "./strategy.ts";
 
 interface ResolveOptions extends
-  Omit<
+  Pick<
     CjsContext,
-    "getPackageURL" | "resolve" | "root" | "nodeModulesPaths"
+    "conditions" | "existDir" | "mainFields" | "existFile" | "readFile"
   > {
   platform: Platform;
   denoDir: string;
   info: (specifier: string) => Promise<Source> | Source;
+  realURL(url: URL): Promise<URL | undefined> | URL | undefined;
 }
 
 export async function resolve(
@@ -41,14 +43,15 @@ export async function resolve(
 ): Promise<OnResolveResult> {
   const { platform } = options;
   const resolve = platform === "browser" ? resolveBrowserMap : undefined;
-  const root = createNpmRegistryURL(options.denoDir);
+  const strategy = new GlobalStrategy(options.denoDir);
+  referrer = new URL(referrer);
 
   if (context) {
     const [result, { source = context.source, module }] =
       await resolveModuleDependency(
         context.module,
         {
-          referrer: new URL(referrer),
+          referrer,
           specifier,
           resolve,
           conditions: options.conditions,
@@ -58,11 +61,17 @@ export async function resolve(
           readFile: options.readFile,
           existDir: options.existDir,
           existFile: options.existFile,
-          root,
+          strategy,
         },
       );
 
-    return toOnResolveResult(result, { source, module, specifier, platform });
+    return toOnResolveResult(result, {
+      source,
+      module,
+      specifier,
+      platform,
+      realURL: options.realURL,
+    });
   }
 
   const source = await options.info(specifier);
@@ -83,21 +92,29 @@ export async function resolve(
     existDir: options.existDir,
     existFile: options.existFile,
     readFile: options.readFile,
-    root,
+    strategy,
+    referrer,
   });
 
-  return toOnResolveResult(result, { source, module, specifier, platform });
+  return toOnResolveResult(result, {
+    source,
+    module,
+    specifier,
+    platform,
+    realURL: options.realURL,
+  });
 }
 
-export function toOnResolveResult(
+export async function toOnResolveResult(
   result: undefined | ResolveResult,
   context: {
     specifier: string;
     source: Source;
     module: Module;
     platform: Platform;
+    realURL(url: URL): Promise<URL | undefined> | URL | undefined;
   },
-): OnResolveResult {
+): Promise<OnResolveResult> {
   const { specifier } = context;
 
   if (!result) {
@@ -122,10 +139,11 @@ export function toOnResolveResult(
         source: context.source,
         module: context.module,
       } satisfies PluginData;
+      const url = (await context.realURL(result.url)) ?? result.url;
+      const path = fromFileUrl(url);
 
       // TODO: side effect
 
-      const path = fromFileUrl(result.url);
       logger().info(`-> ${path}`);
 
       return { path, namespace: Namespace.Deno, pluginData };
@@ -157,7 +175,7 @@ export function createResolve(
   referrer: URL | string,
   options: Pick<
     ResolveOptions,
-    "info" | "readFile" | "existDir" | "existFile" | "denoDir"
+    "info" | "readFile" | "existDir" | "existFile" | "denoDir" | "realURL"
   >,
   context?: {
     module: Module;
@@ -184,6 +202,7 @@ export function createResolve(
       readFile: options.readFile,
       existDir: options.existDir,
       existFile: options.existFile,
+      realURL: options.realURL,
       denoDir: options.denoDir,
     }, context);
 }

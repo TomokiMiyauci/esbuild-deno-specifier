@@ -11,7 +11,7 @@ export async function loadAsDirectory(
   packageURL: URL | string,
   context: Pick<
     Context,
-    "mainFields" | "resolve" | "readFile" | "existFile" | "root"
+    "mainFields" | "resolve" | "readFile" | "existFile" | "strategy"
   >,
 ): Promise<LoadResult | undefined | false> {
   // 1. If X/package.json is a file,

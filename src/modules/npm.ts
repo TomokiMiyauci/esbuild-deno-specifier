@@ -29,7 +29,8 @@ export async function resolveNpmModule(
     | "existDir"
     | "readFile"
     | "existFile"
-    | "root"
+    | "strategy"
+    | "referrer"
   >,
 ): Promise<ResolveResult | undefined> {
   const npm = context.source.npmPackages[module.npmPackage];
@@ -37,20 +38,14 @@ export async function resolveNpmModule(
   if (!npm) throw new Error("npm not found");
 
   const { name, version } = npm;
-
   const subpath = parseSubpath(module.specifier, { name, version });
-  const packageURL = createPackageURL(context.root, name, version);
-
-  async function* nodeModulesPaths({ name }: { name: string }) {
-    const packageURL = createPackageURL(context.root, name, version);
-
-    yield packageURL;
-  }
-
   const result = await loadNodeModules(name, subpath, {
     ...context,
-    root: packageURL,
-    nodeModulesPaths,
+    async *nodeModulesPaths() {
+      for await (
+        const url of context.strategy.resolve({ ...npm, ...context })
+      ) yield url;
+    },
   });
 
   if (result) {
@@ -62,7 +57,7 @@ export async function resolveNpmModule(
 
   if (result === false) return;
 
-  throw new Error();
+  throw new Error(`Cannot ${name}`);
 }
 
 export function formatToMediaType(format: Format): MediaType {
@@ -114,15 +109,14 @@ export async function resolveNpmModuleDependency(
   const result = await require(context.specifier, context.referrer, {
     ...context,
     async *nodeModulesPaths({ name, subpath }) {
-      const dep = resolveNpmDependency(depModule, {
+      const dep = resolveNpmDependency(module, {
         specifier: context.specifier,
-        source,
+        source: source,
       });
 
       if (!dep) {
         // The case where dependencies cannot be detected is when optional: true in peerDependency.
         // In this case, version resolution is left to the user
-
         const specifier = `npm:/${name}${subpath.slice(1)}`;
         source = await context.info(specifier);
 
@@ -140,15 +134,14 @@ export async function resolveNpmModuleDependency(
 
         depModule = mod;
 
-        const npm = source.npmPackages[depModule.npmPackage];
+        const npm = source.npmPackages[mod.npmPackage];
 
-        return yield createPackageURL(context.root, npm.name, npm.version);
+        return yield* context.strategy.resolve({ ...npm, ...context });
       }
 
       depModule = dep;
 
-      const url = createPackageURL(context.root, dep.name, dep.version);
-      yield url;
+      yield* context.strategy.resolve({ ...dep, ...context });
     },
   });
 

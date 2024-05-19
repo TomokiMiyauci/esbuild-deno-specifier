@@ -13,8 +13,8 @@ import { assertEsModule, assertModule, assertModuleEntry } from "./utils.ts";
 import {
   existDir,
   existFile,
-  nodeModules,
   readFile,
+  strategy,
 } from "../../tests/context.ts";
 
 const source = _ as Source;
@@ -93,7 +93,8 @@ describe("resolveEsModuleDependency", () => {
         existDir,
         readFile,
         existFile,
-        root: nodeModules,
+        strategy,
+        referrer: new URL("file:///"),
       }),
     ).resolves.toEqual([{
       url: toFileUrl(depModule.local!),
