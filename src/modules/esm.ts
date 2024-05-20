@@ -20,7 +20,7 @@ export function resolveEsModule(
     ? toFileUrl(path)
     : new URL(module.specifier);
 
-  return { url, mediaType: module.mediaType };
+  return { url, mediaType: module.mediaType, sideEffects: undefined };
 }
 
 export async function resolveEsModuleDependency(

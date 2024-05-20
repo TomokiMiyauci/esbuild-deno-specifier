@@ -7,5 +7,6 @@ export function resolveNodeModule(
   return {
     url: new URL(`node:${module.moduleName}`),
     mediaType: "Unknown",
+    sideEffects: undefined,
   };
 }

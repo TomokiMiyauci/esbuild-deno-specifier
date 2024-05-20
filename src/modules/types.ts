@@ -18,6 +18,7 @@ export interface DependencyContext extends Context {
 export interface ResolveResult {
   url: URL;
   mediaType: MediaType;
+  sideEffects: boolean | undefined;
 }
 
 export type DependencyResolveResult = [

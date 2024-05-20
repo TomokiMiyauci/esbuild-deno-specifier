@@ -1,5 +1,6 @@
 import {
   format,
+  fromFileUrl,
   join,
   type MediaType,
   type NpmModule,
@@ -19,6 +20,8 @@ import { assertModule, assertModuleEntry } from "./utils.ts";
 import type { Subpath } from "../types.ts";
 import { Msg } from "../constants.ts";
 import { fileFormat } from "../cjs/file_format.ts";
+import { findClosest } from "../cjs/utils.ts";
+import { resolveSideEffects } from "../side_effects.ts";
 
 export async function resolveNpmModule(
   module: NpmModule,
@@ -57,12 +60,19 @@ export async function resolveNpmModule(
       case "file:": {
         const format = await fileFormat(url, context);
         const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
+        const result = await findClosest(url, context);
+        const sideEffects = result &&
+          resolveSideEffects(
+            result.pjson?.sideEffects,
+            fromFileUrl(result.packageURL),
+            fromFileUrl(url),
+          );
 
-        return { url, mediaType };
+        return { url, mediaType, sideEffects };
       }
 
       default: {
-        return { url, mediaType: "Unknown" };
+        return { url, mediaType: "Unknown", sideEffects: undefined };
       }
     }
   }
@@ -160,10 +170,29 @@ export async function resolveNpmModuleDependency(
   });
 
   if (url) {
-    const format = await fileFormat(url, context);
-    const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
+    switch (url.protocol) {
+      case "file:": {
+        const format = await fileFormat(url, context);
+        const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
 
-    return [{ url, mediaType }, { module: depModule, source }];
+        const result = await findClosest(url, context);
+        const sideEffects = result &&
+          resolveSideEffects(
+            result.pjson?.sideEffects,
+            fromFileUrl(result.packageURL),
+            fromFileUrl(url),
+          );
+
+        return [{ url, mediaType, sideEffects }, { module: depModule, source }];
+      }
+
+      default: {
+        return [{ url, mediaType: "Unknown", sideEffects: undefined }, {
+          module: depModule,
+          source,
+        }];
+      }
+    }
   }
 
   return [url, { module: depModule, source }];

@@ -140,7 +140,11 @@ export async function toOnResolveResult(
         return { errors: [{ text, notes: [{ text: note }] }] };
       }
 
-      return { external: true, path: result.url.toString() };
+      return {
+        external: true,
+        path: result.url.toString(),
+        sideEffects: result.sideEffects,
+      };
     }
 
     case "file:": {
@@ -159,7 +163,12 @@ export async function toOnResolveResult(
 
       logger().debug(() => context.writer.done());
 
-      return { path, namespace: Namespace.Deno, pluginData };
+      return {
+        path,
+        namespace: Namespace.Deno,
+        pluginData,
+        sideEffects: result.sideEffects,
+      };
     }
 
     case "data:": {
@@ -174,6 +183,7 @@ export async function toOnResolveResult(
         path: result.url.toString(),
         namespace: Namespace.Data,
         pluginData,
+        sideEffects: result.sideEffects,
       };
     }
 

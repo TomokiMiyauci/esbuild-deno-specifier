@@ -37,3 +37,18 @@ export function matchSideEffects(
 
   return false;
 }
+
+export function resolveSideEffects(
+  sideEffects: unknown,
+  packagePath: string,
+  path: string,
+): undefined | boolean {
+  if (!validateSideEffects(sideEffects)) return undefined;
+
+  const normalizedSideEffects = normalizeSideEffects(
+    sideEffects,
+    packagePath,
+  );
+
+  return matchSideEffects(normalizedSideEffects, path);
+}
