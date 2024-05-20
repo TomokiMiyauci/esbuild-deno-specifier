@@ -8,3 +8,4 @@ export {
   type SourceFileInfo as Source,
 } from "./modules/deno/info.ts";
 export { exists } from "jsr:@std/fs@^0.221.0";
+export { fromFileUrl } from "jsr:@std/path@^0.221.0";

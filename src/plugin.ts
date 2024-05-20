@@ -1,6 +1,7 @@
 import {
   ConsoleHandler,
   DenoDir,
+  dirnamePath,
   exists,
   info,
   type LevelName,
@@ -14,6 +15,18 @@ import { Namespace } from "./constants.ts";
 import { logger, mediaTypeToLoader, memo } from "./utils.ts";
 import { createResolve } from "./resolve.ts";
 
+interface Options {
+  npm: NpmOptions;
+}
+
+interface NpmOptions {
+  scope: NpmScope;
+}
+
+type NpmScope =
+  | { type: "global"; denoDir: string }
+  | { type: "local"; nodeModulesDir: string };
+
 export function denoSpecifier(): Plugin {
   return {
     name: "deno-specifier",
@@ -22,6 +35,7 @@ export function denoSpecifier(): Plugin {
       const cachedExistFile = memo(existFile);
       const cachedExistDir = memo(existDir);
       const cachedReadFile = memo(readFile);
+      const cachedRealURL = memo(realURL);
       const denoDir = new DenoDir().root;
 
       const options = {
@@ -29,6 +43,7 @@ export function denoSpecifier(): Plugin {
         existDir: cachedExistDir,
         existFile: cachedExistFile,
         readFile: cachedReadFile,
+        realURL: cachedRealURL,
         denoDir,
       };
 
@@ -48,14 +63,17 @@ export function denoSpecifier(): Plugin {
 
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:|^file:/ },
-        ({ path: specifier, kind, importer: referrer }) => {
+        ({ path: specifier, kind, importer, resolveDir }) => {
+          const referrerPath = importer ? importer : resolveDir;
+
           logger().debug(
-            `Resolving import "${specifier}" from "${referrer}"`,
+            `Resolving import "${specifier}" from "${referrerPath}"`,
           );
 
+          const referrer = toFileUrl(referrerPath);
           const resolve = createResolve(build.initialOptions, { kind });
 
-          return resolve(specifier, "", options);
+          return resolve(specifier, referrer, options);
         },
       );
 
@@ -84,8 +102,9 @@ export function denoSpecifier(): Plugin {
           }
 
           const loader = mediaTypeToLoader(pluginData.mediaType);
+          const resolveDir = dirnamePath(args.path);
 
-          return { contents, loader, pluginData: args.pluginData };
+          return { contents, loader, pluginData: args.pluginData, resolveDir };
         },
       );
 
@@ -126,6 +145,20 @@ async function readFile(url: URL): Promise<string | null> {
 
     if (e instanceof Deno.errors.IsADirectory) {
       return null;
+    }
+
+    throw e;
+  }
+}
+
+async function realURL(url: URL): Promise<URL | undefined> {
+  try {
+    const path = await Deno.realPath(url);
+
+    return toFileUrl(path);
+  } catch (e) {
+    if (e instanceof Deno.errors.NotFound) {
+      return;
     }
 
     throw e;
