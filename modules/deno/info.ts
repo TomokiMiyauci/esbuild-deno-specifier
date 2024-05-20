@@ -1,18 +1,44 @@
+export interface InfoOptions {
+  json?: boolean;
+  noConfig?: boolean;
+  nodeModulesDir?: boolean;
+}
+
 /**
  * @throws {Error}
  */
-export async function info(): Promise<Output>;
-export async function info(file: string): Promise<SourceFileInfo>;
-export async function info(file?: string): Promise<Output | SourceFileInfo> {
-  const options = {
-    args: ["info", "--json", "--no-config"],
+export async function info(
+  file?: undefined,
+  options?: InfoOptions & { json: false },
+): Promise<string>;
+export async function info(
+  file?: undefined,
+  options?: InfoOptions & { json: true },
+): Promise<Output>;
+export async function info(
+  file: string,
+  options?: InfoOptions & { json: false },
+): Promise<string>;
+export async function info(
+  file: string,
+  options?: InfoOptions & { json: true },
+): Promise<SourceFileInfo>;
+export async function info(
+  file?: string,
+  options: InfoOptions = {},
+): Promise<Output | SourceFileInfo | string> {
+  const opt = resolveOptions(options);
+  const args = ["info", ...opt];
+  const commandOptions = {
+    args,
     stdout: "piped",
     stderr: "inherit",
   } satisfies Deno.CommandOptions;
 
-  if (typeof file === "string") options.args.push(file);
+  if (typeof file === "string") args.push(file);
 
-  const output = await new Deno.Command(Deno.execPath(), options).output();
+  const output = await new Deno.Command(Deno.execPath(), commandOptions)
+    .output();
 
   if (!output.success) {
     throw new Error(`Failed to call 'deno info' on '${file}'`);
@@ -20,6 +46,16 @@ export async function info(file?: string): Promise<Output | SourceFileInfo> {
   const txt = new TextDecoder().decode(output.stdout);
 
   return JSON.parse(txt);
+}
+
+function resolveOptions(options: InfoOptions): string[] {
+  const set = new Set<string>();
+
+  if (options.json) set.add("--json");
+  if (options.noConfig) set.add("--no-config");
+  if (options.nodeModulesDir) set.add("--node-modules-dir");
+
+  return [...set];
 }
 
 export interface Output {
