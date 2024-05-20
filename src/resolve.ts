@@ -20,6 +20,7 @@ import { resolveMainFields } from "./main_fields.ts";
 import { Msg } from "./constants.ts";
 import { Namespace } from "./constants.ts";
 import { type Strategy } from "./strategy.ts";
+import { Writer } from "./writer.ts";
 
 interface ResolveOptions extends
   Pick<
@@ -41,6 +42,11 @@ export async function resolve(
     source: Source;
   },
 ): Promise<OnResolveResult> {
+  const writer = new Writer();
+
+  writer.addLine(
+    () => `Resolving import "${specifier}" from "${fromFileUrl(referrer)}"`,
+  );
   const { platform } = options;
   const resolve = platform === "browser" ? resolveBrowserMap : undefined;
   referrer = new URL(referrer);
@@ -71,6 +77,7 @@ export async function resolve(
       specifier,
       platform,
       realURL: options.realURL,
+      writer,
     });
   }
 
@@ -97,6 +104,7 @@ export async function resolve(
     specifier,
     platform,
     realURL: options.realURL,
+    writer,
   });
 }
 
@@ -108,16 +116,23 @@ export async function toOnResolveResult(
     module: Module;
     platform: Platform;
     realURL(url: URL): Promise<URL | undefined> | URL | undefined;
+    writer: Writer;
   },
 ): Promise<OnResolveResult> {
   const { specifier } = context;
 
   if (!result) {
+    context.writer.addLine(``);
+    logger().debug(() => context.writer.done());
+
     return { namespace: Namespace.Disabled, path: specifier };
   }
 
   switch (result.url.protocol) {
     case "node:": {
+      context.writer.addLine(``);
+      logger().debug(() => context.writer.done());
+
       if (context.platform !== "node") {
         const text = format(Msg.NotFound, { specifier });
         const note = format(Msg.BuildInNodeModule, { specifier });
@@ -139,7 +154,10 @@ export async function toOnResolveResult(
 
       // TODO: side effect
 
-      logger().debug(`-> ${path}`);
+      context.writer.addLine(`Resolved to "${path}"`);
+      context.writer.addLine(``);
+
+      logger().debug(() => context.writer.done());
 
       return { path, namespace: Namespace.Deno, pluginData };
     }
@@ -148,6 +166,9 @@ export async function toOnResolveResult(
       const pluginData = {
         mediaType: result.mediaType,
       } satisfies DataPluginData;
+
+      context.writer.addLine(``);
+      logger().debug(() => context.writer.done());
 
       return {
         path: result.url.toString(),

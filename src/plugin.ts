@@ -87,11 +87,6 @@ export function denoSpecifier(options: Options = {}): Plugin {
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:|^file:/ },
         ({ path: specifier, kind, importer, resolveDir }) => {
           const referrerPath = importer ? importer : resolveDir;
-
-          logger().debug(
-            `Resolving import "${specifier}" from "${referrerPath}"`,
-          );
-
           const referrer = toFileUrl(referrerPath);
           const resolve = createResolve(build.initialOptions, { kind });
 
@@ -100,10 +95,6 @@ export function denoSpecifier(options: Options = {}): Plugin {
       );
 
       build.onResolve({ filter: /.*/, namespace: Namespace.Deno }, (args) => {
-        logger().debug(
-          `Resolving import "${args.path}" from "${args.importer}"`,
-        );
-
         const pluginData = args.pluginData as PluginData;
         const { module, source } = pluginData;
         const { path: specifier, importer, kind } = args;
