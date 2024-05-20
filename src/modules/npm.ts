@@ -18,7 +18,7 @@ import { require } from "../cjs/require.ts";
 import { assertModule, assertModuleEntry } from "./utils.ts";
 import type { Subpath } from "../types.ts";
 import { Msg } from "../constants.ts";
-import { formatFromExt } from "../cjs/utils.ts";
+import { fileFormat } from "../cjs/file_format.ts";
 
 export async function resolveNpmModule(
   module: NpmModule,
@@ -55,7 +55,7 @@ export async function resolveNpmModule(
   if (url) {
     switch (url.protocol) {
       case "file:": {
-        const format = await formatFromExt(url, context);
+        const format = await fileFormat(url, context);
         const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
 
         return { url, mediaType };
@@ -160,7 +160,7 @@ export async function resolveNpmModuleDependency(
   });
 
   if (url) {
-    const format = await formatFromExt(url, context);
+    const format = await fileFormat(url, context);
     const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
 
     return [{ url, mediaType }, { module: depModule, source }];

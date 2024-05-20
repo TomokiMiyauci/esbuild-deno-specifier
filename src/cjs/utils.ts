@@ -1,6 +1,5 @@
 import {
   dirname,
-  extname,
   normalize,
   type PackageJson,
   pathEqual,
@@ -8,37 +7,7 @@ import {
 } from "../../deps.ts";
 import { loadAsDirectory } from "./load_as_directory.ts";
 import { loadAsFile } from "./load_file.ts";
-import type { Context, Format } from "./types.ts";
-
-export async function formatFromExt(
-  url: URL | string,
-  context: Pick<Context, "readFile" | "root">,
-): Promise<Format | undefined> {
-  const ext = extname(url);
-
-  switch (ext) {
-    case ".json":
-      return "json";
-    case ".wasm":
-      return "wasm";
-    case ".cjs":
-      return "commonjs";
-    case ".mjs":
-      return "module";
-
-    case ".js": {
-      const result = await findClosest(url, context);
-
-      return detectFormat(result?.pjson);
-    }
-  }
-}
-
-export function detectFormat(pjson: PackageJson | undefined | null): Format {
-  if (!pjson || pjson.type !== "module") return "commonjs";
-
-  return "module";
-}
+import type { Context } from "./types.ts";
 
 export function concatPath(url: URL | string, path: string): URL {
   url = new URL(url);
