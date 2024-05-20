@@ -12,8 +12,7 @@ describe("resolveEsmMatch", () => {
         root,
         specifier: "",
       }),
-    ).rejects
-      .toThrow();
+    ).rejects.toThrow();
   });
 
   it("should return result", async () => {
@@ -22,10 +21,6 @@ describe("resolveEsmMatch", () => {
       readFile,
       root,
       specifier: "",
-    })).resolves
-      .toEqual({
-        url: noPjson.indexJs,
-        format: "commonjs",
-      });
+    })).resolves.toEqual(noPjson.indexJs);
   });
 });

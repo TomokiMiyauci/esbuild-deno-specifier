@@ -13,11 +13,12 @@ import type {
   ResolveResult,
 } from "./types.ts";
 import { loadNodeModules } from "../cjs/load_node_modules.ts";
-import type { Format, LoadResult } from "../cjs/types.ts";
+import type { Format } from "../cjs/types.ts";
 import { require } from "../cjs/require.ts";
 import { assertModule, assertModuleEntry } from "./utils.ts";
 import type { Subpath } from "../types.ts";
 import { Msg } from "../constants.ts";
+import { formatFromExt } from "../cjs/utils.ts";
 
 export async function resolveNpmModule(
   module: NpmModule,
@@ -42,7 +43,7 @@ export async function resolveNpmModule(
 
   const { name, version } = npm;
   const subpath = parseSubpath(module.specifier, { name, version });
-  const result = await loadNodeModules(name, subpath, {
+  const url = await loadNodeModules(name, subpath, {
     ...context,
     async *nodeModulesPaths() {
       for await (
@@ -51,14 +52,22 @@ export async function resolveNpmModule(
     },
   });
 
-  if (result) {
-    const { format } = result;
-    const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
+  if (url) {
+    switch (url.protocol) {
+      case "file:": {
+        const format = await formatFromExt(url, context);
+        const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
 
-    return { url: result.url, mediaType };
+        return { url, mediaType };
+      }
+
+      default: {
+        return { url, mediaType: "Unknown" };
+      }
+    }
   }
 
-  if (result === false) return;
+  if (url === false) return;
 
   const message = format(Msg.NotFound, { specifier: context.specifier });
 
@@ -111,7 +120,7 @@ export async function resolveNpmModuleDependency(
   let depModule = module;
   let source = context.source;
 
-  const result = await require(context.specifier, context.referrer, {
+  const url = await require(context.specifier, context.referrer, {
     ...context,
     async *nodeModulesPaths({ name, subpath }) {
       const dep = resolveNpmDependency(module, {
@@ -150,16 +159,14 @@ export async function resolveNpmModuleDependency(
     },
   });
 
-  const resolveResult = result && loadResultToResolveResult(result);
+  if (url) {
+    const format = await formatFromExt(url, context);
+    const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
 
-  return [resolveResult, { module: depModule, source }];
-}
+    return [{ url, mediaType }, { module: depModule, source }];
+  }
 
-function loadResultToResolveResult(result: LoadResult): ResolveResult {
-  const mediaType = (result.format && formatToMediaType(result.format)) ??
-    "Unknown";
-
-  return { url: result.url, mediaType };
+  return [url, { module: depModule, source }];
 }
 
 export function resolveNpmDependency(

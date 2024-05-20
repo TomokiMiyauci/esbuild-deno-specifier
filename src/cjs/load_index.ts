@@ -1,11 +1,10 @@
 import { join } from "../../deps.ts";
-import { detectFormat, findClosest } from "./utils.ts";
-import type { Context, LoadResult } from "./types.ts";
+import type { Context } from "./types.ts";
 
 export async function loadIndex(
   url: URL | string,
   context: Pick<Context, "existFile" | "readFile" | "root">,
-): Promise<LoadResult | undefined> {
+): Promise<URL | undefined> {
   const indexJs = join(url, "index.js");
 
   // 1. If X/index.js is a file
@@ -15,21 +14,18 @@ export async function loadIndex(
     // c. If the SCOPE/package.json contains "type" field,
     // 1. If the "type" field is "module", load X/index.js as an ECMAScript module. STOP.
     // 2. Else, load X/index.js as an CommonJS module. STOP.
-    const result = await findClosest(url, context);
-    const format = detectFormat(result?.pjson);
-
-    return { url: indexJs, format };
+    return indexJs;
   }
 
   const indexJson = join(url, "index.json");
   // 2. If X/index.json is a file, parse X/index.json to a JavaScript object. STOP
   if (await context.existFile(indexJson)) {
-    return { url: indexJson, format: "json" };
+    return indexJson;
   }
 
   const indexNode = join(url, "index.node");
   // 3. If X/index.node is a file, load X/index.node as binary addon. STOP
   if (await context.existFile(indexNode)) {
-    return { url: indexNode, format: undefined };
+    return indexNode;
   }
 }

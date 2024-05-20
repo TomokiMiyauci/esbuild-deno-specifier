@@ -50,9 +50,6 @@ describe("loadPackageExports", () => {
       }),
     )
       .resolves
-      .toEqual({
-        url: pjsonExportsSugar.mainJs,
-        format: "commonjs",
-      });
+      .toEqual(pjsonExportsSugar.mainJs);
   });
 });

@@ -1,21 +1,14 @@
-import {
-  concatPath,
-  detectFormat,
-  findClosest,
-  formatFromExt,
-} from "./utils.ts";
-import type { Context, LoadResult } from "./types.ts";
+import { concatPath } from "./utils.ts";
+import type { Context } from "./types.ts";
 
 export async function loadAsFile(
   url: URL | string,
   context: Pick<Context, "existFile" | "readFile" | "root">,
-): Promise<LoadResult | undefined> {
+): Promise<URL | undefined> {
   url = new URL(url);
   // 1. If X is a file, load X as its file extension format. STOP
   if (await context.existFile(url)) {
-    const format = await formatFromExt(url, context);
-
-    return { url: new URL(url), format };
+    return new URL(url);
   }
 
   const withJs = concatPath(url, ".js");
@@ -26,22 +19,19 @@ export async function loadAsFile(
     // c. If the SCOPE/package.json contains "type" field,
     // 1. If the "type" field is "module", load X.js as an ECMAScript module. STOP.
     // 2. Else, load X.js as an CommonJS module. STOP.
-    const result = await findClosest(url, context);
-    const format = detectFormat(result?.pjson);
-
-    return { url: withJs, format };
+    return withJs;
   }
 
   const withJson = concatPath(url, ".json");
   // 3. If X.json is a file, load X.json to a JavaScript Object. STOP
   if (await context.existFile(withJson)) {
-    return { url: withJson, format: "json" };
+    return withJson;
   }
 
   const withNode = concatPath(url, ".node");
   // 4. If X.node is a file, load X.node as binary addon. STOP
   if (await context.existFile(withNode)) {
-    return { url: withNode, format: undefined };
+    return withNode;
   }
 
   // Skip. This is only Node.js

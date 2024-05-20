@@ -8,7 +8,7 @@ import {
 } from "../../deps.ts";
 import { loadAsDirectory } from "./load_as_directory.ts";
 import { loadAsFile } from "./load_file.ts";
-import type { Context, Format, LoadResult } from "./types.ts";
+import type { Context, Format } from "./types.ts";
 
 export async function formatFromExt(
   url: URL | string,
@@ -109,7 +109,7 @@ export async function loadAs(
     | "root"
     | "specifier"
   >,
-): Promise<LoadResult | undefined> {
+): Promise<URL | undefined> {
   //  a. LOAD_AS_FILE(Y + X)
   const fileResult = await loadAsFile(url, context);
   if (fileResult) return fileResult;

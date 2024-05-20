@@ -2,7 +2,7 @@ import { format, join, readPackageJson } from "../../deps.ts";
 import { isString } from "../utils.ts";
 import { loadAsFile } from "./load_file.ts";
 import { loadIndex } from "./load_index.ts";
-import type { Context, LoadResult } from "./types.ts";
+import type { Context } from "./types.ts";
 import { Msg } from "../constants.ts";
 
 /**
@@ -19,7 +19,7 @@ export async function loadAsDirectory(
     | "root"
     | "specifier"
   >,
-): Promise<LoadResult | undefined | false> {
+): Promise<URL | undefined | false> {
   // 1. If X/package.json is a file,
   const pjson = await readPackageJson(packageURL, context);
 

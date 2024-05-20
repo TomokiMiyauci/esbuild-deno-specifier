@@ -1,6 +1,5 @@
 import { format } from "../../deps.ts";
-import { formatFromExt } from "./utils.ts";
-import type { Context, LoadResult } from "./types.ts";
+import type { Context } from "./types.ts";
 import { Msg } from "../constants.ts";
 
 /**
@@ -9,15 +8,13 @@ import { Msg } from "../constants.ts";
 export async function resolveEsmMatch(
   url: URL | string,
   context: Pick<Context, "existFile" | "readFile" | "root" | "specifier">,
-): Promise<LoadResult> {
+): Promise<URL> {
   url = new URL(url);
   // 1. let RESOLVED_PATH = fileURLToPath(MATCH)
   // 2. If the file at RESOLVED_PATH exists, load RESOLVED_PATH as its extension
   //    format. STOP
   if (await context.existFile(url)) {
-    const format = await formatFromExt(url, context);
-
-    return { url, format };
+    return url;
   }
 
   const message = format(Msg.NotFound, { specifier: context.specifier });

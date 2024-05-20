@@ -21,10 +21,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
       }),
     )
-      .resolves.toEqual({
-        url: new URL(noPjson.indexJs),
-        format: "commonjs",
-      });
+      .resolves.toEqual(new URL(noPjson.indexJs));
   });
 
   it("should resolve as index if the package.json does not includes any `mainFields`", async () => {
@@ -37,10 +34,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
       }),
     )
-      .resolves.toEqual({
-        url: new URL(emptyPjson.indexJs),
-        format: "commonjs",
-      });
+      .resolves.toEqual(new URL(emptyPjson.indexJs));
   });
 
   it("should resolve as index if the package.json does not have `mainFields`", async () => {
@@ -53,10 +47,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
       }),
     )
-      .resolves.toEqual({
-        url: new URL(emptyPjson.indexJs),
-        format: "commonjs",
-      });
+      .resolves.toEqual(new URL(emptyPjson.indexJs));
   });
 
   it("should resolve as file if the package.json includes `mainFields`", async () => {
@@ -69,10 +60,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
       }),
     )
-      .resolves.toEqual({
-        url: new URL(pjsonMain.mainJs),
-        format: "commonjs",
-      });
+      .resolves.toEqual(new URL(pjsonMain.mainJs));
   });
 
   it("should resolve as directory if the package.json includes `mainFields`", async () => {
@@ -85,10 +73,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
       }),
     )
-      .resolves.toEqual({
-        url: new URL(pjsonMain2.indexJs),
-        format: "commonjs",
-      });
+      .resolves.toEqual(new URL(pjsonMain2.indexJs));
   });
 
   it("should resolve order by mainFields - main", async () => {
@@ -101,10 +86,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
       }),
     )
-      .resolves.toEqual({
-        url: new URL(pjsonMainModule.indexCjs),
-        format: "commonjs",
-      });
+      .resolves.toEqual(new URL(pjsonMainModule.indexCjs));
   });
 
   it("should resolve order by mainFields - module", async () => {
@@ -117,10 +99,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
       }),
     )
-      .resolves.toEqual({
-        url: new URL(pjsonMainModule.indexMjs),
-        format: "module",
-      });
+      .resolves.toEqual(new URL(pjsonMainModule.indexMjs));
   });
 
   it("should throw error if `mainFields` cannot resolve", async () => {

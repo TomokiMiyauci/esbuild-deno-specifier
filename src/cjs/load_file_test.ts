@@ -11,10 +11,7 @@ describe("loadAsFile", () => {
   it("should return result if the url exists", async () => {
     await expect(loadAsFile(noPjson.indexJs, { existFile, readFile, root }))
       .resolves
-      .toEqual({
-        url: new URL(noPjson.indexJs),
-        format: "commonjs",
-      });
+      .toEqual(new URL(noPjson.indexJs));
   });
 
   it("should return result if the url with .js exists and the package does not have package.json", async () => {
@@ -23,10 +20,7 @@ describe("loadAsFile", () => {
     );
 
     await expect(loadAsFile(url, { existFile, readFile, root })).resolves
-      .toEqual({
-        url: noPjson.indexJs,
-        format: "commonjs",
-      });
+      .toEqual(noPjson.indexJs);
   });
 
   it("should return result if the url with .js exists and the package.json of `type` field is empty", async () => {
@@ -35,10 +29,7 @@ describe("loadAsFile", () => {
     );
 
     await expect(loadAsFile(url, { existFile, readFile, root })).resolves
-      .toEqual({
-        url: emptyPjson.indexJs,
-        format: "commonjs",
-      });
+      .toEqual(emptyPjson.indexJs);
   });
 
   it("should return result if the url with .js exists and the package.json of `type` field is `module`", async () => {
@@ -47,10 +38,7 @@ describe("loadAsFile", () => {
     );
 
     await expect(loadAsFile(url, { existFile, readFile, root })).resolves
-      .toEqual({
-        url: esmPjson.indexJs,
-        format: "module",
-      });
+      .toEqual(esmPjson.indexJs);
   });
 
   it("should return result if the url with .json exists", async () => {
@@ -59,10 +47,7 @@ describe("loadAsFile", () => {
     );
 
     await expect(loadAsFile(url, { existFile, readFile, root })).resolves
-      .toEqual({
-        url: emptyPjson.pjson,
-        format: "json",
-      });
+      .toEqual(emptyPjson.pjson);
   });
 
   it("should return result if the url with .node exists", async () => {
@@ -71,10 +56,7 @@ describe("loadAsFile", () => {
     );
 
     await expect(loadAsFile(url, { existFile, readFile, root })).resolves
-      .toEqual({
-        url: noPjson.mainNode,
-        format: undefined,
-      });
+      .toEqual(noPjson.mainNode);
   });
 
   it("should return result if the url does not exist", async () => {

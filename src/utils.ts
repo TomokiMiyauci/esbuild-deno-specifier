@@ -31,8 +31,6 @@ export function formatToMediaType(format: Format): MediaType {
       return "Json";
     case "wasm":
       return "Wasm";
-    case "builtin":
-      return "Unknown";
   }
 }
 

@@ -9,10 +9,7 @@ describe("loadIndex", () => {
       "../../tests/fixtures/node_modules/no-pjson",
     );
     await expect(loadIndex(url, { existFile, readFile, root })).resolves
-      .toEqual({
-        url: new URL(noPjson.indexJs),
-        format: "commonjs",
-      });
+      .toEqual(new URL(noPjson.indexJs));
   });
 
   it("should return result if the url with index.json exists", async () => {
@@ -21,10 +18,7 @@ describe("loadIndex", () => {
     );
 
     await expect(loadIndex(url, { existFile, readFile, root })).resolves
-      .toEqual({
-        url: files.indexJson,
-        format: "json",
-      });
+      .toEqual(files.indexJson);
   });
 
   it("should return result if the url with index.node exists", async () => {
@@ -33,9 +27,6 @@ describe("loadIndex", () => {
     );
 
     await expect(loadIndex(url, { existFile, readFile, root })).resolves
-      .toEqual({
-        url: files.indexNode,
-        format: undefined,
-      });
+      .toEqual(files.indexNode);
   });
 });

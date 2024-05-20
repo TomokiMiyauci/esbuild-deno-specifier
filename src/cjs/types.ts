@@ -2,12 +2,7 @@ import { type PackageJson } from "../../deps.ts";
 import { type Strategy } from "../strategy.ts";
 import type { IO, Subpath } from "../types.ts";
 
-export interface LoadResult {
-  url: URL;
-  format: Format | undefined;
-}
-
-export type Format = "builtin" | "commonjs" | "json" | "module" | "wasm";
+export type Format = "commonjs" | "json" | "module" | "wasm";
 
 export interface Context extends IO, Pick<Strategy, "root"> {
   conditions: string[];
