@@ -19,15 +19,15 @@ import { resolveConditions } from "./conditions.ts";
 import { resolveMainFields } from "./main_fields.ts";
 import { Msg } from "./constants.ts";
 import { Namespace } from "./constants.ts";
-import { GlobalStrategy } from "./strategy.ts";
+import { type Strategy } from "./strategy.ts";
 
 interface ResolveOptions extends
   Pick<
     CjsContext,
-    "conditions" | "existDir" | "mainFields" | "existFile" | "readFile"
-  > {
+    "conditions" | "existDir" | "mainFields" | "existFile" | "readFile" | "root"
+  >,
+  Pick<Strategy, "getPackageURL"> {
   platform: Platform;
-  denoDir: string;
   info: (specifier: string) => Promise<Source> | Source;
   realURL(url: URL): Promise<URL | undefined> | URL | undefined;
 }
@@ -43,7 +43,6 @@ export async function resolve(
 ): Promise<OnResolveResult> {
   const { platform } = options;
   const resolve = platform === "browser" ? resolveBrowserMap : undefined;
-  const strategy = new GlobalStrategy(options.denoDir);
   referrer = new URL(referrer);
 
   if (context) {
@@ -61,7 +60,8 @@ export async function resolve(
           readFile: options.readFile,
           existDir: options.existDir,
           existFile: options.existFile,
-          strategy,
+          root: options.root,
+          getPackageURL: options.getPackageURL,
         },
       );
 
@@ -84,15 +84,10 @@ export async function resolve(
   assertModule(module);
 
   const result = await resolveModule(module, {
+    ...options,
     specifier,
-    conditions: options.conditions,
     source,
-    mainFields: options.conditions,
     resolve,
-    existDir: options.existDir,
-    existFile: options.existFile,
-    readFile: options.readFile,
-    strategy,
     referrer,
   });
 
@@ -144,7 +139,7 @@ export async function toOnResolveResult(
 
       // TODO: side effect
 
-      logger().info(`-> ${path}`);
+      logger().debug(`-> ${path}`);
 
       return { path, namespace: Namespace.Deno, pluginData };
     }
@@ -175,7 +170,13 @@ export function createResolve(
   referrer: URL | string,
   options: Pick<
     ResolveOptions,
-    "info" | "readFile" | "existDir" | "existFile" | "denoDir" | "realURL"
+    | "info"
+    | "readFile"
+    | "existDir"
+    | "existFile"
+    | "realURL"
+    | "root"
+    | "getPackageURL"
   >,
   context?: {
     module: Module;
@@ -195,14 +196,9 @@ export function createResolve(
 
   return (specifier, referrer, options, context) =>
     resolve(specifier, referrer, {
+      ...options,
       conditions,
       mainFields,
       platform,
-      info: options.info,
-      readFile: options.readFile,
-      existDir: options.existDir,
-      existFile: options.existFile,
-      realURL: options.realURL,
-      denoDir: options.denoDir,
     }, context);
 }

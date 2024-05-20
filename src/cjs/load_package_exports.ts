@@ -12,7 +12,7 @@ export async function loadPackageExports(
     | "readFile"
     | "existDir"
     | "existFile"
-    | "strategy"
+    | "root"
     | "specifier"
   >,
 ): Promise<LoadResult | undefined> {

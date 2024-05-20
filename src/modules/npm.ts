@@ -31,8 +31,9 @@ export async function resolveNpmModule(
     | "existDir"
     | "readFile"
     | "existFile"
-    | "strategy"
+    | "getPackageURL"
     | "referrer"
+    | "root"
   >,
 ): Promise<ResolveResult | undefined> {
   const npm = context.source.npmPackages[module.npmPackage];
@@ -45,7 +46,7 @@ export async function resolveNpmModule(
     ...context,
     async *nodeModulesPaths() {
       for await (
-        const url of context.strategy.resolve({ ...npm, ...context })
+        const url of context.getPackageURL({ ...npm, ...context })
       ) yield url;
     },
   });
@@ -140,12 +141,12 @@ export async function resolveNpmModuleDependency(
 
         const npm = source.npmPackages[mod.npmPackage];
 
-        return yield* context.strategy.resolve({ ...npm, ...context });
+        return yield* context.getPackageURL({ ...npm, ...context });
       }
 
       depModule = dep;
 
-      yield* context.strategy.resolve({ ...dep, ...context });
+      yield* context.getPackageURL({ ...dep, ...context });
     },
   });
 

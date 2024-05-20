@@ -8,7 +8,7 @@ import { Msg } from "../constants.ts";
  */
 export async function resolveEsmMatch(
   url: URL | string,
-  context: Pick<Context, "existFile" | "readFile" | "strategy" | "specifier">,
+  context: Pick<Context, "existFile" | "readFile" | "root" | "specifier">,
 ): Promise<LoadResult> {
   url = new URL(url);
   // 1. let RESOLVED_PATH = fileURLToPath(MATCH)

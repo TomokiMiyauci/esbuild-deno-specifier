@@ -14,37 +14,59 @@ import type { DataPluginData, PluginData } from "./types.ts";
 import { Namespace } from "./constants.ts";
 import { logger, mediaTypeToLoader, memo } from "./utils.ts";
 import { createResolve } from "./resolve.ts";
+import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
 
-interface Options {
-  npm: NpmOptions;
+export interface Options {
+  npm?: NpmOptions;
 }
 
-interface NpmOptions {
-  scope: NpmScope;
+export interface NpmOptions {
+  scope?: NpmScope;
 }
 
 type NpmScope =
   | { type: "global"; denoDir: string }
-  | { type: "local"; nodeModulesDir: string };
+  | { type: "local" };
 
-export function denoSpecifier(): Plugin {
+export function denoSpecifier(options: Options = {}): Plugin {
   return {
     name: "deno-specifier",
     setup(build) {
-      const cachedInfo = memo(info);
+      const npmScope = normalizeNpmScope(options.npm?.scope);
+      const infoOptions = npmScope.type === "global"
+        ? { json: true, noConfig: true } as const
+        : { json: true, noConfig: true, nodeModulesDir: true } as const;
+
+      const cachedInfo = memo((specifier: string) =>
+        info(specifier, infoOptions)
+      );
       const cachedExistFile = memo(existFile);
       const cachedExistDir = memo(existDir);
       const cachedReadFile = memo(readFile);
       const cachedRealURL = memo(realURL);
-      const denoDir = new DenoDir().root;
 
-      const options = {
+      const strategy = npmScope.type === "global"
+        ? new GlobalStrategy(npmScope.denoDir)
+        : (() => {
+          const root = build.initialOptions.absWorkingDir;
+
+          if (!root) {
+            throw new Error(
+              `'absWorkingDir' is required when npm.scope.type is 'local'`,
+            );
+          }
+
+          return new LocalStrategy(root);
+        })();
+
+      const resolveOptions = {
         info: cachedInfo,
         existDir: cachedExistDir,
         existFile: cachedExistFile,
         readFile: cachedReadFile,
         realURL: cachedRealURL,
-        denoDir,
+        root: strategy.root,
+        getPackageURL: strategy.getPackageURL.bind(strategy),
       };
 
       build.onStart(() => {
@@ -73,7 +95,7 @@ export function denoSpecifier(): Plugin {
           const referrer = toFileUrl(referrerPath);
           const resolve = createResolve(build.initialOptions, { kind });
 
-          return resolve(specifier, referrer, options);
+          return resolve(specifier, referrer, resolveOptions);
         },
       );
 
@@ -88,7 +110,7 @@ export function denoSpecifier(): Plugin {
         const referrer = toFileUrl(importer);
         const resolve = createResolve(build.initialOptions, { kind });
 
-        return resolve(specifier, referrer, options, { module, source });
+        return resolve(specifier, referrer, resolveOptions, { module, source });
       });
 
       build.onLoad(
@@ -125,6 +147,14 @@ export function denoSpecifier(): Plugin {
       );
     },
   };
+}
+
+function normalizeNpmScope(npm: NpmScope | undefined): NpmScope {
+  if (!npm) {
+    return { type: "global", denoDir: new DenoDir().root };
+  }
+
+  return npm;
 }
 
 function existFile(url: URL): Promise<boolean> {

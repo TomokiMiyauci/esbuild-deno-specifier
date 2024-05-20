@@ -23,7 +23,8 @@ export function resolveModule(
     | "existDir"
     | "existFile"
     | "readFile"
-    | "strategy"
+    | "getPackageURL"
+    | "root"
     | "referrer"
   >,
 ): ResolveResult | undefined | Promise<ResolveResult | undefined> {

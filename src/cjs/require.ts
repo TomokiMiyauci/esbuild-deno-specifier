@@ -17,7 +17,7 @@ export async function require(
     | "nodeModulesPaths"
     | "readFile"
     | "resolve"
-    | "strategy"
+    | "root"
   >,
 ): Promise<LoadResult | undefined> {
   // 1. If X is a core module,

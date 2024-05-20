@@ -10,12 +10,7 @@ import _ from "../../tests/fixtures/sources/jsr:@miyauci+react-router.json" with
 };
 import { Source } from "../../deps.ts";
 import { assertEsModule, assertModule, assertModuleEntry } from "./utils.ts";
-import {
-  existDir,
-  existFile,
-  readFile,
-  strategy,
-} from "../../tests/context.ts";
+import { existDir, existFile, readFile, root } from "../../tests/context.ts";
 
 const source = _ as Source;
 
@@ -93,7 +88,8 @@ describe("resolveEsModuleDependency", () => {
         existDir,
         readFile,
         existFile,
-        strategy,
+        root,
+        *getPackageURL() {},
         referrer: new URL("file:///"),
       }),
     ).resolves.toEqual([{

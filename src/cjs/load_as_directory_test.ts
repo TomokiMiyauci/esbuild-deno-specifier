@@ -8,7 +8,7 @@ import {
   pjsonMainModule,
   pjsonNoMain,
 } from "../../tests/fixtures/node_modules.ts";
-import { existFile, readFile, strategy } from "../../tests/context.ts";
+import { existFile, readFile, root } from "../../tests/context.ts";
 
 describe("loadAsDirectory", () => {
   it("should resolve as index if the package.json does not exist and index.js exist", async () => {
@@ -17,7 +17,7 @@ describe("loadAsDirectory", () => {
         mainFields: [],
         readFile,
         existFile,
-        strategy,
+        root,
         specifier: "",
       }),
     )
@@ -33,7 +33,7 @@ describe("loadAsDirectory", () => {
         mainFields: [],
         readFile,
         existFile,
-        strategy,
+        root,
         specifier: "",
       }),
     )
@@ -49,7 +49,7 @@ describe("loadAsDirectory", () => {
         mainFields: ["unknown"],
         readFile,
         existFile,
-        strategy,
+        root,
         specifier: "",
       }),
     )
@@ -65,7 +65,7 @@ describe("loadAsDirectory", () => {
         mainFields: ["main"],
         readFile,
         existFile,
-        strategy,
+        root,
         specifier: "",
       }),
     )
@@ -81,7 +81,7 @@ describe("loadAsDirectory", () => {
         mainFields: ["main"],
         readFile,
         existFile,
-        strategy,
+        root,
         specifier: "",
       }),
     )
@@ -97,7 +97,7 @@ describe("loadAsDirectory", () => {
         mainFields: ["main", "module"],
         readFile,
         existFile,
-        strategy,
+        root,
         specifier: "",
       }),
     )
@@ -113,7 +113,7 @@ describe("loadAsDirectory", () => {
         mainFields: ["module", "main"],
         readFile,
         existFile,
-        strategy,
+        root,
         specifier: "",
       }),
     )
@@ -129,7 +129,7 @@ describe("loadAsDirectory", () => {
         mainFields: ["main"],
         readFile,
         existFile,
-        strategy,
+        root,
         specifier: "",
       }),
     )

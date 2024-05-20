@@ -4,7 +4,7 @@ import type { Context, LoadResult } from "./types.ts";
 
 export async function loadIndex(
   url: URL | string,
-  context: Pick<Context, "existFile" | "readFile" | "strategy">,
+  context: Pick<Context, "existFile" | "readFile" | "root">,
 ): Promise<LoadResult | undefined> {
   const indexJs = join(url, "index.js");
 

@@ -1,8 +1,11 @@
 import type { MediaType, Module, Source } from "../../deps.ts";
 import { Context as CjsContext } from "../cjs/types.ts";
+import { Strategy } from "../strategy.ts";
 
 export interface Context
-  extends Omit<CjsContext, "getPackageURL" | "nodeModulesPaths"> {
+  extends
+    Omit<CjsContext, "nodeModulesPaths">,
+    Pick<Strategy, "getPackageURL"> {
   specifier: string;
   referrer: URL;
   source: Source;

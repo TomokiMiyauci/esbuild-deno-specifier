@@ -10,7 +10,7 @@ export class GlobalStrategy implements Strategy {
     this.#root = createNpmRegistryURL(denoDir);
   }
 
-  *resolve({ name, version }: ResolveArgs) {
+  *getPackageURL({ name, version }: PackageArgs) {
     const packageURL = createPackageURL(this.root, name, version);
 
     yield packageURL;
@@ -27,7 +27,7 @@ export class LocalStrategy implements Strategy {
     this.#root = toFileUrl(nodeModulesDir);
   }
 
-  *resolve(args: ResolveArgs): Iterable<URL> {
+  *getPackageURL(args: PackageArgs): Iterable<URL> {
     const parents = getParents(args.referrer, this.root);
 
     for (const parent of parents) {
@@ -42,7 +42,7 @@ export class LocalStrategy implements Strategy {
   }
 }
 
-interface ResolveArgs extends IO {
+export interface PackageArgs extends IO {
   name: string;
   version: string;
   referrer: URL;
@@ -51,5 +51,5 @@ interface ResolveArgs extends IO {
 export interface Strategy {
   get root(): URL;
 
-  resolve(args: ResolveArgs): AsyncIterable<URL> | Iterable<URL>;
+  getPackageURL(args: PackageArgs): AsyncIterable<URL> | Iterable<URL>;
 }

@@ -16,7 +16,7 @@ export async function loadAsDirectory(
     | "resolve"
     | "readFile"
     | "existFile"
-    | "strategy"
+    | "root"
     | "specifier"
   >,
 ): Promise<LoadResult | undefined | false> {
