@@ -8,7 +8,12 @@ export async function loadPackageExports(
   subpath: Subpath,
   context: Pick<
     Context,
-    "conditions" | "readFile" | "existDir" | "existFile" | "strategy"
+    | "conditions"
+    | "readFile"
+    | "existDir"
+    | "existFile"
+    | "strategy"
+    | "specifier"
   >,
 ): Promise<LoadResult | undefined> {
   // 3. Parse DIR/NAME/package.json, and look for "exports" field.

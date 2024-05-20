@@ -102,7 +102,12 @@ export async function loadAs(
   url: URL | string,
   context: Pick<
     Context,
-    "mainFields" | "resolve" | "existFile" | "readFile" | "strategy"
+    | "mainFields"
+    | "resolve"
+    | "existFile"
+    | "readFile"
+    | "strategy"
+    | "specifier"
   >,
 ): Promise<LoadResult | undefined> {
   //  a. LOAD_AS_FILE(Y + X)

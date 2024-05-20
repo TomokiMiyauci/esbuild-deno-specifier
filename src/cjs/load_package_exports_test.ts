@@ -21,6 +21,7 @@ describe("loadPackageExports", () => {
         readFile,
         existDir,
         strategy,
+        specifier: "",
       }),
     )
       .resolves
@@ -35,6 +36,7 @@ describe("loadPackageExports", () => {
         readFile,
         existDir,
         strategy,
+        specifier: "",
       }),
     )
       .resolves
@@ -49,6 +51,7 @@ describe("loadPackageExports", () => {
         readFile,
         existDir,
         strategy,
+        specifier: "",
       }),
     )
       .resolves

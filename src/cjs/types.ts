@@ -20,4 +20,5 @@ export interface Context extends IO {
     args: { name: string; subpath: Subpath },
   ): AsyncIterable<URL> | Iterable<URL>;
   strategy: Strategy;
+  specifier: string;
 }

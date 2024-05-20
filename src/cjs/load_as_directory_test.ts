@@ -18,6 +18,7 @@ describe("loadAsDirectory", () => {
         readFile,
         existFile,
         strategy,
+        specifier: "",
       }),
     )
       .resolves.toEqual({
@@ -33,6 +34,7 @@ describe("loadAsDirectory", () => {
         readFile,
         existFile,
         strategy,
+        specifier: "",
       }),
     )
       .resolves.toEqual({
@@ -48,6 +50,7 @@ describe("loadAsDirectory", () => {
         readFile,
         existFile,
         strategy,
+        specifier: "",
       }),
     )
       .resolves.toEqual({
@@ -63,6 +66,7 @@ describe("loadAsDirectory", () => {
         readFile,
         existFile,
         strategy,
+        specifier: "",
       }),
     )
       .resolves.toEqual({
@@ -78,6 +82,7 @@ describe("loadAsDirectory", () => {
         readFile,
         existFile,
         strategy,
+        specifier: "",
       }),
     )
       .resolves.toEqual({
@@ -93,6 +98,7 @@ describe("loadAsDirectory", () => {
         readFile,
         existFile,
         strategy,
+        specifier: "",
       }),
     )
       .resolves.toEqual({
@@ -108,6 +114,7 @@ describe("loadAsDirectory", () => {
         readFile,
         existFile,
         strategy,
+        specifier: "",
       }),
     )
       .resolves.toEqual({
@@ -123,6 +130,7 @@ describe("loadAsDirectory", () => {
         readFile,
         existFile,
         strategy,
+        specifier: "",
       }),
     )
       .rejects.toThrow();

@@ -1,12 +1,14 @@
+import { format } from "../../deps.ts";
 import { formatFromExt } from "./utils.ts";
 import type { Context, LoadResult } from "./types.ts";
+import { Msg } from "../constants.ts";
 
 /**
  * @throws {Error}
  */
 export async function resolveEsmMatch(
   url: URL | string,
-  context: Pick<Context, "existFile" | "readFile" | "strategy">,
+  context: Pick<Context, "existFile" | "readFile" | "strategy" | "specifier">,
 ): Promise<LoadResult> {
   url = new URL(url);
   // 1. let RESOLVED_PATH = fileURLToPath(MATCH)
@@ -18,6 +20,7 @@ export async function resolveEsmMatch(
     return { url, format };
   }
 
+  const message = format(Msg.NotFound, { specifier: context.specifier });
   // 3. THROW "not found"
-  throw new Error("not found");
+  throw new Error(message);
 }

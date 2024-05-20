@@ -10,6 +10,7 @@ describe("resolveEsmMatch", () => {
         existFile,
         readFile,
         strategy,
+        specifier: "",
       }),
     ).rejects
       .toThrow();
@@ -20,6 +21,7 @@ describe("resolveEsmMatch", () => {
       existFile,
       readFile,
       strategy,
+      specifier: "",
     })).resolves
       .toEqual({
         url: noPjson.indexJs,

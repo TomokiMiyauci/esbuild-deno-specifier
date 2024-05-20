@@ -1,8 +1,9 @@
-import { join, readPackageJson } from "../../deps.ts";
+import { format, join, readPackageJson } from "../../deps.ts";
 import { isString } from "../utils.ts";
 import { loadAsFile } from "./load_file.ts";
 import { loadIndex } from "./load_index.ts";
 import type { Context, LoadResult } from "./types.ts";
+import { Msg } from "../constants.ts";
 
 /**
  * @throws {Error}
@@ -11,7 +12,12 @@ export async function loadAsDirectory(
   packageURL: URL | string,
   context: Pick<
     Context,
-    "mainFields" | "resolve" | "readFile" | "existFile" | "strategy"
+    | "mainFields"
+    | "resolve"
+    | "readFile"
+    | "existFile"
+    | "strategy"
+    | "specifier"
   >,
 ): Promise<LoadResult | undefined | false> {
   // 1. If X/package.json is a file,
@@ -37,8 +43,9 @@ export async function loadAsDirectory(
         if (indexResult) return indexResult;
       }
 
+      const message = format(Msg.NotFound, { specifier: context.specifier });
       // g. THROW "not found"
-      throw new Error("not found");
+      throw new Error(message);
     }
   }
 

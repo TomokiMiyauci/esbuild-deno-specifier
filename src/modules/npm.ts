@@ -1,4 +1,5 @@
 import {
+  format,
   join,
   type MediaType,
   type NpmModule,
@@ -16,6 +17,7 @@ import type { Format, LoadResult } from "../cjs/types.ts";
 import { require } from "../cjs/require.ts";
 import { assertModule, assertModuleEntry } from "./utils.ts";
 import type { Subpath } from "../types.ts";
+import { Msg } from "../constants.ts";
 
 export async function resolveNpmModule(
   module: NpmModule,
@@ -57,7 +59,9 @@ export async function resolveNpmModule(
 
   if (result === false) return;
 
-  throw new Error(`Cannot ${name}`);
+  const message = format(Msg.NotFound, { specifier: context.specifier });
+
+  throw new Error(message);
 }
 
 export function formatToMediaType(format: Format): MediaType {
