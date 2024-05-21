@@ -5,7 +5,7 @@ import {
 } from "./esm.ts";
 import { toFileUrl } from "../../deps.ts";
 import { describe, expect, it } from "../../dev_deps.ts";
-import _ from "../../tests/fixtures/sources/jsr:@miyauci+react-router.json" with {
+import _ from "../../tests/fixtures/sources/jsr/@miyauci+react-router.json" with {
   type: "json",
 };
 import { Source } from "../../deps.ts";

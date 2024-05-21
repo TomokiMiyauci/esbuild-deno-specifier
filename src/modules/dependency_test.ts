@@ -7,7 +7,7 @@ import {
   type Module,
   type Source,
 } from "../../dev_deps.ts";
-import _source from "../../tests/fixtures/sources/jsr:@miyauci+react-router.json" with {
+import _source from "../../tests/fixtures/sources/jsr/@miyauci+react-router.json" with {
   type: "json",
 };
 import { assertModule, assertModuleEntry } from "./utils.ts";
