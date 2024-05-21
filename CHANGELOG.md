@@ -1,3 +1,11 @@
+# [1.0.0-beta.2](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.1...1.0.0-beta.2) (2024-05-21)
+
+
+### Features
+
+* **browser:** change custom resolve interface, improve browser field resolution algorithm ([b3f0806](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/b3f08063e2683ef96d5cf682a56ecf675cbe4bd9))
+* **strategy:** change the way npm module seaches for package url ([b7b5a5e](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/b7b5a5eaafc495e0ab6f37ff2b5c7eb90d10233e))
+
 # 1.0.0-beta.1 (2024-05-21)
 
 
