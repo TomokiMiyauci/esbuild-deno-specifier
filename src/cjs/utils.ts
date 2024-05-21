@@ -77,18 +77,18 @@ export async function loadAs(
     | "readFile"
     | "root"
     | "specifier"
+    | "conditions"
+    | "existDir"
+    | "nodeModulesPaths"
   >,
-): Promise<URL | undefined> {
+): Promise<URL> {
   //  a. LOAD_AS_FILE(Y + X)
   const fileResult = await loadAsFile(url, context);
   if (fileResult) return fileResult;
 
   //  b. LOAD_AS_DIRECTORY(Y + X)
   const dirResult = await loadAsDirectory(url, context);
-
-  if (dirResult || dirResult === false) {
-    return dirResult || undefined;
-  }
+  if (dirResult) return dirResult;
 
   //  c. THROW "not found"
   throw new Error("not found");

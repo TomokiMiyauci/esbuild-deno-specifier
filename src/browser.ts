@@ -1,5 +1,8 @@
-import { join, type PackageJson } from "../deps.ts";
+import { join } from "../deps.ts";
 import { isObject } from "./utils.ts";
+import { Context } from "./cjs/types.ts";
+import { findClosest } from "./cjs/utils.ts";
+import { require } from "./cjs/require.ts";
 
 export function resolveBrowser<T>(
   specifier: string,
@@ -34,19 +37,31 @@ export function validateBrowserValue(input: unknown): input is BrowserValue {
   return false;
 }
 
-export function resolveBrowserMap(
-  path: string,
-  args: { pjson: PackageJson; packageURL: URL },
-): false | URL | undefined {
-  if (args.pjson) {
-    if (isObject(args.pjson.browser)) {
-      const browserValue = resolveBrowser(path, args.pjson.browser);
+export async function resolveBrowserMap(
+  specifier: string,
+  referer: URL | string,
+  context: Omit<Context, "specifier"> & { onFalse: () => void },
+): Promise<URL> {
+  const result = await findClosest(referer, context);
 
-      if (!validateBrowserValue(browserValue)) return;
-
-      if (browserValue === false) return false;
-
-      return join(args.packageURL, browserValue);
-    }
+  if (!result || !isObject(result.pjson.browser)) {
+    return require(specifier, referer, { ...context, resolve: undefined });
   }
+
+  const browserValue = resolveBrowser(specifier, result.pjson.browser);
+
+  if (!validateBrowserValue(browserValue)) {
+    return require(specifier, referer, { ...context, resolve: undefined });
+  }
+
+  if (browserValue === false) {
+    context.onFalse();
+
+    return require(specifier, referer, { ...context, resolve: undefined });
+  }
+
+  return require(browserValue, join(result.packageURL, "package.json"), {
+    ...context,
+    resolve: undefined,
+  });
 }

@@ -27,7 +27,7 @@ export function resolveModule(
     | "root"
     | "referrer"
   >,
-): ResolveResult | undefined | Promise<ResolveResult | undefined> {
+): ResolveResult | Promise<ResolveResult> {
   switch (module.kind) {
     case "esm":
     case "asserted":

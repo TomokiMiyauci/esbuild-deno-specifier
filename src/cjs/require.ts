@@ -1,5 +1,5 @@
 import { format, isBuiltin } from "../../deps.ts";
-import { findClosest, loadAs } from "./utils.ts";
+import { loadAs } from "./utils.ts";
 import { loadNodeModules } from "./load_node_modules.ts";
 import type { Context } from "./types.ts";
 import { parseNpmPkg } from "../utils.ts";
@@ -19,16 +19,11 @@ export async function require(
     | "resolve"
     | "root"
   >,
-): Promise<URL | undefined> {
+): Promise<URL> {
   // 1. If X is a core module,
   if (isBuiltin(specifier)) {
-    const closest = await findClosest(referrer, context);
-
-    if (closest && context.resolve) {
-      const result = await context.resolve(specifier, closest);
-
-      if (result === false) return undefined;
-      if (result) return loadAs(result, { ...context, specifier });
+    if (context.resolve) {
+      return context.resolve(specifier, referrer, context);
     }
 
     return new URL(`node:${specifier}`);
@@ -40,12 +35,11 @@ export async function require(
     specifier.startsWith("/") ||
     specifier.startsWith("../")
   ) {
-    const closest = await findClosest(referrer, context);
+    if (context.resolve) {
+      return context.resolve(specifier, referrer, context);
+    }
 
-    const url = (closest && await context.resolve?.(specifier, closest)) ??
-      new URL(specifier, referrer);
-
-    if (!url) return;
+    const url = new URL(specifier, referrer);
 
     return loadAs(url, { ...context, specifier });
   }
@@ -61,9 +55,7 @@ export async function require(
     { ...context, specifier },
   );
 
-  if (nodeModulesResult || nodeModulesResult === false) {
-    return nodeModulesResult || undefined;
-  }
+  if (nodeModulesResult) return nodeModulesResult;
 
   const message = format(Msg.NotFound, { specifier });
 

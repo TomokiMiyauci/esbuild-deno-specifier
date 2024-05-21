@@ -107,10 +107,6 @@ export function logger(): Logger {
   return getLogger("deno");
 }
 
-export function isString(input: unknown): input is string {
-  return typeof input === "string";
-}
-
 export function memo<Arg, R>(
   fn: (arg: Arg) => Promise<R>,
   cache: Map<string, R> = new Map(),

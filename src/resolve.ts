@@ -43,12 +43,21 @@ export async function resolve(
   },
 ): Promise<OnResolveResult> {
   const writer = new Writer();
+  let disabled = false;
 
   writer.addLine(
     () => `Resolving import "${specifier}" from "${fromFileUrl(referrer)}"`,
   );
   const { platform } = options;
-  const resolve = platform === "browser" ? resolveBrowserMap : undefined;
+  const resolve = platform === "browser"
+    ? (specifier: string, referrer: URL | string, context: CjsContext) =>
+      resolveBrowserMap(specifier, referrer, {
+        onFalse: () => {
+          disabled = true;
+        },
+        ...context,
+      })
+    : undefined;
   referrer = new URL(referrer);
 
   if (context) {
@@ -78,6 +87,7 @@ export async function resolve(
       platform,
       realURL: options.realURL,
       writer,
+      disabled,
     });
   }
 
@@ -105,11 +115,12 @@ export async function resolve(
     platform,
     realURL: options.realURL,
     writer,
+    disabled,
   });
 }
 
 export async function toOnResolveResult(
-  result: undefined | ResolveResult,
+  result: ResolveResult,
   context: {
     specifier: string;
     source: Source;
@@ -117,15 +128,17 @@ export async function toOnResolveResult(
     platform: Platform;
     realURL(url: URL): Promise<URL | undefined> | URL | undefined;
     writer: Writer;
+    disabled: boolean;
   },
 ): Promise<OnResolveResult> {
   const { specifier } = context;
 
-  if (!result) {
+  if (context.disabled) {
+    context.writer.addLine(`Mark as disabled`);
     context.writer.addLine(``);
     logger().debug(() => context.writer.done());
 
-    return { namespace: Namespace.Disabled, path: specifier };
+    return { namespace: Namespace.Disabled, path: result.url.toString() };
   }
 
   switch (result.url.protocol) {

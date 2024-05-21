@@ -22,7 +22,7 @@ export interface ResolveResult {
 }
 
 export type DependencyResolveResult = [
-  result: ResolveResult | undefined,
+  result: ResolveResult,
   context: ResolveContext,
 ];
 

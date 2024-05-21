@@ -8,7 +8,7 @@ import {
   pjsonMainModule,
   pjsonNoMain,
 } from "../../tests/fixtures/node_modules.ts";
-import { existFile, readFile, root } from "../../tests/context.ts";
+import { existDir, existFile, readFile, root } from "../../tests/context.ts";
 
 describe("loadAsDirectory", () => {
   it("should resolve as index if the package.json does not exist and index.js exist", async () => {
@@ -19,6 +19,9 @@ describe("loadAsDirectory", () => {
         existFile,
         root,
         specifier: "",
+        conditions: [],
+        existDir,
+        *nodeModulesPaths() {},
       }),
     )
       .resolves.toEqual(new URL(noPjson.indexJs));
@@ -32,6 +35,9 @@ describe("loadAsDirectory", () => {
         existFile,
         root,
         specifier: "",
+        conditions: [],
+        existDir,
+        *nodeModulesPaths() {},
       }),
     )
       .resolves.toEqual(new URL(emptyPjson.indexJs));
@@ -45,6 +51,9 @@ describe("loadAsDirectory", () => {
         existFile,
         root,
         specifier: "",
+        conditions: [],
+        existDir,
+        *nodeModulesPaths() {},
       }),
     )
       .resolves.toEqual(new URL(emptyPjson.indexJs));
@@ -58,6 +67,9 @@ describe("loadAsDirectory", () => {
         existFile,
         root,
         specifier: "",
+        conditions: [],
+        existDir,
+        *nodeModulesPaths() {},
       }),
     )
       .resolves.toEqual(new URL(pjsonMain.mainJs));
@@ -71,6 +83,9 @@ describe("loadAsDirectory", () => {
         existFile,
         root,
         specifier: "",
+        conditions: [],
+        existDir,
+        *nodeModulesPaths() {},
       }),
     )
       .resolves.toEqual(new URL(pjsonMain2.indexJs));
@@ -84,6 +99,9 @@ describe("loadAsDirectory", () => {
         existFile,
         root,
         specifier: "",
+        conditions: [],
+        existDir,
+        *nodeModulesPaths() {},
       }),
     )
       .resolves.toEqual(new URL(pjsonMainModule.indexCjs));
@@ -97,6 +115,9 @@ describe("loadAsDirectory", () => {
         existFile,
         root,
         specifier: "",
+        conditions: [],
+        existDir,
+        *nodeModulesPaths() {},
       }),
     )
       .resolves.toEqual(new URL(pjsonMainModule.indexMjs));
@@ -110,6 +131,9 @@ describe("loadAsDirectory", () => {
         existFile,
         root,
         specifier: "",
+        conditions: [],
+        existDir,
+        *nodeModulesPaths() {},
       }),
     )
       .rejects.toThrow();

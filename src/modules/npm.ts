@@ -39,7 +39,7 @@ export async function resolveNpmModule(
     | "referrer"
     | "root"
   >,
-): Promise<ResolveResult | undefined> {
+): Promise<ResolveResult> {
   const npm = context.source.npmPackages[module.npmPackage];
 
   if (!npm) throw new Error("npm not found");
@@ -76,8 +76,6 @@ export async function resolveNpmModule(
       }
     }
   }
-
-  if (url === false) return;
 
   const message = format(Msg.NotFound, { specifier: context.specifier });
 
@@ -173,33 +171,29 @@ export async function resolveNpmModuleDependency(
     },
   });
 
-  if (url) {
-    switch (url.protocol) {
-      case "file:": {
-        const format = await fileFormat(url, context);
-        const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
+  switch (url.protocol) {
+    case "file:": {
+      const format = await fileFormat(url, context);
+      const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
 
-        const result = await findClosest(url, context);
-        const sideEffects = result &&
-          resolveSideEffects(
-            result.pjson?.sideEffects,
-            fromFileUrl(result.packageURL),
-            fromFileUrl(url),
-          );
+      const result = await findClosest(url, context);
+      const sideEffects = result &&
+        resolveSideEffects(
+          result.pjson?.sideEffects,
+          fromFileUrl(result.packageURL),
+          fromFileUrl(url),
+        );
 
-        return [{ url, mediaType, sideEffects }, { module: depModule, source }];
-      }
+      return [{ url, mediaType, sideEffects }, { module: depModule, source }];
+    }
 
-      default: {
-        return [{ url, mediaType: "Unknown", sideEffects: undefined }, {
-          module: depModule,
-          source,
-        }];
-      }
+    default: {
+      return [{ url, mediaType: "Unknown", sideEffects: undefined }, {
+        module: depModule,
+        source,
+      }];
     }
   }
-
-  return [url, { module: depModule, source }];
 }
 
 export function resolveNpmDependency(
