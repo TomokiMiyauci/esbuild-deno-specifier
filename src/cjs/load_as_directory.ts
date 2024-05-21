@@ -9,18 +9,7 @@ import { Msg } from "../constants.ts";
  */
 export async function loadAsDirectory(
   packageURL: URL | string,
-  context: Pick<
-    Context,
-    | "mainFields"
-    | "resolve"
-    | "readFile"
-    | "existFile"
-    | "root"
-    | "specifier"
-    | "conditions"
-    | "existDir"
-    | "nodeModulesPaths"
-  >,
+  context: Context,
 ): Promise<URL | undefined> {
   // 1. If X/package.json is a file,
   const pjson = await readPackageJson(packageURL, context);

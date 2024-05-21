@@ -5,8 +5,6 @@ import {
   pathEqual,
   readPackageJson,
 } from "../../deps.ts";
-import { loadAsDirectory } from "./load_as_directory.ts";
-import { loadAsFile } from "./load_file.ts";
 import type { Context } from "./types.ts";
 
 export function concatPath(url: URL | string, path: string): URL {
@@ -62,34 +60,4 @@ export function isSubpath(parent: string, child: string): boolean {
   child = normalize(child);
 
   return parent === child || child.startsWith(parent);
-}
-
-/**
- * @throws {Error}
- */
-export async function loadAs(
-  url: URL | string,
-  context: Pick<
-    Context,
-    | "mainFields"
-    | "resolve"
-    | "existFile"
-    | "readFile"
-    | "root"
-    | "specifier"
-    | "conditions"
-    | "existDir"
-    | "nodeModulesPaths"
-  >,
-): Promise<URL> {
-  //  a. LOAD_AS_FILE(Y + X)
-  const fileResult = await loadAsFile(url, context);
-  if (fileResult) return fileResult;
-
-  //  b. LOAD_AS_DIRECTORY(Y + X)
-  const dirResult = await loadAsDirectory(url, context);
-  if (dirResult) return dirResult;
-
-  //  c. THROW "not found"
-  throw new Error("not found");
 }

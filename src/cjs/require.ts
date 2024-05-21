@@ -1,5 +1,6 @@
 import { format, isBuiltin } from "../../deps.ts";
-import { loadAs } from "./utils.ts";
+import { loadAsDirectory } from "./load_as_directory.ts";
+import { loadAsFile } from "./load_file.ts";
 import { loadNodeModules } from "./load_node_modules.ts";
 import type { Context } from "./types.ts";
 import { parseNpmPkg } from "../utils.ts";
@@ -41,7 +42,17 @@ export async function require(
 
     const url = new URL(specifier, referrer);
 
-    return loadAs(url, { ...context, specifier });
+    //  a. LOAD_AS_FILE(Y + X)
+    const fileResult = await loadAsFile(url, context);
+    if (fileResult) return fileResult;
+
+    //  b. LOAD_AS_DIRECTORY(Y + X)
+    const dirResult = await loadAsDirectory(url, { ...context, specifier });
+    if (dirResult) return dirResult;
+
+    const message = format(Msg.NotFound, { specifier });
+    //  c. THROW "not found"
+    throw new Error(message);
   }
 
   if (specifier.startsWith("#")) {
