@@ -50,7 +50,7 @@ export async function resolveNpmModule(
     ...context,
     async *nodeModulesPaths() {
       for await (
-        const url of context.getPackageURL({ ...npm, ...context })
+        const url of context.getPackageURL({ ...npm, ...context, isDep: false })
       ) yield url;
     },
   });
@@ -160,12 +160,16 @@ export async function resolveNpmModuleDependency(
 
         const npm = source.npmPackages[mod.npmPackage];
 
-        return yield* context.getPackageURL({ ...npm, ...context });
+        return yield* context.getPackageURL({
+          ...npm,
+          ...context,
+          isDep: true,
+        });
       }
 
       depModule = dep;
 
-      yield* context.getPackageURL({ ...dep, ...context });
+      yield* context.getPackageURL({ ...dep, ...context, isDep: true });
     },
   });
 

@@ -28,7 +28,9 @@ export class LocalStrategy implements Strategy {
   }
 
   *getPackageURL(args: PackageArgs): Iterable<URL> {
-    const parents = getParents(args.referrer, this.root);
+    const parents = args.isDep
+      ? getParents(args.referrer, this.root)
+      : [this.root];
 
     for (const parent of parents) {
       if (parent.pathname.endsWith("node_modules")) continue;
@@ -46,6 +48,7 @@ export interface PackageArgs extends IO {
   name: string;
   version: string;
   referrer: URL;
+  isDep: boolean;
 }
 
 export interface Strategy {
