@@ -2,6 +2,7 @@ export interface InfoOptions {
   json?: boolean;
   noConfig?: boolean;
   nodeModulesDir?: boolean;
+  env?: Record<string, string>;
 }
 
 /**
@@ -31,6 +32,7 @@ export async function info(
   const args = ["info", ...opt];
   const commandOptions = {
     args,
+    env: options.env,
     stdout: "piped",
     stderr: "inherit",
   } satisfies Deno.CommandOptions;
