@@ -12,31 +12,39 @@ import {
 } from "../deps.ts";
 import type { DataPluginData, PluginData } from "./types.ts";
 import { Namespace } from "./constants.ts";
-import { logger, mediaTypeToLoader, memo } from "./utils.ts";
+import { mediaTypeToLoader, memo } from "./utils.ts";
 import { createResolve } from "./resolve.ts";
 import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
 
 export interface Options {
-  npm?: NpmOptions;
-}
+  /**
+   * @default false
+   */
+  nodeModulesDir?: boolean;
 
-export interface NpmOptions {
-  scope?: NpmScope;
+  /**
+   * @default new DenoDir().root
+   */
+  denoDir?: string;
 }
-
-type NpmScope =
-  | { type: "global"; denoDir: string }
-  | { type: "local" };
 
 export function denoSpecifier(options: Options = {}): Plugin {
   return {
     name: "deno-specifier",
     setup(build) {
-      const npmScope = normalizeNpmScope(options.npm?.scope);
-      const infoOptions = npmScope.type === "global"
-        ? { json: true, noConfig: true } as const
-        : { json: true, noConfig: true, nodeModulesDir: true } as const;
-
+      const DENO_DIR = options.denoDir ?? new DenoDir().root;
+      const infoOptions = options.nodeModulesDir
+        ? {
+          json: true,
+          noConfig: true,
+          nodeModulesDir: true,
+          env: { DENO_DIR },
+        } as const
+        : {
+          json: true,
+          noConfig: true,
+          env: { DENO_DIR },
+        } as const;
       const cachedInfo = memo((specifier: string) =>
         info(specifier, infoOptions)
       );
@@ -45,9 +53,8 @@ export function denoSpecifier(options: Options = {}): Plugin {
       const cachedReadFile = memo(readFile);
       const cachedRealURL = memo(realURL);
 
-      const strategy = npmScope.type === "global"
-        ? new GlobalStrategy(npmScope.denoDir)
-        : (() => {
+      const strategy = options.nodeModulesDir
+        ? (() => {
           const root = build.initialOptions.absWorkingDir;
 
           if (!root) {
@@ -57,7 +64,8 @@ export function denoSpecifier(options: Options = {}): Plugin {
           }
 
           return new LocalStrategy(root);
-        })();
+        })()
+        : new GlobalStrategy(DENO_DIR);
 
       const resolveOptions = {
         info: cachedInfo,
@@ -138,14 +146,6 @@ export function denoSpecifier(options: Options = {}): Plugin {
       );
     },
   };
-}
-
-function normalizeNpmScope(npm: NpmScope | undefined): NpmScope {
-  if (!npm) {
-    return { type: "global", denoDir: new DenoDir().root };
-  }
-
-  return npm;
 }
 
 function existFile(url: URL): Promise<boolean> {
