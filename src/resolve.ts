@@ -169,8 +169,6 @@ export async function toOnResolveResult(
       const url = (await context.realURL(result.url)) ?? result.url;
       const path = fromFileUrl(url);
 
-      // TODO: side effect
-
       context.writer.addLine(`Resolved to "${path}"`);
       context.writer.addLine(``);
 
