@@ -1,0 +1,6 @@
+{
+  "tasks": {
+    "test": "deno test -A --doc --import-map=_import_map.json",
+    "publish": "deno publish -c jsr.json"
+  }
+}
