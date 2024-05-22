@@ -1,5 +1,5 @@
 import { format } from "../../../deps.ts";
-import type { Context } from "./types.ts";
+import type { Context, ResolveArgs } from "./types.ts";
 import { Msg } from "../../constants.ts";
 
 /**
@@ -7,7 +7,7 @@ import { Msg } from "../../constants.ts";
  */
 export async function resolveEsmMatch(
   url: URL | string,
-  context: Pick<Context, "existFile" | "specifier">,
+  context: Pick<Context & ResolveArgs, "existFile" | "specifier">,
 ): Promise<URL> {
   url = new URL(url);
   // 1. let RESOLVED_PATH = fileURLToPath(MATCH)

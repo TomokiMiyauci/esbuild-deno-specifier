@@ -1,7 +1,7 @@
 import { format, join, PackageJson, readPackageJson } from "../../../deps.ts";
 import { loadAsFile } from "./load_file.ts";
 import { loadIndex } from "./load_index.ts";
-import type { Context } from "./types.ts";
+import type { Context, ResolveArgs } from "./types.ts";
 import { Msg } from "../../constants.ts";
 import { createPjsonURL, isLikePath } from "../../utils.ts";
 import { LikePath } from "../../utils.ts";
@@ -11,7 +11,7 @@ import { LikePath } from "../../utils.ts";
  */
 export async function loadAsDirectory(
   packageURL: URL | string,
-  context: Context,
+  context: Context & Pick<ResolveArgs, "specifier">,
 ): Promise<URL | undefined> {
   // 1. If X/package.json is a file,
   const pjson = await readPackageJson(packageURL, context);

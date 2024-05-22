@@ -1,13 +1,13 @@
 import { packageExportsResolve, readPackageJson } from "../../../deps.ts";
 import { resolveEsmMatch } from "./resolve_esm_match.ts";
-import type { Context } from "./types.ts";
+import type { Context, ResolveArgs } from "./types.ts";
 import type { Subpath } from "../../types.ts";
 
 export async function loadPackageExports(
   packageURL: URL | string,
   subpath: Subpath,
   context: Pick<
-    Context,
+    Context & ResolveArgs,
     | "conditions"
     | "readFile"
     | "existDir"

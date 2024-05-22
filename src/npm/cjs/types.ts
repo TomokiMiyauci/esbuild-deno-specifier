@@ -9,10 +9,14 @@ export interface Context extends IO, Pick<Strategy, "root"> {
   resolve?(
     specifier: string,
     referrer: URL | string,
-    context: Omit<Context, "specifier">,
+    context: Context,
   ): Promise<URL> | URL;
   nodeModulesPaths(
     args: { name: string; subpath: Subpath },
   ): AsyncIterable<URL> | Iterable<URL>;
+}
+
+export interface ResolveArgs {
   specifier: string;
+  referrer: URL | string;
 }

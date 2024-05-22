@@ -9,17 +9,7 @@ import { Msg } from "../../constants.ts";
 export async function require(
   specifier: string,
   referrer: URL | string,
-  context: Pick<
-    Context,
-    | "conditions"
-    | "existDir"
-    | "existFile"
-    | "mainFields"
-    | "nodeModulesPaths"
-    | "readFile"
-    | "resolve"
-    | "root"
-  >,
+  context: Context,
 ): Promise<URL> {
   // 1. If X is a core module,
   if (isBuiltin(specifier)) {
@@ -27,6 +17,7 @@ export async function require(
       return context.resolve(specifier, referrer, context);
     }
 
+    // a. return the core module
     return new URL(`node:${specifier}`);
   }
 
@@ -55,6 +46,7 @@ export async function require(
     throw new Error(message);
   }
 
+  // 4. If X begins with '#'
   if (specifier.startsWith("#")) {
     throw new Error("not supported");
   }
@@ -69,6 +61,6 @@ export async function require(
   if (nodeModulesResult) return nodeModulesResult;
 
   const message = format(Msg.NotFound, { specifier });
-
+  // 7. THROW "not found"
   throw new Error(message);
 }
