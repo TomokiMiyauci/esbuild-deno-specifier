@@ -3,6 +3,8 @@ import { loadAsFile } from "./load_file.ts";
 import { loadIndex } from "./load_index.ts";
 import type { Context } from "./types.ts";
 import { Msg } from "../../constants.ts";
+import { isLikePath } from "../../utils.ts";
+import { LikePath } from "../../utils.ts";
 
 /**
  * @throws {Error}
@@ -49,15 +51,26 @@ export function resolveFields(
   pjson: PackageJson,
   fields: Iterable<string>,
 ): string | undefined {
-  for (const filed of fields) {
-    if (filed in pjson) {
-      const value = pjson[filed];
+  for (const field of fields) {
+    const value = resolveField(pjson, field);
 
-      if (typeof value === "string") {
-        if (value.startsWith(".")) return value;
-
-        return "./" + value;
-      }
-    }
+    if (typeof value === "string") return value;
   }
+}
+
+export function resolveField(
+  pjson: PackageJson,
+  field: string,
+): string | undefined {
+  if (field in pjson) {
+    const value = pjson[field];
+
+    if (typeof value === "string") return toRelative(value);
+  }
+}
+
+export function toRelative(path: string): LikePath {
+  if (isLikePath(path)) return path;
+
+  return `./${path}`;
 }

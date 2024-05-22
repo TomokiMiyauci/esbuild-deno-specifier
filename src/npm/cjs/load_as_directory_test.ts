@@ -1,5 +1,9 @@
-import { loadAsDirectory } from "./load_as_directory.ts";
-import { describe, expect, it } from "../../../dev_deps.ts";
+import {
+  loadAsDirectory,
+  resolveField,
+  resolveFields,
+} from "./load_as_directory.ts";
+import { describe, expect, it, type PackageJson } from "../../../dev_deps.ts";
 import {
   emptyPjson,
   noPjson,
@@ -137,5 +141,82 @@ describe("loadAsDirectory", () => {
       }),
     )
       .rejects.toThrow();
+  });
+});
+
+describe("resolveField", () => {
+  it("should return undefined", () => {
+    const table: PackageJson[] = [
+      {},
+      { module: "" },
+      { main: null },
+      { main: undefined },
+      { main: 0 },
+      { main: {} },
+      { main: [] },
+      { main: false },
+      { main: true },
+    ];
+
+    table.forEach((pjson) => {
+      expect(resolveField(pjson, "main")).toBe(undefined);
+    });
+  });
+
+  it("should resolve to `main` field", () => {
+    const table: [pjson: PackageJson, expected: string][] = [
+      [{ main: "" }, "./"],
+      [{ main: "index.js" }, "./index.js"],
+      [{ main: "./" }, "./"],
+      [{ main: "./abc" }, "./abc"],
+      [{ main: "../" }, "../"],
+      [{ main: "../abc" }, "../abc"],
+      [{ main: "/" }, "/"],
+      [{ main: "/abc" }, "/abc"],
+    ];
+
+    table.forEach(([pjson, expected]) => {
+      expect(resolveField(pjson, "main")).toBe(expected);
+    });
+  });
+
+  it("should resolve specifier field", () => {
+    expect(resolveField({ module: "" }, "module")).toBe("./");
+  });
+});
+
+describe("resolveFields", () => {
+  it("should return undefined if all fields does not exist in pjson or the value is invalid", () => {
+    const table: [pjson: PackageJson, fields: string[]][] = [
+      [{}, []],
+      [{}, ["main"]],
+      [{ main: null }, ["main"]],
+      [{ main: null }, ["main", "module"]],
+      [{ main: null, module: undefined }, ["main", "module"]],
+      [{ main: "", module: undefined }, ["module"]],
+    ];
+
+    table.forEach(([pjson, fields]) => {
+      expect(resolveFields(pjson, fields)).toBe(undefined);
+    });
+  });
+
+  it("should return string", () => {
+    const table: [pjson: PackageJson, fields: string[], expected: string][] = [
+      [{ main: "" }, ["main"], "./"],
+      [{ main: "", module: "a" }, ["main"], "./"],
+      [{ main: "", module: "a" }, ["module"], "./a"],
+      [{ main: "", module: "a" }, ["main", "module"], "./"],
+      [{ main: "", module: "a" }, ["module", "main"], "./a"],
+      [{ main: "", module: "a", invalid: undefined }, [
+        "invalid",
+        "module",
+        "main",
+      ], "./a"],
+    ];
+
+    table.forEach(([pjson, fields, expected]) => {
+      expect(resolveFields(pjson, fields)).toBe(expected);
+    });
   });
 });

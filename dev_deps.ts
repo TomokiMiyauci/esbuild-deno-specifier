@@ -9,3 +9,4 @@ export {
 } from "./modules/deno/info.ts";
 export { exists } from "jsr:@std/fs@^0.221.0";
 export { fromFileUrl } from "jsr:@std/path@^0.221.0";
+export { type PackageJson } from "jsr:@miyauci/node-esm-resolver@1.0.0-beta.8";
