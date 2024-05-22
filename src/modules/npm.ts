@@ -13,14 +13,14 @@ import type {
   DependencyResolveResult,
   ResolveResult,
 } from "./types.ts";
-import { loadNodeModules } from "../cjs/load_node_modules.ts";
-import type { Format } from "../cjs/types.ts";
-import { require } from "../cjs/require.ts";
+import { loadNodeModules } from "../npm/cjs/load_node_modules.ts";
+import type { Format } from "../npm/cjs/types.ts";
+import { require } from "../npm/cjs/require.ts";
 import { assertModule, assertModuleEntry } from "./utils.ts";
 import type { Subpath } from "../types.ts";
 import { Msg } from "../constants.ts";
-import { fileFormat } from "../cjs/file_format.ts";
-import { findClosest } from "../cjs/utils.ts";
+import { fileFormat } from "../npm/cjs/file_format.ts";
+import { findClosest } from "../npm/cjs/utils.ts";
 import { resolveSideEffects } from "../side_effects.ts";
 
 export async function resolveNpmModule(

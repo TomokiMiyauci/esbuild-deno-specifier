@@ -1,8 +1,8 @@
-import { describe, expect, it } from "../../dev_deps.ts";
+import { describe, expect, it } from "../../../dev_deps.ts";
 import { fileFormat } from "./file_format.ts";
 import type { Format } from "./types.ts";
-import { emptyPjson, esmPjson } from "../../tests/fixtures/node_modules.ts";
-import { readFile, root } from "../../tests/context.ts";
+import { emptyPjson, esmPjson } from "../../../tests/fixtures/node_modules.ts";
+import { readFile, root } from "../../../tests/context.ts";
 
 describe("fileFormat", () => {
   it("should return format without IO", async () => {

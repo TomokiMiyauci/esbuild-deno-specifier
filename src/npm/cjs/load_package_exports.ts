@@ -1,7 +1,7 @@
-import { packageExportsResolve, readPackageJson } from "../../deps.ts";
+import { packageExportsResolve, readPackageJson } from "../../../deps.ts";
 import { resolveEsmMatch } from "./resolve_esm_match.ts";
 import type { Context } from "./types.ts";
-import type { Subpath } from "../types.ts";
+import type { Subpath } from "../../types.ts";
 
 export async function loadPackageExports(
   packageURL: URL | string,

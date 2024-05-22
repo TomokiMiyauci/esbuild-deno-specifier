@@ -13,7 +13,7 @@ import { type ResolveResult } from "./modules/types.ts";
 import type { DataPluginData, PluginData } from "./types.ts";
 import { resolveModule, resolveModuleDependency } from "./modules/module.ts";
 import { resolveBrowserMap } from "./browser.ts";
-import { type Context as CjsContext } from "./cjs/types.ts";
+import { type Context as CjsContext } from "./npm/cjs/types.ts";
 import { assertModule, assertModuleEntry } from "./modules/utils.ts";
 import { resolveConditions } from "./conditions.ts";
 import { resolveMainFields } from "./main_fields.ts";

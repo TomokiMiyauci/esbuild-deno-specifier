@@ -1,5 +1,5 @@
 import type { MediaType, Module, Source } from "../../deps.ts";
-import { Context as CjsContext } from "../cjs/types.ts";
+import { Context as CjsContext } from "../npm/cjs/types.ts";
 import { Strategy } from "../strategy.ts";
 
 export interface Context

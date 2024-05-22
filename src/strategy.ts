@@ -1,5 +1,5 @@
 import { join, toFileUrl } from "../deps.ts";
-import { getParents } from "./cjs/utils.ts";
+import { getParents } from "./npm/cjs/utils.ts";
 import { createPackageURL } from "./modules/npm.ts";
 import { IO } from "./types.ts";
 import { createNpmRegistryURL } from "./utils.ts";

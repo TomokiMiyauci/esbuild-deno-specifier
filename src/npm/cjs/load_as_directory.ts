@@ -1,8 +1,8 @@
-import { format, join, PackageJson, readPackageJson } from "../../deps.ts";
+import { format, join, PackageJson, readPackageJson } from "../../../deps.ts";
 import { loadAsFile } from "./load_file.ts";
 import { loadIndex } from "./load_index.ts";
 import type { Context } from "./types.ts";
-import { Msg } from "../constants.ts";
+import { Msg } from "../../constants.ts";
 
 /**
  * @throws {Error}

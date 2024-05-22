@@ -1,5 +1,5 @@
 import { getParents } from "./utils.ts";
-import { describe, expect, it } from "../../dev_deps.ts";
+import { describe, expect, it } from "../../../dev_deps.ts";
 
 describe("getParents", () => {
   it("should yield", () => {

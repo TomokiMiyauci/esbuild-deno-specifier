@@ -1,11 +1,11 @@
 import { loadPackageExports } from "./load_package_exports.ts";
-import { describe, expect, it } from "../../dev_deps.ts";
+import { describe, expect, it } from "../../../dev_deps.ts";
 import {
   noPjson,
   pjsonExportsSugar,
   virtualPackageDir,
-} from "../../tests/fixtures/node_modules.ts";
-import { existDir, existFile, readFile, root } from "../../tests/context.ts";
+} from "../../../tests/fixtures/node_modules.ts";
+import { existDir, existFile, readFile, root } from "../../../tests/context.ts";
 
 describe("loadPackageExports", () => {
   it("should return undefined if the package.json does not exist", async () => {

@@ -1,8 +1,8 @@
 import { join } from "../deps.ts";
 import { isObject } from "./utils.ts";
-import { Context } from "./cjs/types.ts";
-import { findClosest } from "./cjs/utils.ts";
-import { require } from "./cjs/require.ts";
+import { Context } from "./npm/cjs/types.ts";
+import { findClosest } from "./npm/cjs/utils.ts";
+import { require } from "./npm/cjs/require.ts";
 
 export function resolveBrowser<T>(
   specifier: string,

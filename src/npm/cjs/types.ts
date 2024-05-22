@@ -1,5 +1,5 @@
-import { type Strategy } from "../strategy.ts";
-import type { IO, Subpath } from "../types.ts";
+import { type Strategy } from "../../strategy.ts";
+import type { IO, Subpath } from "../../types.ts";
 
 export type Format = "commonjs" | "json" | "module" | "wasm";
 

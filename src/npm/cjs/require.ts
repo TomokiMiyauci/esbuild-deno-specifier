@@ -1,10 +1,10 @@
-import { format, isBuiltin } from "../../deps.ts";
+import { format, isBuiltin } from "../../../deps.ts";
 import { loadAsDirectory } from "./load_as_directory.ts";
 import { loadAsFile } from "./load_file.ts";
 import { loadNodeModules } from "./load_node_modules.ts";
 import type { Context } from "./types.ts";
-import { parseNpmPkg } from "../utils.ts";
-import { Msg } from "../constants.ts";
+import { parseNpmPkg } from "../../utils.ts";
+import { Msg } from "../../constants.ts";
 
 export async function require(
   specifier: string,

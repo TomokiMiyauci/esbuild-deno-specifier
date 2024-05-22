@@ -1,4 +1,4 @@
-import { extname } from "../../deps.ts";
+import { extname } from "../../../deps.ts";
 import type { Context, Format } from "./types.ts";
 import { findClosest } from "./utils.ts";
 

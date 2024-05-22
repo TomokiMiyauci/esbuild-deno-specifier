@@ -1,6 +1,6 @@
-import { format } from "../../deps.ts";
+import { format } from "../../../deps.ts";
 import type { Context } from "./types.ts";
-import { Msg } from "../constants.ts";
+import { Msg } from "../../constants.ts";
 
 /**
  * @throws {Error}

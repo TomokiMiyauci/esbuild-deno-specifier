@@ -9,7 +9,7 @@ import {
   type ResolveOptions,
   toFileUrl,
 } from "../deps.ts";
-import { type Format } from "./cjs/types.ts";
+import { type Format } from "./npm/cjs/types.ts";
 import type { Subpath } from "./types.ts";
 export function argsToOptions(args: OnResolveArgs): ResolveOptions {
   return {

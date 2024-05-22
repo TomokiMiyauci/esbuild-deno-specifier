@@ -4,7 +4,7 @@ import {
   type PackageJson,
   pathEqual,
   readPackageJson,
-} from "../../deps.ts";
+} from "../../../deps.ts";
 import type { Context } from "./types.ts";
 
 export function concatPath(url: URL | string, path: string): URL {

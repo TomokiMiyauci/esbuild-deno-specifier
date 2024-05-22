@@ -1,5 +1,5 @@
 import { loadAsDirectory } from "./load_as_directory.ts";
-import { describe, expect, it } from "../../dev_deps.ts";
+import { describe, expect, it } from "../../../dev_deps.ts";
 import {
   emptyPjson,
   noPjson,
@@ -7,8 +7,8 @@ import {
   pjsonMain2,
   pjsonMainModule,
   pjsonNoMain,
-} from "../../tests/fixtures/node_modules.ts";
-import { existDir, existFile, readFile, root } from "../../tests/context.ts";
+} from "../../../tests/fixtures/node_modules.ts";
+import { existDir, existFile, readFile, root } from "../../../tests/context.ts";
 
 describe("loadAsDirectory", () => {
   it("should resolve as index if the package.json does not exist and index.js exist", async () => {
