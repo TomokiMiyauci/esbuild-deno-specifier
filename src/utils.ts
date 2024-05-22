@@ -129,3 +129,7 @@ export function createNpmRegistryURL(denoDir: string): URL {
 
   return join(denoDirURL, "npm", "registry.npmjs.org");
 }
+
+export function createPjsonURL(packageURL: URL | string): URL {
+  return join(packageURL, "package.json");
+}

@@ -1,5 +1,5 @@
 import { join } from "../deps.ts";
-import { isObject } from "./utils.ts";
+import { createPjsonURL, isObject } from "./utils.ts";
 import { Context } from "./npm/cjs/types.ts";
 import { findClosest } from "./npm/cjs/utils.ts";
 import { require } from "./npm/cjs/require.ts";
@@ -60,7 +60,7 @@ export async function resolveBrowserMap(
     return require(specifier, referer, { ...context, resolve: undefined });
   }
 
-  return require(browserValue, join(result.packageURL, "package.json"), {
+  return require(browserValue, createPjsonURL(result.packageURL), {
     ...context,
     resolve: undefined,
   });

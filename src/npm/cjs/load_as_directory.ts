@@ -3,7 +3,7 @@ import { loadAsFile } from "./load_file.ts";
 import { loadIndex } from "./load_index.ts";
 import type { Context } from "./types.ts";
 import { Msg } from "../../constants.ts";
-import { isLikePath } from "../../utils.ts";
+import { createPjsonURL, isLikePath } from "../../utils.ts";
 import { LikePath } from "../../utils.ts";
 
 /**
@@ -17,25 +17,30 @@ export async function loadAsDirectory(
   const pjson = await readPackageJson(packageURL, context);
 
   if (pjson) {
-    const value = resolveFields(pjson, context.mainFields);
+    const specifier = resolveFields(pjson, context.mainFields);
 
     // b. If "main" is a falsy value, GOTO 2.
-    if (value) {
+    if (specifier) {
+      // This is customizable resolution hook
       if (context.resolve) {
-        return context.resolve(
-          value,
-          join(packageURL, "package.json"),
-          context,
-        );
+        const referrer = createPjsonURL(packageURL);
+
+        return context.resolve(specifier, referrer, context);
       }
 
-      const url = join(packageURL, value);
+      // c. let M = X + (json main field)
+      const url = join(packageURL, specifier);
 
+      // d. LOAD_AS_FILE(M)
       const fileResult = await loadAsFile(url, context);
       if (fileResult) return fileResult;
 
+      // e. LOAD_INDEX(M)
       const indexResult = await loadIndex(url, context);
       if (indexResult) return indexResult;
+
+      // f. LOAD_INDEX(X) DEPRECATED
+      // Skip this process
 
       const message = format(Msg.NotFound, { specifier: context.specifier });
       // g. THROW "not found"
