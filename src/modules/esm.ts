@@ -44,7 +44,7 @@ export async function resolveEsModuleDependency(
 
   const result = await resolveModule(depModule, context);
 
-  return [result, { module: depModule, source: undefined }];
+  return { ...result, module: depModule, source: undefined };
 }
 
 export function resolveEsModuleDependencyModule(

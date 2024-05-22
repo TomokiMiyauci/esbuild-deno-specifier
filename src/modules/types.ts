@@ -21,10 +21,8 @@ export interface ResolveResult {
   sideEffects: boolean | undefined;
 }
 
-export type DependencyResolveResult = [
-  result: ResolveResult,
-  context: ResolveContext,
-];
+export interface DependencyResolveResult
+  extends ResolveResult, ResolveContext {}
 
 export interface ResolveContext {
   module: Module;

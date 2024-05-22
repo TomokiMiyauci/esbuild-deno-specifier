@@ -184,14 +184,17 @@ export async function resolveNpmModuleDependency(
           fromFileUrl(url),
         );
 
-      return [{ url, mediaType, sideEffects }, { module: depModule, source }];
+      return { url, mediaType, sideEffects, module: depModule, source };
     }
 
     default: {
-      return [{ url, mediaType: "Unknown", sideEffects: undefined }, {
+      return {
+        url,
+        mediaType: "Unknown",
+        sideEffects: undefined,
         module: depModule,
         source,
-      }];
+      };
     }
   }
 }

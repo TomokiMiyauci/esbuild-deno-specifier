@@ -61,28 +61,27 @@ export async function resolve(
   referrer = new URL(referrer);
 
   if (context) {
-    const [result, { source = context.source, module }] =
-      await resolveModuleDependency(
-        context.module,
-        {
-          referrer,
-          specifier,
-          resolve,
-          conditions: options.conditions,
-          info: options.info,
-          mainFields: options.mainFields,
-          source: context.source,
-          readFile: options.readFile,
-          existDir: options.existDir,
-          existFile: options.existFile,
-          root: options.root,
-          getPackageURL: options.getPackageURL,
-        },
-      );
+    const result = await resolveModuleDependency(
+      context.module,
+      {
+        referrer,
+        specifier,
+        resolve,
+        conditions: options.conditions,
+        info: options.info,
+        mainFields: options.mainFields,
+        source: context.source,
+        readFile: options.readFile,
+        existDir: options.existDir,
+        existFile: options.existFile,
+        root: options.root,
+        getPackageURL: options.getPackageURL,
+      },
+    );
 
     return toOnResolveResult(result, {
-      source,
-      module,
+      source: result.source ?? context.source,
+      module: result.module,
       specifier,
       platform,
       realURL: options.realURL,
