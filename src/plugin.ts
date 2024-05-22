@@ -77,19 +77,17 @@ export function denoSpecifier(options: Options = {}): Plugin {
         getPackageURL: strategy.getPackageURL.bind(strategy),
       };
 
-      build.onStart(() => {
-        const logLevel = normalizeLogLevel(build.initialOptions.logLevel);
-        const level = logLevelToLevelName(logLevel);
+      const logLevel = normalizeLogLevel(build.initialOptions.logLevel);
+      const level = logLevelToLevelName(logLevel);
 
-        if (!level) return;
-
+      if (level) {
         setup({
           handlers: { console: new ConsoleHandler(level) },
           loggers: {
             "deno": { level, handlers: ["console"] },
           },
         });
-      });
+      }
 
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:|^file:/ },
@@ -116,7 +114,7 @@ export function denoSpecifier(options: Options = {}): Plugin {
         { filter: /.*/, namespace: Namespace.Deno },
         async (args) => {
           const pluginData = args.pluginData as PluginData;
-          const contents = await readFile(toFileUrl(args.path));
+          const contents = await cachedReadFile(toFileUrl(args.path));
 
           if (typeof contents !== "string") {
             throw new Error("file does not exist");
