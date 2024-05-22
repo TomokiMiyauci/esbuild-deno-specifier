@@ -1,4 +1,3 @@
-import { join } from "../deps.ts";
 import { createPjsonURL, isObject } from "./utils.ts";
 import { Context } from "./npm/cjs/types.ts";
 import { findClosest } from "./npm/cjs/utils.ts";
