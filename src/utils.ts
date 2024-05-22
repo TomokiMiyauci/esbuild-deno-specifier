@@ -4,35 +4,10 @@ import {
   type Loader,
   type Logger,
   type MediaType,
-  type OnResolveArgs,
   type Platform,
-  type ResolveOptions,
   toFileUrl,
 } from "../deps.ts";
-import { type Format } from "./npm/cjs/types.ts";
 import type { Subpath } from "./types.ts";
-export function argsToOptions(args: OnResolveArgs): ResolveOptions {
-  return {
-    importer: args.importer,
-    kind: args.kind,
-    resolveDir: args.resolveDir,
-    namespace: args.namespace,
-    pluginData: args.pluginData,
-  };
-}
-
-export function formatToMediaType(format: Format): MediaType {
-  switch (format) {
-    case "commonjs":
-      return "Cjs";
-    case "module":
-      return "Mjs";
-    case "json":
-      return "Json";
-    case "wasm":
-      return "Wasm";
-  }
-}
 
 export function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" &&
