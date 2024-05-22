@@ -133,8 +133,7 @@ export interface AssertedModule extends BaseEntry, CacheInfo {
   mediaType: MediaType;
 }
 
-export interface Dependency {
-  specifier: string;
+export interface Dependency extends BaseEntry {
   code: ResolvedDependencyEntry;
   type?: ResolvedDependencyEntry;
   npmPackage?: string;
