@@ -1,3 +1,10 @@
+# [1.0.0-beta.3](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.2...1.0.0-beta.3) (2024-05-23)
+
+
+### Performance Improvements
+
+* **plugin:** use cached read file ([3eba21c](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/3eba21cb30ffc50d16e0db54ecb826544c6eeafd))
+
 # [1.0.0-beta.2](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.1...1.0.0-beta.2) (2024-05-21)
 
 
