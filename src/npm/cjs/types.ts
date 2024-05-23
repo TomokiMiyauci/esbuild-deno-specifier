@@ -11,8 +11,9 @@ export interface Context extends IO, Pick<Strategy, "root"> {
     referrer: URL | string,
     context: Context,
   ): Promise<URL> | URL;
-  nodeModulesPaths(
-    args: { name: string; subpath: Subpath },
+  getPackageURL(
+    name: string,
+    subpath: Subpath,
   ): AsyncIterable<URL> | Iterable<URL>;
 }
 

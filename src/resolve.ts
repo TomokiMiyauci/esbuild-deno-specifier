@@ -44,6 +44,9 @@ export async function resolve(
 ): Promise<OnResolveResult> {
   const writer = new Writer();
   let disabled = false;
+  const onFalse = () => {
+    disabled = true;
+  };
 
   writer.addLine(
     () => `Resolving import "${specifier}" from "${fromFileUrl(referrer)}"`,
@@ -52,9 +55,7 @@ export async function resolve(
   const resolve = platform === "browser"
     ? (specifier: string, referrer: URL | string, context: CjsContext) =>
       resolveBrowserMap(specifier, referrer, {
-        onFalse: () => {
-          disabled = true;
-        },
+        onFalse,
         ...context,
       })
     : undefined;
@@ -205,11 +206,7 @@ export async function toOnResolveResult(
 
 export function createResolve(
   buildOptions: BuildOptions,
-  args: Pick<OnResolveArgs, "kind">,
-): (
-  specifier: string,
-  referrer: URL | string,
-  options: Pick<
+  args: Pick<
     ResolveOptions,
     | "info"
     | "readFile"
@@ -219,27 +216,33 @@ export function createResolve(
     | "root"
     | "getPackageURL"
   >,
+): (
+  specifier: string,
+  referrer: URL | string,
+  options: Pick<OnResolveArgs, "kind">,
   context?: {
     module: Module;
     source: Source;
   },
 ) => Promise<OnResolveResult> {
-  const conditions = resolveConditions({
-    kind: args.kind,
-    platform: buildOptions.platform,
-    conditions: buildOptions.conditions,
-  });
   const mainFields = resolveMainFields({
     platform: buildOptions.platform,
     mainFields: buildOptions.mainFields,
   });
   const platform = normalizePlatform(buildOptions.platform);
 
-  return (specifier, referrer, options, context) =>
-    resolve(specifier, referrer, {
-      ...options,
+  return (specifier, referrer, options, context) => {
+    const conditions = resolveConditions({
+      kind: options.kind,
+      platform,
+      conditions: buildOptions.conditions,
+    });
+
+    return resolve(specifier, referrer, {
+      ...args,
       conditions,
       mainFields,
       platform,
     }, context);
+  };
 }

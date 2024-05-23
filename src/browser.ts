@@ -39,7 +39,7 @@ export function validateBrowserValue(input: unknown): input is BrowserValue {
 export async function resolveBrowserMap(
   specifier: string,
   referer: URL | string,
-  context: Omit<Context, "specifier"> & { onFalse: () => void },
+  context: Omit<Context, "specifier" | "resolve"> & { onFalse: () => void },
 ): Promise<URL> {
   const result = await findClosest(referer, context);
 

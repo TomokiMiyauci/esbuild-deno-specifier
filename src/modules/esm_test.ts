@@ -92,9 +92,11 @@ describe("resolveEsModuleDependency", () => {
         *getPackageURL() {},
         referrer: new URL("file:///"),
       }),
-    ).resolves.toEqual([{
+    ).resolves.toEqual({
       url: toFileUrl(depModule.local!),
       mediaType: depModule.mediaType,
-    }, { module: depModule, source: undefined }]);
+      module: depModule,
+      source: undefined,
+    });
   });
 });

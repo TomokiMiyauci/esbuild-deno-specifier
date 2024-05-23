@@ -25,7 +25,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
         conditions: [],
         existDir,
-        *nodeModulesPaths() {},
+        *getPackageURL() {},
       }),
     )
       .resolves.toEqual(new URL(noPjson.indexJs));
@@ -41,7 +41,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
         conditions: [],
         existDir,
-        *nodeModulesPaths() {},
+        *getPackageURL() {},
       }),
     )
       .resolves.toEqual(new URL(emptyPjson.indexJs));
@@ -57,7 +57,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
         conditions: [],
         existDir,
-        *nodeModulesPaths() {},
+        *getPackageURL() {},
       }),
     )
       .resolves.toEqual(new URL(emptyPjson.indexJs));
@@ -73,7 +73,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
         conditions: [],
         existDir,
-        *nodeModulesPaths() {},
+        *getPackageURL() {},
       }),
     )
       .resolves.toEqual(new URL(pjsonMain.mainJs));
@@ -89,7 +89,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
         conditions: [],
         existDir,
-        *nodeModulesPaths() {},
+        *getPackageURL() {},
       }),
     )
       .resolves.toEqual(new URL(pjsonMain2.indexJs));
@@ -105,7 +105,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
         conditions: [],
         existDir,
-        *nodeModulesPaths() {},
+        *getPackageURL() {},
       }),
     )
       .resolves.toEqual(new URL(pjsonMainModule.indexCjs));
@@ -121,7 +121,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
         conditions: [],
         existDir,
-        *nodeModulesPaths() {},
+        *getPackageURL() {},
       }),
     )
       .resolves.toEqual(new URL(pjsonMainModule.indexMjs));
@@ -137,7 +137,7 @@ describe("loadAsDirectory", () => {
         specifier: "",
         conditions: [],
         existDir,
-        *nodeModulesPaths() {},
+        *getPackageURL() {},
       }),
     )
       .rejects.toThrow();

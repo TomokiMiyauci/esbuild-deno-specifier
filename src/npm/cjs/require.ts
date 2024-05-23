@@ -3,9 +3,11 @@ import { loadAsDirectory } from "./load_as_directory.ts";
 import { loadAsFile } from "./load_file.ts";
 import { loadNodeModules } from "./load_node_modules.ts";
 import type { Context } from "./types.ts";
-import { parseNpmPkg } from "../../utils.ts";
 import { Msg } from "../../constants.ts";
 
+/**
+ * @see https://nodejs.org/api/modules.html
+ */
 export async function require(
   specifier: string,
   referrer: URL | string,
@@ -20,6 +22,9 @@ export async function require(
     // a. return the core module
     return new URL(`node:${specifier}`);
   }
+
+  // 2. If X begins with '/'
+  // Skip
 
   // 3. If X begins with './' or '/' or '../'
   if (
@@ -47,17 +52,12 @@ export async function require(
   }
 
   // 4. If X begins with '#'
-  if (specifier.startsWith("#")) {
-    throw new Error("not supported");
-  }
+  if (specifier.startsWith("#")) throw new Error("not supported");
 
-  const { name, subpath } = parseNpmPkg(specifier);
-  const nodeModulesResult = await loadNodeModules(
-    name,
-    subpath,
-    { ...context, specifier },
-  );
+  // 5. LOAD_PACKAGE_SELF(X, dirname(Y))
 
+  // 6. LOAD_NODE_MODULES(X, dirname(Y))
+  const nodeModulesResult = await loadNodeModules(specifier, context);
   if (nodeModulesResult) return nodeModulesResult;
 
   const message = format(Msg.NotFound, { specifier });

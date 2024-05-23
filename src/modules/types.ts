@@ -4,7 +4,7 @@ import { Strategy } from "../strategy.ts";
 
 export interface Context
   extends
-    Omit<CjsContext, "nodeModulesPaths">,
+    Omit<CjsContext, "getPackageURL">,
     Pick<Strategy, "getPackageURL"> {
   specifier: string;
   referrer: URL;

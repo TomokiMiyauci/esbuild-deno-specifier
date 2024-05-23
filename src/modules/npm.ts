@@ -13,7 +13,7 @@ import type {
   DependencyResolveResult,
   ResolveResult,
 } from "./types.ts";
-import { loadNodeModules } from "../npm/cjs/load_node_modules.ts";
+import { loadNodeModule } from "../npm/cjs/load_node_modules.ts";
 import type { Format } from "../npm/cjs/types.ts";
 import { require } from "../npm/cjs/require.ts";
 import { assertModule, assertModuleEntry } from "./utils.ts";
@@ -46,33 +46,37 @@ export async function resolveNpmModule(
 
   const { name, version } = npm;
   const subpath = parseSubpath(module.specifier, { name, version });
-  const url = await loadNodeModules(name, subpath, {
-    ...context,
-    async *nodeModulesPaths() {
-      for await (
-        const url of context.getPackageURL({ ...npm, ...context, isDep: false })
-      ) yield url;
-    },
-  });
 
-  if (url) {
-    switch (url.protocol) {
-      case "file:": {
-        const format = await fileFormat(url, context);
-        const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
-        const result = await findClosest(url, context);
-        const sideEffects = result &&
-          resolveSideEffects(
-            result.pjson?.sideEffects,
-            fromFileUrl(result.packageURL),
-            fromFileUrl(url),
-          );
+  const packageArgs = { ...npm, ...context, isDep: false };
+  const dirs = context.getPackageURL(packageArgs);
 
-        return { url, mediaType, sideEffects };
-      }
+  for await (const packageURL of dirs) {
+    const url = await loadNodeModule(packageURL, subpath, {
+      ...context,
+      async *getPackageURL() {
+        for await (const url of context.getPackageURL(packageArgs)) yield url;
+      },
+    });
 
-      default: {
-        return { url, mediaType: "Unknown", sideEffects: undefined };
+    if (url) {
+      switch (url.protocol) {
+        case "file:": {
+          const format = await fileFormat(url, context);
+          const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
+          const result = await findClosest(url, context);
+          const sideEffects = result &&
+            resolveSideEffects(
+              result.pjson?.sideEffects,
+              fromFileUrl(result.packageURL),
+              fromFileUrl(url),
+            );
+
+          return { url, mediaType, sideEffects };
+        }
+
+        default: {
+          return { url, mediaType: "Unknown", sideEffects: undefined };
+        }
       }
     }
   }
@@ -130,7 +134,7 @@ export async function resolveNpmModuleDependency(
 
   const url = await require(context.specifier, context.referrer, {
     ...context,
-    async *nodeModulesPaths({ name, subpath }) {
+    async *getPackageURL(name, subpath) {
       const dep = resolveNpmDependency(module, {
         specifier: context.specifier,
         source: source,

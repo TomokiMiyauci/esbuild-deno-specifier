@@ -6,10 +6,9 @@ export async function loadAsFile(
   context: Pick<Context, "existFile" | "readFile" | "root">,
 ): Promise<URL | undefined> {
   url = new URL(url);
+
   // 1. If X is a file, load X as its file extension format. STOP
-  if (await context.existFile(url)) {
-    return new URL(url);
-  }
+  if (await context.existFile(url)) return url;
 
   const withJs = concatPath(url, ".js");
   // 2. If X.js is a file,
