@@ -80,6 +80,8 @@ export function denoSpecifier(options: Options = {}): Plugin {
       const logLevel = normalizeLogLevel(build.initialOptions.logLevel);
       const level = logLevelToLevelName(logLevel);
 
+      const resolve = createResolve(build.initialOptions, resolveOptions);
+
       if (level) {
         setup({
           handlers: { console: new ConsoleHandler(level) },
@@ -94,9 +96,8 @@ export function denoSpecifier(options: Options = {}): Plugin {
         ({ path: specifier, kind, importer, resolveDir }) => {
           const referrerPath = importer ? importer : resolveDir;
           const referrer = toFileUrl(referrerPath);
-          const resolve = createResolve(build.initialOptions, { kind });
 
-          return resolve(specifier, referrer, resolveOptions);
+          return resolve(specifier, referrer, { kind });
         },
       );
 
@@ -105,9 +106,8 @@ export function denoSpecifier(options: Options = {}): Plugin {
         const { module, source } = pluginData;
         const { path: specifier, importer, kind } = args;
         const referrer = toFileUrl(importer);
-        const resolve = createResolve(build.initialOptions, { kind });
 
-        return resolve(specifier, referrer, resolveOptions, { module, source });
+        return resolve(specifier, referrer, { kind }, { module, source });
       });
 
       build.onLoad(
