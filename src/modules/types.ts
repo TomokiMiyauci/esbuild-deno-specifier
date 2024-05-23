@@ -3,9 +3,7 @@ import { Context as CjsContext } from "../npm/cjs/types.ts";
 import { Strategy } from "../strategy.ts";
 
 export interface Context
-  extends
-    Omit<CjsContext, "getPackageURL">,
-    Pick<Strategy, "getPackageURL"> {
+  extends Omit<CjsContext, "getPackageURL">, Pick<Strategy, "getPackageURL"> {
   specifier: string;
   referrer: URL;
   source: Source;
