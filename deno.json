@@ -1,6 +1,7 @@
 {
   "tasks": {
     "test": "deno test -A --doc --import-map=_import_map.json",
+    "bench": "deno bench --allow-env --allow-read --allow-run",
     "publish": "deno publish -c jsr.json"
   },
   "exclude": ["CHANGELOG.md"]
