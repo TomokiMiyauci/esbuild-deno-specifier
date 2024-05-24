@@ -1,11 +1,4 @@
-import {
-  dirname,
-  normalize,
-  type PackageJson,
-  pathEqual,
-  readPackageJson,
-} from "../../../deps.ts";
-import type { Context } from "./types.ts";
+import { dirname, normalize, pathEqual } from "../../../deps.ts";
 
 export function concatPath(url: URL | string, path: string): URL {
   url = new URL(url);
@@ -13,19 +6,6 @@ export function concatPath(url: URL | string, path: string): URL {
   url.pathname = url.pathname + path;
 
   return url;
-}
-
-export async function findClosest(
-  url: URL | string,
-  context: Pick<Context, "readFile" | "root">,
-): Promise<{ pjson: PackageJson; packageURL: URL } | undefined> {
-  for (const packageURL of getParents(url, context.root)) {
-    const pjson = await readPackageJson(packageURL, context);
-
-    if (pjson) {
-      return { pjson, packageURL };
-    }
-  }
 }
 
 export function* getParents(

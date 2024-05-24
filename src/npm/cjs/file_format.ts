@@ -1,10 +1,10 @@
-import { extname } from "../../../deps.ts";
+import { extname, readPackageJson } from "../../../deps.ts";
+import { lookupPackageScope } from "./lookup_package_scope.ts";
 import type { Context, Format } from "./types.ts";
-import { findClosest } from "./utils.ts";
 
 export async function fileFormat(
   url: URL | string,
-  context: Pick<Context, "readFile" | "root">,
+  context: Pick<Context, "existFile" | "readFile" | "root">,
 ): Promise<Format | undefined> {
   const ext = extname(url);
 
@@ -19,9 +19,10 @@ export async function fileFormat(
       return "module";
 
     default: {
-      const result = await findClosest(url, context);
+      const packageURL = await lookupPackageScope(url, context);
+      const pjson = await readPackageJson(packageURL!, context);
 
-      if (result?.pjson.type === "module") return "module";
+      if (pjson?.type === "module") return "module";
 
       return "commonjs";
     }

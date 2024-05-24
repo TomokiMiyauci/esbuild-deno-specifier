@@ -5,6 +5,7 @@ import {
   type MediaType,
   type NpmModule,
   NpmPackage,
+  readPackageJson,
 } from "../../deps.ts";
 import { parseNpmPkg } from "../utils.ts";
 import type {
@@ -20,8 +21,8 @@ import { assertModule, assertModuleEntry } from "./utils.ts";
 import type { Subpath } from "../types.ts";
 import { Msg } from "../constants.ts";
 import { fileFormat } from "../npm/cjs/file_format.ts";
-import { findClosest } from "../npm/cjs/utils.ts";
 import { resolveSideEffects } from "../side_effects.ts";
+import { lookupPackageScope } from "../npm/cjs/lookup_package_scope.ts";
 
 export async function resolveNpmModule(
   module: NpmModule,
@@ -63,15 +64,23 @@ export async function resolveNpmModule(
         case "file:": {
           const format = await fileFormat(url, context);
           const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
-          const result = await findClosest(url, context);
-          const sideEffects = result &&
-            resolveSideEffects(
-              result.pjson?.sideEffects,
-              fromFileUrl(result.packageURL),
-              fromFileUrl(url),
-            );
+          const packageURL = await lookupPackageScope(url, context);
 
-          return { url, mediaType, sideEffects };
+          if (packageURL) {
+            const pjson = await readPackageJson(packageURL, context);
+
+            if (pjson && "sideEffects" in pjson) {
+              const sideEffects = resolveSideEffects(
+                pjson.sideEffects,
+                fromFileUrl(packageURL!),
+                fromFileUrl(url),
+              );
+
+              return { url, mediaType, sideEffects };
+            }
+          }
+
+          return { url, mediaType, sideEffects: undefined };
         }
 
         default: {
@@ -179,16 +188,28 @@ export async function resolveNpmModuleDependency(
     case "file:": {
       const format = await fileFormat(url, context);
       const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
+      const packageURL = await lookupPackageScope(url, context);
+      if (packageURL) {
+        const pjson = await readPackageJson(packageURL, context);
 
-      const result = await findClosest(url, context);
-      const sideEffects = result &&
-        resolveSideEffects(
-          result.pjson?.sideEffects,
-          fromFileUrl(result.packageURL),
-          fromFileUrl(url),
-        );
+        if (pjson && "sideEffects" in pjson) {
+          const sideEffects = resolveSideEffects(
+            pjson.sideEffects,
+            fromFileUrl(packageURL!),
+            fromFileUrl(url),
+          );
 
-      return { url, mediaType, sideEffects, module: depModule, source };
+          return { url, mediaType, sideEffects, module: depModule, source };
+        }
+      }
+
+      return {
+        url,
+        mediaType,
+        sideEffects: undefined,
+        module: depModule,
+        source,
+      };
     }
 
     default: {

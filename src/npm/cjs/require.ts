@@ -2,6 +2,7 @@ import { format, isBuiltin } from "../../../deps.ts";
 import { loadAsDirectory } from "./load_as_directory.ts";
 import { loadAsFile } from "./load_file.ts";
 import { loadNodeModules } from "./load_node_modules.ts";
+import { loadPackageImports } from "./load_package_imports.ts";
 import type { Context } from "./types.ts";
 import { Msg } from "../../constants.ts";
 
@@ -52,7 +53,16 @@ export async function require(
   }
 
   // 4. If X begins with '#'
-  if (specifier.startsWith("#")) throw new Error("not supported");
+  if (specifier.startsWith("#")) {
+    // a. LOAD_PACKAGE_IMPORTS(X, dirname(Y))
+    const result = await loadPackageImports(
+      specifier as `#${string}`,
+      referrer,
+      context,
+    );
+
+    if (result) return result;
+  }
 
   // 5. LOAD_PACKAGE_SELF(X, dirname(Y))
 

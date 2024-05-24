@@ -1,7 +1,8 @@
 import { createPjsonURL, isObject } from "./utils.ts";
 import { Context } from "./npm/cjs/types.ts";
-import { findClosest } from "./npm/cjs/utils.ts";
 import { require } from "./npm/cjs/require.ts";
+import { lookupPackageScope } from "./npm/cjs/lookup_package_scope.ts";
+import { readPackageJson } from "../deps.ts";
 
 export function resolveBrowser<T>(
   specifier: string,
@@ -41,26 +42,30 @@ export async function resolveBrowserMap(
   referer: URL | string,
   context: Omit<Context, "specifier" | "resolve"> & { onFalse: () => void },
 ): Promise<URL> {
-  const result = await findClosest(referer, context);
+  const newContext = { ...context, resolve: undefined };
+  const packageURL = await lookupPackageScope(referer, context);
 
-  if (!result || !isObject(result.pjson.browser)) {
-    return require(specifier, referer, { ...context, resolve: undefined });
+  if (!packageURL) {
+    return require(specifier, referer, newContext);
   }
 
-  const browserValue = resolveBrowser(specifier, result.pjson.browser);
+  const pjson = await readPackageJson(packageURL, context);
+
+  if (!pjson || !isObject(pjson.browser)) {
+    return require(specifier, referer, newContext);
+  }
+
+  const browserValue = resolveBrowser(specifier, pjson.browser);
 
   if (!validateBrowserValue(browserValue)) {
-    return require(specifier, referer, { ...context, resolve: undefined });
+    return require(specifier, referer, newContext);
   }
 
   if (browserValue === false) {
     context.onFalse();
 
-    return require(specifier, referer, { ...context, resolve: undefined });
+    return require(specifier, referer, newContext);
   }
 
-  return require(browserValue, createPjsonURL(result.packageURL), {
-    ...context,
-    resolve: undefined,
-  });
+  return require(browserValue, createPjsonURL(packageURL), newContext);
 }

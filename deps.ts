@@ -14,6 +14,7 @@ export {
 export {
   esmFileFormat,
   packageExportsResolve,
+  packageImportsResolve,
   type PackageJson,
   readPackageJson,
 } from "jsr:@miyauci/node-esm-resolver@1.0.0-beta.8";

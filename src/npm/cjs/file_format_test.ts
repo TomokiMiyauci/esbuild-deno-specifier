@@ -2,7 +2,7 @@ import { describe, expect, it } from "../../../dev_deps.ts";
 import { fileFormat } from "./file_format.ts";
 import type { Format } from "./types.ts";
 import { emptyPjson, esmPjson } from "../../../tests/fixtures/node_modules.ts";
-import { readFile, root } from "../../../tests/context.ts";
+import { existFile, readFile, root } from "../../../tests/context.ts";
 
 describe("fileFormat", () => {
   it("should return format without IO", async () => {
@@ -14,7 +14,7 @@ describe("fileFormat", () => {
     ];
 
     await Promise.all(table.map(async ([url, format]) => {
-      await expect(fileFormat(url, { readFile, root }))
+      await expect(fileFormat(url, { readFile, root, existFile }))
         .resolves.toBe(
           format,
         );
@@ -28,7 +28,7 @@ describe("fileFormat", () => {
     ];
 
     await Promise.all(table.map(async ([url, format]) => {
-      await expect(fileFormat(url, { readFile, root })).resolves
+      await expect(fileFormat(url, { readFile, root, existFile })).resolves
         .toBe(
           format,
         );
