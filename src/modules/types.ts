@@ -7,6 +7,7 @@ export interface Context
   specifier: string;
   referrer: URL;
   source: Source;
+  realURL?(url: URL): Promise<URL | null | undefined> | URL | null | undefined;
 }
 
 export interface DependencyContext extends Context {

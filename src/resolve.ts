@@ -30,7 +30,7 @@ interface ResolveOptions extends
   Pick<Strategy, "getPackageURL"> {
   platform: Platform;
   info: (specifier: string) => Promise<Source> | Source;
-  realURL(url: URL): Promise<URL | undefined> | URL | undefined;
+  realURL?(url: URL): Promise<URL | undefined | null> | URL | undefined | null;
 }
 
 export async function resolve(
@@ -65,18 +65,11 @@ export async function resolve(
     const result = await resolveModuleDependency(
       context.module,
       {
+        ...options,
         referrer,
         specifier,
         resolve,
-        conditions: options.conditions,
-        info: options.info,
-        mainFields: options.mainFields,
         source: context.source,
-        readFile: options.readFile,
-        existDir: options.existDir,
-        existFile: options.existFile,
-        root: options.root,
-        getPackageURL: options.getPackageURL,
       },
     );
 
@@ -85,7 +78,6 @@ export async function resolve(
       module: result.module,
       specifier,
       platform,
-      realURL: options.realURL,
       writer,
       disabled,
     });
@@ -113,24 +105,22 @@ export async function resolve(
     module,
     specifier,
     platform,
-    realURL: options.realURL,
     writer,
     disabled,
   });
 }
 
-export async function toOnResolveResult(
+export function toOnResolveResult(
   result: ResolveResult,
   context: {
     specifier: string;
     source: Source;
     module: Module;
     platform: Platform;
-    realURL(url: URL): Promise<URL | undefined> | URL | undefined;
     writer: Writer;
     disabled: boolean;
   },
-): Promise<OnResolveResult> {
+): OnResolveResult {
   const { specifier } = context;
 
   if (context.disabled) {
@@ -166,7 +156,7 @@ export async function toOnResolveResult(
         source: context.source,
         module: context.module,
       } satisfies PluginData;
-      const url = (await context.realURL(result.url)) ?? result.url;
+      const url = result.url;
       const path = fromFileUrl(url);
 
       context.writer.addLine(`Resolved to "${path}"`);

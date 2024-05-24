@@ -72,7 +72,7 @@ export function denoSpecifier(options: Options = {}): Plugin {
         existDir: cachedExistDir,
         existFile: cachedExistFile,
         readFile: cachedReadFile,
-        realURL: cachedRealURL,
+        realURL: strategy.resolveSymbolic ? cachedRealURL : undefined,
         root: strategy.root,
         getPackageURL: strategy.getPackageURL.bind(strategy),
       };

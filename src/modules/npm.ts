@@ -39,6 +39,7 @@ export async function resolveNpmModule(
     | "getPackageURL"
     | "referrer"
     | "root"
+    | "realURL"
   >,
 ): Promise<ResolveResult> {
   const npm = context.source.npmPackages[module.npmPackage];
@@ -62,9 +63,12 @@ export async function resolveNpmModule(
     if (url) {
       switch (url.protocol) {
         case "file:": {
-          const format = await fileFormat(url, context);
+          const finalURL = context.realURL
+            ? (await context.realURL(url)) ?? url
+            : url;
+          const format = await fileFormat(finalURL, context);
           const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
-          const packageURL = await lookupPackageScope(url, context);
+          const packageURL = await lookupPackageScope(finalURL, context);
 
           if (packageURL) {
             const pjson = await readPackageJson(packageURL, context);
@@ -72,15 +76,15 @@ export async function resolveNpmModule(
             if (pjson && "sideEffects" in pjson) {
               const sideEffects = resolveSideEffects(
                 pjson.sideEffects,
-                fromFileUrl(packageURL!),
-                fromFileUrl(url),
+                fromFileUrl(packageURL),
+                fromFileUrl(finalURL),
               );
 
-              return { url, mediaType, sideEffects };
+              return { url: finalURL, mediaType, sideEffects };
             }
           }
 
-          return { url, mediaType, sideEffects: undefined };
+          return { url: finalURL, mediaType, sideEffects: undefined };
         }
 
         default: {
@@ -186,25 +190,35 @@ export async function resolveNpmModuleDependency(
 
   switch (url.protocol) {
     case "file:": {
-      const format = await fileFormat(url, context);
+      const finalURL = context.realURL
+        ? (await context.realURL(url)) ?? url
+        : url;
+      const format = await fileFormat(finalURL, context);
       const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
-      const packageURL = await lookupPackageScope(url, context);
+      const packageURL = await lookupPackageScope(finalURL, context);
+
       if (packageURL) {
         const pjson = await readPackageJson(packageURL, context);
 
         if (pjson && "sideEffects" in pjson) {
           const sideEffects = resolveSideEffects(
             pjson.sideEffects,
-            fromFileUrl(packageURL!),
-            fromFileUrl(url),
+            fromFileUrl(packageURL),
+            fromFileUrl(finalURL),
           );
 
-          return { url, mediaType, sideEffects, module: depModule, source };
+          return {
+            url: finalURL,
+            mediaType,
+            sideEffects,
+            module: depModule,
+            source,
+          };
         }
       }
 
       return {
-        url,
+        url: finalURL,
         mediaType,
         sideEffects: undefined,
         module: depModule,

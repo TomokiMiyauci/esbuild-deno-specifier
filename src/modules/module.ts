@@ -26,6 +26,7 @@ export function resolveModule(
     | "getPackageURL"
     | "root"
     | "referrer"
+    | "realURL"
   >,
 ): ResolveResult | Promise<ResolveResult> {
   switch (module.kind) {

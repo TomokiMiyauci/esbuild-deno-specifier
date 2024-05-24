@@ -6,6 +6,7 @@ import { createNpmRegistryURL } from "./utils.ts";
 
 export class GlobalStrategy implements Strategy {
   #root: URL;
+  resolveSymbolic = false;
   constructor(denoDir: string) {
     this.#root = createNpmRegistryURL(denoDir);
   }
@@ -23,6 +24,8 @@ export class GlobalStrategy implements Strategy {
 
 export class LocalStrategy implements Strategy {
   #root: URL;
+
+  resolveSymbolic = true;
   constructor(nodeModulesDir: string) {
     this.#root = toFileUrl(nodeModulesDir);
   }
@@ -52,6 +55,8 @@ export interface PackageArgs extends IO {
 }
 
 export interface Strategy {
+  resolveSymbolic: boolean;
+
   get root(): URL;
 
   getPackageURL(args: PackageArgs): AsyncIterable<URL> | Iterable<URL>;
