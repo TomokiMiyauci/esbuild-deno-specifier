@@ -1,5 +1,4 @@
 import { type ImportKind, type Platform } from "../deps.ts";
-import { normalizePlatform } from "./utils.ts";
 
 export function resolveKind(kind: ImportKind): string | null {
   switch (kind) {
@@ -19,7 +18,7 @@ export function resolveKind(kind: ImportKind): string | null {
 export function resolveConditions(
   args: {
     kind: ImportKind;
-    platform?: Platform;
+    platform: Platform;
     conditions?: string[];
   },
 ): string[] {
@@ -28,7 +27,7 @@ export function resolveConditions(
 
   if (typeof kind === "string") conditions.add(kind);
 
-  const platform = resolvePlatform(normalizePlatform(args.platform));
+  const platform = resolvePlatform(args.platform);
 
   if (typeof platform === "string") conditions.add(platform);
 
