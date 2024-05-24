@@ -4,13 +4,13 @@ import { createPjsonURL } from "../../utils.ts";
 
 export async function lookupPackageScope(
   url: URL | string,
-  context: Pick<Context, "existFile">,
+  context: Pick<Context, "existFile" | "root">,
 ): Promise<URL | null> {
   // Let scopeURL be url.
   let scopeURL = new URL(url);
 
   // While scopeURL is not the file system root,
-  while (scopeURL.pathname !== "/") {
+  while (scopeURL.pathname !== context.root.pathname) {
     const before = scopeURL.pathname;
     // Set scopeURL to the parent URL of scopeURL.
     scopeURL = dirname(scopeURL);

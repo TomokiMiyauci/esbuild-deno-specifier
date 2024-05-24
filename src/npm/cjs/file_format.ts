@@ -20,7 +20,10 @@ export async function fileFormat(
 
     default: {
       const packageURL = await lookupPackageScope(url, context);
-      const pjson = await readPackageJson(packageURL!, context);
+
+      if (!packageURL) return "commonjs";
+
+      const pjson = await readPackageJson(packageURL, context);
 
       if (pjson?.type === "module") return "module";
 
