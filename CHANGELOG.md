@@ -1,3 +1,15 @@
+# [1.0.0-beta.4](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.3...1.0.0-beta.4) (2024-05-25)
+
+
+### Features
+
+* **cjs:** add loading package imports ([647b83c](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/647b83c93fe313ede9b1839dbf244fea7e395d37))
+
+
+### Performance Improvements
+
+* **strategy:** change to not resolve realPath when resolving global cache ([b43c66d](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/b43c66d7fd9484cae1619fc57aa02748d84501a7))
+
 # [1.0.0-beta.3](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.2...1.0.0-beta.3) (2024-05-23)
 
 
