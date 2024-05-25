@@ -1,6 +1,5 @@
 import { join, toFileUrl } from "../deps.ts";
 import { getParents } from "./npm/cjs/utils.ts";
-import { createPackageURL } from "./modules/npm.ts";
 import { IO } from "./types.ts";
 import { createNpmRegistryURL } from "./utils.ts";
 
@@ -60,4 +59,14 @@ export interface Strategy {
   get root(): URL;
 
   getPackageURL(args: PackageArgs): AsyncIterable<URL> | Iterable<URL>;
+}
+
+function createPackageURL(
+  npmRegistryURL: URL | string,
+  name: string,
+  version: string,
+): URL {
+  const packageURL = join(npmRegistryURL, name, version);
+
+  return packageURL;
 }
