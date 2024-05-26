@@ -14,7 +14,7 @@ export interface Context extends IO, Pick<Strategy, "root"> {
   getPackageURL(
     name: string,
     subpath: Subpath,
-  ): AsyncIterable<URL> | Iterable<URL>;
+  ): Promise<URL | null> | URL | null;
 }
 
 export interface ResolveArgs {

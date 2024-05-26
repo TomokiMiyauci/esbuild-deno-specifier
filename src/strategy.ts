@@ -10,10 +10,10 @@ export class GlobalStrategy implements Strategy {
     this.#root = createNpmRegistryURL(denoDir);
   }
 
-  *getPackageURL({ name, version }: PackageArgs) {
+  getPackageURL({ name, version }: PackageArgs) {
     const packageURL = createPackageURL(this.root, name, version);
 
-    yield packageURL;
+    return packageURL;
   }
 
   get root(): URL {
@@ -29,7 +29,7 @@ export class LocalStrategy implements Strategy {
     this.#root = toFileUrl(nodeModulesDir);
   }
 
-  *getPackageURL(args: PackageArgs): Iterable<URL> {
+  async getPackageURL(args: PackageArgs): Promise<URL | null> {
     const parents = args.isDep
       ? getParents(args.referrer, this.root)
       : [this.root];
@@ -37,8 +37,12 @@ export class LocalStrategy implements Strategy {
     for (const parent of parents) {
       if (parent.pathname.endsWith("node_modules")) continue;
 
-      yield join(parent, "node_modules", args.name);
+      const packageURL = join(parent, "node_modules", args.name);
+
+      if (await args.existDir(packageURL)) return packageURL;
     }
+
+    return null;
   }
 
   get root(): URL {
@@ -58,7 +62,7 @@ export interface Strategy {
 
   get root(): URL;
 
-  getPackageURL(args: PackageArgs): AsyncIterable<URL> | Iterable<URL>;
+  getPackageURL(args: PackageArgs): Promise<URL | null> | URL | null;
 }
 
 function createPackageURL(

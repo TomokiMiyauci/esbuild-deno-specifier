@@ -89,7 +89,9 @@ describe("resolveEsModuleDependency", () => {
         readFile,
         existFile,
         root,
-        *getPackageURL() {},
+        getPackageURL() {
+          return null;
+        },
         referrer: new URL("file:///"),
       }),
     ).resolves.toEqual({

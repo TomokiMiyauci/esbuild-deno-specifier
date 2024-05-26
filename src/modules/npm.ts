@@ -35,13 +35,14 @@ export async function resolveNpmModule(
   const subpath = parseSubpath(module.specifier, { name, version });
 
   const packageArgs = { ...npm, ...context, isDep: false };
-  const dirs = context.getPackageURL(packageArgs);
+  const packageURL = await context.getPackageURL(packageArgs);
 
-  for await (const packageURL of dirs) {
+  if (packageURL) {
     const url = await loadNodeModule(packageURL, subpath, {
       ...context,
-      async *getPackageURL() {
-        for await (const url of context.getPackageURL(packageArgs)) yield url;
+      getPackageURL() {
+        // TODO: use passed pkg name and subpath
+        return context.getPackageURL(packageArgs);
       },
     });
 
@@ -91,8 +92,8 @@ export async function resolveNpmModuleDependency(
 
   const url = await require(context.specifier, context.referrer, {
     ...context,
-    async *getPackageURL(name, subpath) {
-      const dep = resolveNpmDependency(module, {
+    async getPackageURL(name, subpath) {
+      const dep = resolveNpmDependency(depModule, {
         specifier: context.specifier,
         source: source,
       });
@@ -111,15 +112,13 @@ export async function resolveNpmModuleDependency(
         assertModuleEntry(mod, specifier);
         assertModule(mod);
 
-        if (mod.kind !== "npm") {
-          throw new Error("unreachable");
-        }
+        if (mod.kind !== "npm") throw new Error("unreachable");
 
         depModule = mod;
 
         const npm = source.npmPackages[mod.npmPackage];
 
-        return yield* context.getPackageURL({
+        return context.getPackageURL({
           ...npm,
           ...context,
           isDep: true,
@@ -128,7 +127,7 @@ export async function resolveNpmModuleDependency(
 
       depModule = dep;
 
-      yield* context.getPackageURL({ ...dep, ...context, isDep: true });
+      return context.getPackageURL({ ...dep, ...context, isDep: true });
     },
   });
 
