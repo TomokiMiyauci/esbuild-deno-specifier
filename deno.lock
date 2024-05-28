@@ -37,7 +37,8 @@
       "jsr:@unional/path-equal@^1.2.5": "jsr:@unional/path-equal@1.2.5",
       "npm:@types/node": "npm:@types/node@18.16.19",
       "npm:esbuild@0.21.3": "npm:esbuild@0.21.3",
-      "npm:esbuild@^0.20.2": "npm:esbuild@0.20.2"
+      "npm:esbuild@^0.20.2": "npm:esbuild@0.20.2",
+      "npm:esbuild@^0.21.3": "npm:esbuild@0.21.3"
     },
     "jsr": {
       "@deno/cache-dir@0.8.0": {

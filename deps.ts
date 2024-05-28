@@ -31,9 +31,11 @@ export {
   type NpmPackage,
   type SourceFileInfo as Source,
 } from "./modules/deno/info.ts";
-export { fromFileUrl } from "jsr:@std/path@^0.221.0";
-export { dirname, extname, join } from "jsr:@std/url@^0.221.0";
-export { exists } from "jsr:@std/fs@^0.221.0";
+export { fromFileUrl } from "jsr:@std/path@^0.221.0/from-file-url";
+export { dirname } from "jsr:@std/url@^0.221.0/dirname";
+export { extname } from "jsr:@std/url@^0.221.0/extname";
+export { join } from "jsr:@std/url@^0.221.0/join";
+export { exists } from "jsr:@std/fs@^0.221.0/exists";
 export { toFileUrl } from "jsr:@std/path@^0.221.0/to-file-url";
 export { dirname as dirnamePath } from "jsr:@std/path@^0.221.0/dirname";
 export { DenoDir } from "jsr:@deno/cache-dir@^0.8.0";
@@ -41,7 +43,8 @@ export { format } from "jsr:@miyauci/format@^1";
 export { isBuiltin } from "node:module";
 export { getLogger } from "jsr:@std/log@^0.224.0/get-logger";
 export { type Logger } from "jsr:@std/log@^0.224.0/logger";
-export { type LevelName, setup } from "jsr:@std/log@^0.224.0";
+export { type LevelName } from "jsr:@std/log@^0.224.0/levels";
+export { setup } from "jsr:@std/log@^0.224.0/setup";
 export { ConsoleHandler } from "jsr:@std/log@^0.224.0/console-handler";
-export { normalize } from "jsr:@std/path@^0.224.0";
+export { normalize } from "jsr:@std/path@^0.224.0/normalize";
 export { pathEqual } from "jsr:@unional/path-equal@^1.2.5";
