@@ -46,6 +46,7 @@
       "npm:@types/node": "npm:@types/node@18.16.19",
       "npm:esbuild": "npm:esbuild@0.21.3",
       "npm:esbuild@0.21.3": "npm:esbuild@0.21.3",
+      "npm:esbuild@^0.20.0": "npm:esbuild@0.20.2",
       "npm:esbuild@^0.20.2": "npm:esbuild@0.20.2",
       "npm:esbuild@^0.21.3": "npm:esbuild@0.21.3",
       "npm:esbuild@^0.21.4": "npm:esbuild@0.21.4"

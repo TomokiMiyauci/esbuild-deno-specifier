@@ -1,7 +1,7 @@
 import { denoSpecifier } from "./mod.ts";
 import { build, BuildOptions } from "esbuild";
 import { denoSpecifier as denoSpecifierBeta } from "jsr:@miyauci/esbuild-deno-specifier@1.0.0-beta.3";
-import Esbuild from "npm:esbuild@^0.21.3";
+import Esbuild from "npm:esbuild@^0.20.0";
 
 const plugin = denoSpecifier();
 const betaPlugin = denoSpecifierBeta();
