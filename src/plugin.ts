@@ -1,20 +1,18 @@
 import { info } from "@deno/info";
 import type { LogLevel, Plugin } from "esbuild";
-import * as Path from "@std/path/dirname";
-import { dirname } from "@std/url/dirname";
 import { DenoDir } from "@deno/cache-dir";
 import { toFileUrl } from "@std/path/to-file-url";
-import { fromFileUrl } from "@std/path/from-file-url";
 import { exists } from "@std/fs/exists";
 import { type LevelName } from "@std/log/levels";
 import { setup } from "@std/log/setup";
 import { ConsoleHandler } from "@std/log/console-handler";
+import { isAbsolute } from "@std/path/is-absolute";
 import type { PluginData } from "./types.ts";
 import { Namespace } from "./constants.ts";
-import { mediaTypeToLoader, memo } from "./utils.ts";
+import { memo } from "./utils.ts";
 import { createResolve } from "./resolve.ts";
+import { loadDataURL, loadFileURL, loadHttpURL } from "./load.ts";
 import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
-import { isAbsolute } from "jsr:@std/path@^0.218.2/is_absolute";
 
 export interface Options {
   /**
@@ -52,6 +50,15 @@ export function denoSpecifier(options: Options = {}): Plugin {
       const cachedExistDir = memo(existDir);
       const cachedReadFile = memo(readFile);
       const cachedRealURL = memo(realURL);
+      async function readStrict(url: URL): Promise<string> {
+        const contents = await cachedReadFile(url);
+
+        if (typeof contents !== "string") {
+          throw new Error("file does not exist");
+        }
+
+        return contents;
+      }
 
       const strategy = options.nodeModulesDir
         ? (() => {
@@ -116,66 +123,20 @@ export function denoSpecifier(options: Options = {}): Plugin {
 
       build.onLoad(
         { filter: /.*/, namespace: Namespace.DenoUrl },
-        async (args) => {
-          const { path } = args;
-          const url = new URL(path);
+        (args) => {
+          const url = new URL(args.path);
           const pluginData = args.pluginData as PluginData;
 
           switch (url.protocol) {
             case "http:":
-            case "https:": {
-              if (pluginData.module.kind !== "esm") {
-                throw new Error("unreachable");
-              }
-              const localPath = pluginData.module.local;
+            case "https:":
+              return loadHttpURL(null, pluginData, readStrict);
 
-              if (typeof localPath !== "string") {
-                throw new Error("local file does not exist");
-              }
+            case "file:":
+              return loadFileURL(url, pluginData, readStrict);
 
-              const url = toFileUrl(localPath);
-              const contents = await cachedReadFile(url);
-
-              if (typeof contents !== "string") {
-                throw new Error("file does not exist");
-              }
-
-              const loader = mediaTypeToLoader(pluginData.mediaType);
-              const resolveDir = Path.dirname(localPath);
-
-              return {
-                contents,
-                loader,
-                pluginData: args.pluginData,
-                resolveDir,
-              };
-            }
-
-            case "file:": {
-              const contents = await cachedReadFile(url);
-
-              if (typeof contents !== "string") {
-                throw new Error("file does not exist");
-              }
-
-              const loader = mediaTypeToLoader(pluginData.mediaType);
-              const resolveDir = fromFileUrl(dirname(path));
-
-              return {
-                contents,
-                loader,
-                pluginData: args.pluginData,
-                resolveDir,
-              };
-            }
-
-            case "data:": {
-              const result = await fetch(url);
-              const contents = await result.text();
-              const loader = mediaTypeToLoader(pluginData.mediaType);
-
-              return { contents, loader };
-            }
+            case "data:":
+              return loadDataURL(url, pluginData);
 
             default: {
               throw new Error("unsupported");
