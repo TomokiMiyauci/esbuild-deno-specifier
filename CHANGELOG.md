@@ -1,3 +1,10 @@
+# [1.0.0-beta.5](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.4...1.0.0-beta.5) (2024-05-28)
+
+
+### Features
+
+* **deps:** change deps specifier to specific entry point ([7051423](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/7051423dbec6d7e20aaf1ba9ce9495b2c6d0c444))
+
 # [1.0.0-beta.4](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.3...1.0.0-beta.4) (2024-05-25)
 
 
