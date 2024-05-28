@@ -4,7 +4,8 @@ import {
   type SideEffects,
   validateSideEffects,
 } from "./side_effects.ts";
-import { describe, expect, it } from "../dev_deps.ts";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
 
 describe("validateSideEffects", () => {
   it("should return true", () => {

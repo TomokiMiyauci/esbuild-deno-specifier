@@ -1,4 +1,5 @@
-import { format, isBuiltin } from "../../../deps.ts";
+import { isBuiltin } from "node:module";
+import { format } from "@miyauci/format";
 import { loadAsDirectory } from "./load_as_directory.ts";
 import { loadAsFile } from "./load_file.ts";
 import { loadNodeModules } from "./load_node_modules.ts";

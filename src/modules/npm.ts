@@ -1,11 +1,7 @@
-import {
-  format,
-  fromFileUrl,
-  type MediaType,
-  type NpmModule,
-  NpmPackage,
-  readPackageJson,
-} from "../../deps.ts";
+import type { MediaType, NpmModule, NpmPackage } from "@deno/info";
+import { fromFileUrl } from "@std/path/from-file-url";
+import { format } from "@miyauci/format";
+import { readPackageJson } from "@miyauci/node-esm-resolver";
 import { parseNpmPkg } from "../utils.ts";
 import type {
   Context,

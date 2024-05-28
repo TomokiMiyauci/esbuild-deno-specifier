@@ -1,9 +1,5 @@
-import {
-  type EsModule,
-  format,
-  type Module,
-  type ModuleEntry,
-} from "../../deps.ts";
+import { type EsModule, type Module, type ModuleEntry } from "@deno/info";
+import { format } from "@miyauci/format";
 import { Msg } from "../constants.ts";
 
 export function assertModuleEntry(

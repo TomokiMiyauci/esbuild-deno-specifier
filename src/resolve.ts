@@ -1,13 +1,12 @@
-import {
-  type BuildOptions,
-  format,
-  fromFileUrl,
-  type Module,
-  type OnResolveArgs,
-  type OnResolveResult,
-  type Platform,
-  type Source,
-} from "../deps.ts";
+import { type Module, type SourceFileInfo as Source } from "@deno/info";
+import type {
+  BuildOptions,
+  OnResolveArgs,
+  OnResolveResult,
+  Platform,
+} from "esbuild";
+import { fromFileUrl } from "@std/path/from-file-url";
+import { format } from "@miyauci/format";
 import { logger, normalizePlatform } from "./utils.ts";
 import { type ResolveResult } from "./modules/types.ts";
 import type { DataPluginData, PluginData } from "./types.ts";

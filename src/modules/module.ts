@@ -7,7 +7,7 @@ import type {
   DependencyResolveResult,
   ResolveResult,
 } from "./types.ts";
-import { type Module } from "../../deps.ts";
+import { type Module } from "@deno/info";
 import { resolveNpmModuleDependency } from "./npm.ts";
 import { resolveEsModuleDependency } from "./esm.ts";
 

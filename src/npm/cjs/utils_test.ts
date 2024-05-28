@@ -1,5 +1,6 @@
 import { getParents } from "./utils.ts";
-import { describe, expect, it } from "../../../dev_deps.ts";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
 
 describe("getParents", () => {
   it("should yield", () => {

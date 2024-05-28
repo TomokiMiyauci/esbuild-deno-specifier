@@ -1,4 +1,5 @@
-import { type EsModule, type Module, toFileUrl } from "../../deps.ts";
+import type { EsModule, Module } from "@deno/info";
+import { toFileUrl } from "@std/path/to-file-url";
 import type {
   Context,
   DependencyContext,

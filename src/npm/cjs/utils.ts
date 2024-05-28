@@ -1,4 +1,6 @@
-import { dirname, normalize, pathEqual } from "../../../deps.ts";
+import { dirname } from "@std/url/dirname";
+import { normalize } from "@std/path/normalize";
+import { pathEqual } from "@unional/path-equal";
 
 export function concatPath(url: URL | string, path: string): URL {
   url = new URL(url);

@@ -1,4 +1,5 @@
-import { Dependency, format, ModuleEntry, type NpmModule } from "../../deps.ts";
+import type { Dependency, ModuleEntry, NpmModule } from "@deno/info";
+import { format } from "@miyauci/format";
 import { Msg } from "../constants.ts";
 import type { Context } from "./types.ts";
 

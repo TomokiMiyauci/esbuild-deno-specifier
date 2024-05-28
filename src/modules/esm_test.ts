@@ -3,12 +3,14 @@ import {
   resolveEsModuleDependency,
   resolveEsModuleDependencyModule,
 } from "./esm.ts";
-import { toFileUrl } from "../../deps.ts";
-import { describe, expect, it } from "../../dev_deps.ts";
+import { toFileUrl } from "@std/path/to-file-url";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
+
 import _ from "../../tests/fixtures/sources/jsr/@miyauci+react-router.json" with {
   type: "json",
 };
-import { Source } from "../../deps.ts";
+import type { SourceFileInfo as Source } from "@deno/info";
 import { assertEsModule, assertModule, assertModuleEntry } from "./utils.ts";
 import { existDir, existFile, readFile, root } from "../../tests/context.ts";
 

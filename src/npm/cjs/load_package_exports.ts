@@ -1,4 +1,7 @@
-import { packageExportsResolve, readPackageJson } from "../../../deps.ts";
+import {
+  packageExportsResolve,
+  readPackageJson,
+} from "@miyauci/node-esm-resolver";
 import { resolveEsmMatch } from "./resolve_esm_match.ts";
 import type { Context, ResolveArgs } from "./types.ts";
 import type { Subpath } from "../../types.ts";

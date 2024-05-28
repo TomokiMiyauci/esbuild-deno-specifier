@@ -1,5 +1,6 @@
 import { isLikePath, type Package, parseNpmPkg } from "./utils.ts";
-import { describe, expect, it } from "../dev_deps.ts";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
 
 describe("isLikePath", () => {
   it("should return true", () => {

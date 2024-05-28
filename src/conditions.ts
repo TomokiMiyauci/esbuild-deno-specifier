@@ -1,4 +1,4 @@
-import { type ImportKind, type Platform } from "../deps.ts";
+import { type ImportKind, type Platform } from "esbuild";
 
 export function resolveKind(kind: ImportKind): string | null {
   switch (kind) {

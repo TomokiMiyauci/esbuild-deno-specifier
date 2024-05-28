@@ -1,7 +1,6 @@
 import type { Context } from "./types.ts";
-import { dirname } from "../../../deps.ts";
 import { createPjsonURL } from "../../utils.ts";
-
+import { dirname } from "@std/url/dirname";
 export async function lookupPackageScope(
   url: URL | string,
   context: Pick<Context, "existFile" | "root">,

@@ -1,4 +1,6 @@
-import { format, join, PackageJson, readPackageJson } from "../../../deps.ts";
+import { type PackageJson, readPackageJson } from "@miyauci/node-esm-resolver";
+import { format } from "@miyauci/format";
+import { join } from "@std/url/join";
 import { loadAsFile } from "./load_file.ts";
 import { loadIndex } from "./load_index.ts";
 import type { Context, ResolveArgs } from "./types.ts";

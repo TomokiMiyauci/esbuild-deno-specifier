@@ -1,4 +1,4 @@
-import type { NodeModule } from "../../deps.ts";
+import type { NodeModule } from "@deno/info";
 import type { ResolveResult } from "./types.ts";
 
 export function resolveNodeModule(

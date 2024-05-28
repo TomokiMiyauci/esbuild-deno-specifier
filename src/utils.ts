@@ -1,12 +1,10 @@
-import {
-  getLogger,
-  join,
-  type Loader,
-  type Logger,
-  type MediaType,
-  type Platform,
-  toFileUrl,
-} from "../deps.ts";
+import { type MediaType } from "@deno/info";
+import { toFileUrl } from "@std/path/to-file-url";
+import { join } from "@std/url/join";
+import { getLogger } from "@std/log/get-logger";
+import { type Logger } from "@std/log/logger";
+
+import type { Loader, Platform } from "esbuild";
 import type { Subpath } from "./types.ts";
 
 export function isObject(value: unknown): value is Record<string, unknown> {

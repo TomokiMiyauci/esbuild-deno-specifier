@@ -1,4 +1,4 @@
-import { format } from "../../../deps.ts";
+import { format } from "@miyauci/format";
 import type { Context, ResolveArgs } from "./types.ts";
 import { Msg } from "../../constants.ts";
 

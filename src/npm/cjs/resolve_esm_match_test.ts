@@ -1,5 +1,6 @@
 import { resolveEsmMatch } from "./resolve_esm_match.ts";
-import { describe, expect, it } from "../../../dev_deps.ts";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
 import { noPjson } from "../../../tests/fixtures/node_modules.ts";
 import { existFile } from "../../../tests/context.ts";
 

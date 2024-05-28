@@ -2,7 +2,7 @@ import { createPjsonURL, isObject } from "./utils.ts";
 import { Context } from "./npm/cjs/types.ts";
 import { require } from "./npm/cjs/require.ts";
 import { lookupPackageScope } from "./npm/cjs/lookup_package_scope.ts";
-import { readPackageJson } from "../deps.ts";
+import { readPackageJson } from "@miyauci/node-esm-resolver";
 
 export function resolveBrowser<T>(
   specifier: string,

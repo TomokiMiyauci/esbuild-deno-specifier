@@ -1,6 +1,7 @@
 import { denoSpecifier } from "./mod.ts";
+import { build, BuildOptions } from "esbuild";
 import { denoSpecifier as denoSpecifierBeta } from "jsr:@miyauci/esbuild-deno-specifier@1.0.0-beta.3";
-import { build, BuildOptions } from "npm:esbuild@^0.21.3";
+import Esbuild from "npm:esbuild@^0.21.3";
 
 const plugin = denoSpecifier();
 const betaPlugin = denoSpecifierBeta();
@@ -20,7 +21,7 @@ Deno.bench("@latest ", { baseline: true, group: GROUP }, async () => {
 });
 
 Deno.bench("prev", { group: GROUP }, async () => {
-  await build({
+  await Esbuild.build({
     ...options,
     plugins: [betaPlugin],
   });

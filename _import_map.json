@@ -1,6 +1,0 @@
-{
-  "imports": {
-    "npm:esbuild": "npm:esbuild@^0.20.2",
-    "jsr:@miyauci/esbuild-deno-specifier": "./mod.ts"
-  }
-}

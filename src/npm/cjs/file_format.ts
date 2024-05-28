@@ -1,4 +1,5 @@
-import { extname, readPackageJson } from "../../../deps.ts";
+import { readPackageJson } from "@miyauci/node-esm-resolver";
+import { extname } from "@std/url/extname";
 import { lookupPackageScope } from "./lookup_package_scope.ts";
 import type { Context, Format } from "./types.ts";
 

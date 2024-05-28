@@ -3,7 +3,10 @@ import {
   resolveField,
   resolveFields,
 } from "./load_as_directory.ts";
-import { describe, expect, it, type PackageJson } from "../../../dev_deps.ts";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
+import type { PackageJson } from "@miyauci/node-esm-resolver";
+
 import {
   emptyPjson,
   noPjson,

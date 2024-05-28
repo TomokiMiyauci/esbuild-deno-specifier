@@ -1,4 +1,5 @@
-import { describe, expect, it } from "../../../dev_deps.ts";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
 import { fileFormat } from "./file_format.ts";
 import type { Format } from "./types.ts";
 import { emptyPjson, esmPjson } from "../../../tests/fixtures/node_modules.ts";

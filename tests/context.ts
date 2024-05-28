@@ -1,4 +1,4 @@
-import { exists } from "../dev_deps.ts";
+import { exists } from "@std/fs/exists";
 
 export function existFile(url: URL): Promise<boolean> {
   return exists(url, { isFile: true });

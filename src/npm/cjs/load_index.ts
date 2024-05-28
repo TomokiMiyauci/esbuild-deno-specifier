@@ -1,4 +1,5 @@
-import { join } from "../../../deps.ts";
+import { join } from "@std/url/join";
+
 import type { Context } from "./types.ts";
 
 export async function loadIndex(

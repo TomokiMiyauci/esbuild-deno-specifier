@@ -1,15 +1,12 @@
-import {
-  ConsoleHandler,
-  DenoDir,
-  dirnamePath,
-  exists,
-  info,
-  type LevelName,
-  type LogLevel,
-  type Plugin,
-  setup,
-  toFileUrl,
-} from "../deps.ts";
+import { info } from "@deno/info";
+import type { LogLevel, Plugin } from "esbuild";
+import { dirname } from "@std/path/dirname";
+import { DenoDir } from "@deno/cache-dir";
+import { toFileUrl } from "@std/path/to-file-url";
+import { exists } from "@std/fs/exists";
+import { type LevelName } from "@std/log/levels";
+import { setup } from "@std/log/setup";
+import { ConsoleHandler } from "@std/log/console-handler";
 import type { DataPluginData, PluginData } from "./types.ts";
 import { Namespace } from "./constants.ts";
 import { mediaTypeToLoader, memo } from "./utils.ts";
@@ -121,7 +118,7 @@ export function denoSpecifier(options: Options = {}): Plugin {
           }
 
           const loader = mediaTypeToLoader(pluginData.mediaType);
-          const resolveDir = dirnamePath(args.path);
+          const resolveDir = dirname(args.path);
 
           return { contents, loader, pluginData: args.pluginData, resolveDir };
         },

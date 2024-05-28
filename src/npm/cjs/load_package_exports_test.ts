@@ -1,5 +1,6 @@
 import { loadPackageExports } from "./load_package_exports.ts";
-import { describe, expect, it } from "../../../dev_deps.ts";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
 import {
   noPjson,
   pjsonExportsSugar,

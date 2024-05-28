@@ -1,12 +1,11 @@
 import { findDependency, resolveDependency } from "./dependency.ts";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
 import {
-  describe,
   type EsModule,
-  expect,
-  it,
   type Module,
-  type Source,
-} from "../../dev_deps.ts";
+  type SourceFileInfo as Source,
+} from "@deno/info";
 import _source from "../../tests/fixtures/sources/jsr/@miyauci+react-router.json" with {
   type: "json",
 };

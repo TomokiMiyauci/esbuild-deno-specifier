@@ -1,4 +1,4 @@
-import { type Platform } from "../deps.ts";
+import { type Platform } from "esbuild";
 import { normalizePlatform } from "./utils.ts";
 
 /**

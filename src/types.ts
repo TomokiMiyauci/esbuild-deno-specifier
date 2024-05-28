@@ -1,4 +1,4 @@
-import type { MediaType, Module, Source } from "../deps.ts";
+import type { MediaType, Module, SourceFileInfo as Source } from "@deno/info";
 
 export interface PluginData {
   module: Module;

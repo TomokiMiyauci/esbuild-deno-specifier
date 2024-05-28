@@ -1,5 +1,7 @@
 import { loadAsFile } from "./load_file.ts";
-import { describe, expect, it } from "../../../dev_deps.ts";
+import { describe, it } from "@std/testing/bdd";
+import { expect } from "@std/expect";
+
 import {
   emptyPjson,
   esmPjson,
