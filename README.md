@@ -52,8 +52,8 @@ Therefore, we have reimplemented the module resolution algorithm for bundler.
 In Default, module resolution is performed by referring to Deno's Global cache.
 
 ```ts
-import * as esbuild from "npm:esbuild";
-import { denoSpecifier } from "jsr:@miyauci/esbuild-deno-specifier";
+import * as esbuild from "esbuild";
+import { denoSpecifier } from "@miyauci/esbuild-deno-specifier";
 
 await esbuild.build({
   plugins: [denoSpecifier()],
@@ -75,8 +75,8 @@ The specifier would be resolved as follows:
 Change Npm module resolution to be done for local `node_modules`.
 
 ```ts
-import * as esbuild from "npm:esbuild";
-import { denoSpecifier } from "jsr:@miyauci/esbuild-deno-specifier";
+import * as esbuild from "esbuild";
+import { denoSpecifier } from "@miyauci/esbuild-deno-specifier";
 
 await esbuild.build({
   plugins: [denoSpecifier({ nodeModulesDir: true })],
@@ -102,7 +102,7 @@ The specifier would be resolved as follows:
 In the `denoDir` field, change the `DENO_DIR`.
 
 ```ts
-import { denoSpecifier } from "jsr:@miyauci/esbuild-deno-specifier";
+import { denoSpecifier } from "@miyauci/esbuild-deno-specifier";
 
 const plugin = denoSpecifier({ denoDir: "/path/to/deno_dir" });
 ```

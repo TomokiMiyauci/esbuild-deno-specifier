@@ -18,7 +18,7 @@
     "@std/url": "jsr:@std/url@^0.224.0",
     "@unional/path-equal": "jsr:@unional/path-equal@^1.2.5",
     "esbuild": "npm:esbuild@^0.21.4",
-    "jsr:@miyauci/esbuild-deno-specifier": "./mod.ts"
+    "@miyauci/esbuild-deno-specifier": "./src/mod.ts"
   },
   "exports": "./src/mod.ts"
 }
