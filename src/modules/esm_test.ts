@@ -3,7 +3,6 @@ import {
   resolveEsModuleDependency,
   resolveEsModuleDependencyModule,
 } from "./esm.ts";
-import { toFileUrl } from "@std/path/to-file-url";
 import { describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
 
@@ -23,23 +22,9 @@ const map = {
 };
 
 describe("resolveEsModule", () => {
-  it("should throw error if `local` property is not string", () => {
-    const data = "data:text/javascript,export default {};";
-    expect(
-      resolveEsModule({
-        local: undefined,
-        mediaType: "JavaScript",
-        specifier: data,
-      }),
-    ).toEqual({
-      url: new URL(data),
-      mediaType: "JavaScript",
-    });
-  });
-
   it("should return result", () => {
     expect(
-      resolveEsModule({ local: "/", mediaType: "JavaScript", specifier: "" }),
+      resolveEsModule({ mediaType: "JavaScript", specifier: "file:///" }),
     ).toEqual({
       url: new URL("file:///"),
       mediaType: "JavaScript",
@@ -97,7 +82,7 @@ describe("resolveEsModuleDependency", () => {
         referrer: new URL("file:///"),
       }),
     ).resolves.toEqual({
-      url: toFileUrl(depModule.local!),
+      url: new URL(depModule.specifier),
       mediaType: depModule.mediaType,
       module: depModule,
       source: undefined,

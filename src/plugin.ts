@@ -1,17 +1,20 @@
 import { info } from "@deno/info";
 import type { LogLevel, Plugin } from "esbuild";
-import { dirname } from "@std/path/dirname";
+import * as Path from "@std/path/dirname";
+import { dirname } from "@std/url/dirname";
 import { DenoDir } from "@deno/cache-dir";
 import { toFileUrl } from "@std/path/to-file-url";
+import { fromFileUrl } from "@std/path/from-file-url";
 import { exists } from "@std/fs/exists";
 import { type LevelName } from "@std/log/levels";
 import { setup } from "@std/log/setup";
 import { ConsoleHandler } from "@std/log/console-handler";
-import type { DataPluginData, PluginData } from "./types.ts";
+import type { PluginData } from "./types.ts";
 import { Namespace } from "./constants.ts";
 import { mediaTypeToLoader, memo } from "./utils.ts";
 import { createResolve } from "./resolve.ts";
 import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
+import { isAbsolute } from "jsr:@std/path@^0.218.2/is_absolute";
 
 export interface Options {
   /**
@@ -90,57 +93,114 @@ export function denoSpecifier(options: Options = {}): Plugin {
 
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:|^file:/ },
-        ({ path: specifier, kind, importer, resolveDir }) => {
-          const referrerPath = importer ? importer : resolveDir;
-          const referrer = toFileUrl(referrerPath);
+        ({ path: specifier, kind, importer, namespace }) => {
+          const referrer = resolveImporter(importer, namespace);
 
           return resolve(specifier, referrer, { kind });
         },
       );
 
-      build.onResolve({ filter: /.*/, namespace: Namespace.Deno }, (args) => {
-        const pluginData = args.pluginData as PluginData;
-        const { module, source } = pluginData;
-        const { path: specifier, importer, kind } = args;
-        const referrer = toFileUrl(importer);
-
-        return resolve(specifier, referrer, { kind }, { module, source });
-      });
-
-      build.onLoad(
-        { filter: /.*/, namespace: Namespace.Deno },
+      build.onResolve(
+        { filter: /.*/, namespace: Namespace.DenoUrl },
         async (args) => {
           const pluginData = args.pluginData as PluginData;
-          const contents = await cachedReadFile(toFileUrl(args.path));
+          const { module, source } = pluginData;
+          const { path: specifier, importer: referrer, kind } = args;
 
-          if (typeof contents !== "string") {
-            throw new Error("file does not exist");
+          return await resolve(specifier, referrer, { kind }, {
+            module,
+            source,
+          });
+        },
+      );
+
+      build.onLoad(
+        { filter: /.*/, namespace: Namespace.DenoUrl },
+        async (args) => {
+          const { path } = args;
+          const url = new URL(path);
+          const pluginData = args.pluginData as PluginData;
+
+          switch (url.protocol) {
+            case "http:":
+            case "https:": {
+              if (pluginData.module.kind !== "esm") {
+                throw new Error("unreachable");
+              }
+              const localPath = pluginData.module.local;
+
+              if (typeof localPath !== "string") {
+                throw new Error("local file does not exist");
+              }
+
+              const url = toFileUrl(localPath);
+              const contents = await cachedReadFile(url);
+
+              if (typeof contents !== "string") {
+                throw new Error("file does not exist");
+              }
+
+              const loader = mediaTypeToLoader(pluginData.mediaType);
+              const resolveDir = Path.dirname(localPath);
+
+              return {
+                contents,
+                loader,
+                pluginData: args.pluginData,
+                resolveDir,
+              };
+            }
+
+            case "file:": {
+              const contents = await cachedReadFile(url);
+
+              if (typeof contents !== "string") {
+                throw new Error("file does not exist");
+              }
+
+              const loader = mediaTypeToLoader(pluginData.mediaType);
+              const resolveDir = fromFileUrl(dirname(path));
+
+              return {
+                contents,
+                loader,
+                pluginData: args.pluginData,
+                resolveDir,
+              };
+            }
+
+            case "data:": {
+              const result = await fetch(url);
+              const contents = await result.text();
+              const loader = mediaTypeToLoader(pluginData.mediaType);
+
+              return { contents, loader };
+            }
+
+            default: {
+              throw new Error("unsupported");
+            }
           }
-
-          const loader = mediaTypeToLoader(pluginData.mediaType);
-          const resolveDir = dirname(args.path);
-
-          return { contents, loader, pluginData: args.pluginData, resolveDir };
         },
       );
 
       build.onLoad({ filter: /.*/, namespace: Namespace.Disabled }, () => {
         return { contents: "" };
       });
-
-      build.onLoad(
-        { filter: /.*/, namespace: Namespace.Data },
-        async (args) => {
-          const pluginData = args.pluginData as DataPluginData;
-          const result = await fetch(args.path);
-          const contents = await result.text();
-          const loader = mediaTypeToLoader(pluginData.mediaType);
-
-          return { contents, loader };
-        },
-      );
     },
   };
+}
+
+function resolveImporter(importer: string, namespace: string): URL {
+  if (namespace === "file") return toFileUrl(importer);
+
+  const urlLike = URL.parse(importer);
+
+  if (urlLike) return urlLike;
+
+  if (isAbsolute(importer)) return toFileUrl(importer);
+
+  throw new Error();
 }
 
 function existFile(url: URL): Promise<boolean> {

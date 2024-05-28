@@ -7,7 +7,6 @@ export const enum Msg {
 }
 
 export const enum Namespace {
-  Deno = "deno",
-  Data = "(deno-data)",
+  DenoUrl = "deno-url",
   Disabled = "(disabled)",
 }

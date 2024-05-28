@@ -1,5 +1,4 @@
 import type { EsModule, Module } from "@deno/info";
-import { toFileUrl } from "@std/path/to-file-url";
 import type {
   Context,
   DependencyContext,
@@ -10,18 +9,13 @@ import { assertModule, assertModuleEntry } from "./utils.ts";
 import { resolveModule } from "./module.ts";
 import { findDependency, resolveDependency } from "./dependency.ts";
 
-/**
- * @throws {Error} If module.local is not string
- */
 export function resolveEsModule(
-  module: Pick<EsModule, "local" | "mediaType" | "specifier">,
+  module: Pick<EsModule, "mediaType" | "specifier">,
 ): ResolveResult {
-  const path = module.local;
-  const url = typeof path === "string"
-    ? toFileUrl(path)
-    : new URL(module.specifier);
+  const { specifier, mediaType } = module;
+  const url = new URL(specifier);
 
-  return { url, mediaType: module.mediaType, sideEffects: undefined };
+  return { url, mediaType, sideEffects: undefined };
 }
 
 export async function resolveEsModuleDependency(

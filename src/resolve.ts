@@ -5,11 +5,10 @@ import type {
   OnResolveResult,
   Platform,
 } from "esbuild";
-import { fromFileUrl } from "@std/path/from-file-url";
 import { format } from "@miyauci/format";
 import { logger, normalizePlatform } from "./utils.ts";
 import { type ResolveResult } from "./modules/types.ts";
-import type { DataPluginData, PluginData } from "./types.ts";
+import type { PluginData } from "./types.ts";
 import { resolveModule, resolveModuleDependency } from "./modules/module.ts";
 import { resolveBrowserMap } from "./browser.ts";
 import { type Context as CjsContext } from "./npm/cjs/types.ts";
@@ -48,7 +47,7 @@ export async function resolve(
   };
 
   writer.addLine(
-    () => `Resolving import "${specifier}" from "${fromFileUrl(referrer)}"`,
+    () => `Resolving import "${specifier}" from "${referrer}"`,
   );
   const { platform } = options;
   const resolve = platform === "browser"
@@ -121,14 +120,17 @@ export function toOnResolveResult(
   },
 ): OnResolveResult {
   const { specifier } = context;
+  const path = result.url.toString();
 
   if (context.disabled) {
     context.writer.addLine(`Mark as disabled`);
     context.writer.addLine(``);
     logger().debug(() => context.writer.done());
 
-    return { namespace: Namespace.Disabled, path: result.url.toString() };
+    return { namespace: Namespace.Disabled, path };
   }
+
+  const sideEffects = result.sideEffects;
 
   switch (result.url.protocol) {
     case "node:": {
@@ -142,53 +144,22 @@ export function toOnResolveResult(
         return { errors: [{ text, notes: [{ text: note }] }] };
       }
 
-      return {
-        external: true,
-        path: result.url.toString(),
-        sideEffects: result.sideEffects,
-      };
+      return { external: true, path, sideEffects };
     }
 
-    case "file:": {
+    default: {
       const pluginData = {
         mediaType: result.mediaType,
         source: context.source,
         module: context.module,
       } satisfies PluginData;
-      const url = result.url;
-      const path = fromFileUrl(url);
 
       context.writer.addLine(`Resolved to "${path}"`);
       context.writer.addLine(``);
 
       logger().debug(() => context.writer.done());
 
-      return {
-        path,
-        namespace: Namespace.Deno,
-        pluginData,
-        sideEffects: result.sideEffects,
-      };
-    }
-
-    case "data:": {
-      const pluginData = {
-        mediaType: result.mediaType,
-      } satisfies DataPluginData;
-
-      context.writer.addLine(``);
-      logger().debug(() => context.writer.done());
-
-      return {
-        path: result.url.toString(),
-        namespace: Namespace.Data,
-        pluginData,
-        sideEffects: result.sideEffects,
-      };
-    }
-
-    default: {
-      throw new Error("unsupported");
+      return { path, namespace: Namespace.DenoUrl, pluginData, sideEffects };
     }
   }
 }

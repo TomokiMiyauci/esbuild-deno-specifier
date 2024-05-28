@@ -8,10 +8,6 @@ export interface PluginData {
 
 export type Subpath = `.${string}`;
 
-export interface DataPluginData {
-  mediaType: MediaType;
-}
-
 export interface IO {
   existFile(url: URL): Promise<boolean> | boolean;
   existDir(url: URL): Promise<boolean> | boolean;
