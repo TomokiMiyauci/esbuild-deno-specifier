@@ -1,4 +1,0 @@
-{
-  "name": "@miyauci/esbuild-deno-specifier",
-  "exports": "./mod.ts"
-}

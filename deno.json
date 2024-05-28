@@ -1,4 +1,5 @@
 {
+  "name": "@miyauci/esbuild-deno-specifier",
   "tasks": {
     "test": "deno test --allow-env --allow-read --allow-run --doc",
     "bench": "deno bench --allow-env --allow-read --allow-run"
@@ -18,5 +19,6 @@
     "@unional/path-equal": "jsr:@unional/path-equal@^1.2.5",
     "esbuild": "npm:esbuild@^0.21.4",
     "jsr:@miyauci/esbuild-deno-specifier": "./mod.ts"
-  }
+  },
+  "exports": "./mod.ts"
 }
