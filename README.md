@@ -21,12 +21,8 @@ Specifically, it resolves the following scheme as in the Deno runtime.
 - [Usage](#usage)
   - [Resolve with `node_modules`](#resolve-with-node_modules)
   - [Specify `DENO_DIR`](#specify-deno_dir)
-- [Requirements](#requirements)
-  - [Permissions](#permissions)
+- [Documents](#documents)
 - [API](#api)
-- [FAQ](#faq)
-  - [Why did you reimplement the npm module resolution algorithm?](#why-did-you-reimplement-the-npm-module-resolution-algorithm)
-  - [Is import-maps supported?](#is-import-maps-supported)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -107,53 +103,14 @@ import { denoSpecifier } from "@miyauci/esbuild-deno-specifier";
 const plugin = denoSpecifier({ denoDir: "/path/to/deno_dir" });
 ```
 
-## Requirements
+## Documents
 
-Currently, running this plugin requires the Deno runtime. This is because it
-runs `deno info` internally. This may change in the future.
-
-### Permissions
-
-The following flags are required to run this plugin:
-
-- --allow-env(If the `denoDir` field is not specified)
-- --allow-read
-- --allow-run
+- [Dependence](./docs/dependence.md)
+- [FAQ](./docs/faq.md)
 
 ## API
 
 See [jsr doc](https://jsr.io/@miyauci/esbuild-deno-specifier) for all APIs.
-
-## FAQ
-
-### Why did you reimplement the npm module resolution algorithm?
-
-esbuild contains the `node_modules` resolution algorithm. It is possible to do
-so through the `build.resolve` API.
-
-Unfortunately, this API cannot perform **only node_modules resolution**.
-
-This API may also execute the resolve hooks provided by other plugins.
-
-This can lead to a mutual recursion, especially when import-maps is used.
-
-Also, it is possible for Deno to cache Global's npm module is different from the
-structure of `node_modules`.
-
-Also, the npm modules that Deno caches globally are different from the structure
-of `node_modules`.
-
-Given the above, it was necessary to re-implement the npm module resolution
-algorithm for Deno.
-
-### Is import-maps supported?
-
-No.
-
-This project is only intended for Deno specifier resolution.
-
-We plan to provide a separate all-in-one package for resolving all modules
-supported by Deno (import-maps, `bare-node-builtins`, etc.).
 
 ## Contributing
 
