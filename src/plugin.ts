@@ -1,6 +1,7 @@
 import { info } from "@deno/info";
 import type { LogLevel, Plugin } from "esbuild";
 import { DenoDir } from "@deno/cache-dir";
+import { fromFileUrl } from "@std/path";
 import { type LevelName } from "@std/log/levels";
 import { setup } from "@std/log/setup";
 import { ConsoleHandler } from "@std/log/console-handler";
@@ -97,8 +98,21 @@ export function denoSpecifier(options: Options = {}): Plugin {
         });
       }
 
+      build.onResolve({ filter: /^file:/ }, (args) => {
+        const { path, kind, importer, resolveDir } = args;
+        const specifier = fromFileUrl(path);
+
+        return build.resolve(specifier, {
+          kind,
+          importer,
+          resolveDir,
+          namespace: "file",
+          with: args.with,
+        });
+      });
+
       build.onResolve(
-        { filter: /^npm:|^jsr:|^https?:|^data:|^node:|^file:/ },
+        { filter: /^npm:|^jsr:|^https?:|^data:|^node:/ },
         (args) => {
           const referrer = resolveReferrer(args);
           const { path: specifier, kind } = args;
