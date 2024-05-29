@@ -1,8 +1,6 @@
 import { info } from "@deno/info";
 import type { LogLevel, Plugin } from "esbuild";
 import { DenoDir } from "@deno/cache-dir";
-import { toFileUrl } from "@std/path/to-file-url";
-import { exists } from "@std/fs/exists";
 import { type LevelName } from "@std/log/levels";
 import { setup } from "@std/log/setup";
 import { ConsoleHandler } from "@std/log/console-handler";
@@ -13,6 +11,7 @@ import { createResolve } from "./resolve.ts";
 import { loadDataURL, loadFileURL, loadHttpURL } from "./load.ts";
 import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
 import { resolveReferrer } from "./referrer.ts";
+import { existDir, existFile, readFile, realURL } from "./io.ts";
 
 export interface Options {
   /**
@@ -151,44 +150,6 @@ export function denoSpecifier(options: Options = {}): Plugin {
       });
     },
   };
-}
-
-function existFile(url: URL): Promise<boolean> {
-  return exists(url, { isFile: true });
-}
-
-function existDir(url: URL): Promise<boolean> {
-  return exists(url, { isDirectory: true });
-}
-
-async function readFile(url: URL): Promise<string | null> {
-  try {
-    return await Deno.readTextFile(url);
-  } catch (e) {
-    if (e instanceof Deno.errors.NotFound) {
-      return null;
-    }
-
-    if (e instanceof Deno.errors.IsADirectory) {
-      return null;
-    }
-
-    throw e;
-  }
-}
-
-async function realURL(url: URL): Promise<URL | undefined> {
-  try {
-    const path = await Deno.realPath(url);
-
-    return toFileUrl(path);
-  } catch (e) {
-    if (e instanceof Deno.errors.NotFound) {
-      return;
-    }
-
-    throw e;
-  }
 }
 
 function logLevelToLevelName(logLevel: LogLevel): LevelName | null {
