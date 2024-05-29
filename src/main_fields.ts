@@ -1,5 +1,4 @@
 import { type Platform } from "esbuild";
-import { normalizePlatform } from "./utils.ts";
 
 /**
  * @see https://esbuild.github.io/api/#platform
@@ -11,11 +10,10 @@ export const defaultMainFields = {
 } satisfies { [k in Platform]: string[] };
 
 export function resolveMainFields(
-  args: { platform?: Platform; mainFields?: string[] },
+  mainFields: string[] | undefined,
+  context: { platform: Platform },
 ): string[] {
-  if (args.mainFields) return args.mainFields;
+  if (mainFields) return mainFields;
 
-  const platform = normalizePlatform(args.platform);
-
-  return defaultMainFields[platform];
+  return defaultMainFields[context.platform];
 }

@@ -185,17 +185,13 @@ export function createResolve(
     source: Source;
   },
 ) => Promise<OnResolveResult> {
-  const mainFields = resolveMainFields({
-    platform: buildOptions.platform,
-    mainFields: buildOptions.mainFields,
-  });
   const platform = normalizePlatform(buildOptions.platform);
+  const mainFields = resolveMainFields(buildOptions.mainFields, { platform });
 
   return (specifier, referrer, options, context) => {
-    const conditions = resolveConditions({
+    const conditions = resolveConditions(buildOptions.conditions, {
       kind: options.kind,
       platform,
-      conditions: buildOptions.conditions,
     });
 
     return resolve(specifier, referrer, {

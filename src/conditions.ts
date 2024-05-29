@@ -15,25 +15,27 @@ export function resolveKind(kind: ImportKind): string | null {
   }
 }
 
+export interface ResolveConditionsContext {
+  kind: ImportKind;
+  platform: Platform;
+}
+
 export function resolveConditions(
-  args: {
-    kind: ImportKind;
-    platform: Platform;
-    conditions?: string[];
-  },
+  conditions: string[] | undefined,
+  context: ResolveConditionsContext,
 ): string[] {
-  const conditions = new Set<string>();
-  const kind = resolveKind(args.kind);
+  const allConditions = new Set<string>(conditions);
+  const kind = resolveKind(context.kind);
 
-  if (typeof kind === "string") conditions.add(kind);
+  if (typeof kind === "string") allConditions.add(kind);
 
-  const platform = resolvePlatform(args.platform);
+  const platform = resolvePlatform(context.platform);
 
-  if (typeof platform === "string") conditions.add(platform);
+  if (typeof platform === "string") allConditions.add(platform);
 
-  if (args.conditions === undefined) conditions.add("module");
+  if (conditions === undefined) allConditions.add("module");
 
-  return [...conditions];
+  return [...allConditions];
 }
 
 export function resolvePlatform(platForm: Platform): string | null {
