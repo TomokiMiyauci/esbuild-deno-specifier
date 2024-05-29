@@ -6,13 +6,13 @@ import { exists } from "@std/fs/exists";
 import { type LevelName } from "@std/log/levels";
 import { setup } from "@std/log/setup";
 import { ConsoleHandler } from "@std/log/console-handler";
-import { isAbsolute } from "@std/path/is-absolute";
 import type { PluginData } from "./types.ts";
 import { Namespace } from "./constants.ts";
 import { memo } from "./utils.ts";
 import { createResolve } from "./resolve.ts";
 import { loadDataURL, loadFileURL, loadHttpURL } from "./load.ts";
 import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
+import { resolveReferrer } from "./referrer.ts";
 
 export interface Options {
   /**
@@ -100,8 +100,9 @@ export function denoSpecifier(options: Options = {}): Plugin {
 
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:|^file:/ },
-        ({ path: specifier, kind, importer, namespace }) => {
-          const referrer = resolveImporter(importer, namespace);
+        (args) => {
+          const referrer = resolveReferrer(args);
+          const { path: specifier, kind } = args;
 
           return resolve(specifier, referrer, { kind });
         },
@@ -150,18 +151,6 @@ export function denoSpecifier(options: Options = {}): Plugin {
       });
     },
   };
-}
-
-function resolveImporter(importer: string, namespace: string): URL {
-  if (namespace === "file") return toFileUrl(importer);
-
-  const urlLike = URL.parse(importer);
-
-  if (urlLike) return urlLike;
-
-  if (isAbsolute(importer)) return toFileUrl(importer);
-
-  throw new Error();
 }
 
 function existFile(url: URL): Promise<boolean> {
