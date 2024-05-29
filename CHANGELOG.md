@@ -1,3 +1,12 @@
+# [1.0.0-beta.7](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.6...1.0.0-beta.7) (2024-05-29)
+
+
+### Features
+
+* **plugin:** mark as  external if option of `packages` is external ([1503313](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/1503313fed0f2265fbda068bebb9ea3007086700))
+* **plugin:** register resolve hook for file url ([ceb10be](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/ceb10be131f656c1c3020dbffb416b743deff031))
+* **plugin:** rename function ([9b772e1](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/9b772e13cb205477b7b197493663d0f24307a7f7))
+
 # [1.0.0-beta.6](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.5...1.0.0-beta.6) (2024-05-29)
 
 
