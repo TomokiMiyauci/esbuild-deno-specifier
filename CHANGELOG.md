@@ -1,3 +1,11 @@
+# [1.0.0-beta.6](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.5...1.0.0-beta.6) (2024-05-29)
+
+
+### Features
+
+* **plugin:** add resolving args to url ([9329003](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/93290031f24ec01143fd2d47904456626b2d2f1f))
+* **resolve:** change resolve path to absolute url format ([a1de0b0](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/a1de0b017d641133a8911f8bdfe4999cbfd64778))
+
 # [1.0.0-beta.5](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.4...1.0.0-beta.5) (2024-05-28)
 
 
