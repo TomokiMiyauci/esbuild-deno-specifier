@@ -86,6 +86,7 @@ export function denoSpecifier(options: Options = {}): Plugin {
 
       const logLevel = normalizeLogLevel(build.initialOptions.logLevel);
       const level = logLevelToLevelName(logLevel);
+      const isExternal = build.initialOptions.packages === "external";
 
       const resolve = createResolve(build.initialOptions, resolveOptions);
 
@@ -114,6 +115,8 @@ export function denoSpecifier(options: Options = {}): Plugin {
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:/ },
         (args) => {
+          if (isExternal) return { external: true };
+
           const referrer = resolveReferrer(args);
           const { path: specifier, kind } = args;
 

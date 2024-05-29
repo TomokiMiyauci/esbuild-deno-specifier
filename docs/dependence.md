@@ -23,4 +23,28 @@ The following fields may be referenced in the build options:
 - [`platform`](https://esbuild.github.io/api/#platform)
 - [`conditions`](https://esbuild.github.io/api/#conditions)
 - [`mainFields`](https://esbuild.github.io/api/#main-fields)
+- [`packages`](https://esbuild.github.io/api/#packages)
 - [`logLevel`](https://esbuild.github.io/api/#main-fields)
+
+### Packages
+
+If the `packages` field is `external`, the plugin will mark the deno specifiers
+other than `file:` as `external`. This is appropriate for generating server-side
+bundling.
+
+```ts
+import { build } from "esbuild";
+import { denoSpecifier } from "@miyauci/esbuild-deno-specifier";
+
+await build({
+  stdin: {
+    contents: `import "./main.css";
+import * as module from "npm:react";`,
+    resolveDir: import.meta.dirname,
+  },
+  packages: "external",
+  bundle: true,
+  format: "esm",
+  plugins: [denoSpecifier()],
+});
+```
