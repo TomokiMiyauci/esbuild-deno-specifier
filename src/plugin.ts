@@ -66,7 +66,7 @@ export function denoSpecifier(options: Options = {}): Plugin {
 
           if (!root) {
             throw new Error(
-              `'absWorkingDir' is required when npm.scope.type is 'local'`,
+              `'absWorkingDir' is required when nodeModulesDir is 'true'`,
             );
           }
 
