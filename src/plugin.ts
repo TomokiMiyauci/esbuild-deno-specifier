@@ -26,7 +26,7 @@ export interface Options {
   denoDir?: string;
 }
 
-export function denoSpecifier(options: Options = {}): Plugin {
+export function denoSpecifierPlugin(options: Options = {}): Plugin {
   return {
     name: "deno-specifier",
     setup(build) {

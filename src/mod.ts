@@ -1,1 +1,1 @@
-export { denoSpecifier } from "./plugin.ts";
+export { denoSpecifierPlugin } from "./plugin.ts";

@@ -34,7 +34,7 @@ bundling.
 
 ```ts
 import { build } from "esbuild";
-import { denoSpecifier } from "@miyauci/esbuild-deno-specifier";
+import { denoSpecifierPlugin } from "@miyauci/esbuild-deno-specifier";
 
 await build({
   stdin: {
@@ -45,6 +45,6 @@ import * as module from "npm:react";`,
   packages: "external",
   bundle: true,
   format: "esm",
-  plugins: [denoSpecifier()],
+  plugins: [denoSpecifierPlugin()],
 });
 ```
