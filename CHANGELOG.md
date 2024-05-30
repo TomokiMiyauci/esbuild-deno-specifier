@@ -1,3 +1,15 @@
+# [1.0.0-beta.8](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.7...1.0.0-beta.8) (2024-05-30)
+
+
+### Bug Fixes
+
+* **conditions:** merge specified conditions from option ([cd5506f](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/cd5506f7827403c1a7c41881164f63c2bbdfb93b))
+
+
+### Features
+
+* **cjs:** accept `extensions` option for implicit file extentions ([e13d59e](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/e13d59ec90e5f38c05a5566b32cd2cb336a694b9))
+
 # [1.0.0-beta.7](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.6...1.0.0-beta.7) (2024-05-29)
 
 
