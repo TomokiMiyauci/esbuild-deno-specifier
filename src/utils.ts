@@ -4,7 +4,7 @@ import { join } from "@std/url/join";
 import { getLogger } from "@std/log/get-logger";
 import { type Logger } from "@std/log/logger";
 
-import type { Loader, Platform } from "esbuild";
+import type { Loader } from "esbuild";
 import type { Subpath } from "./types.ts";
 
 export function isObject(value: unknown): value is Record<string, unknown> {
@@ -46,10 +46,6 @@ function secondIndexOf(input: string, searchString: string): number {
   if (firstIndex === -1) return -1;
 
   return input.indexOf(searchString, firstIndex + 1);
-}
-
-export function normalizePlatform(platform?: Platform): Platform {
-  return platform ?? "browser";
 }
 
 export function mediaTypeToLoader(mediaType: MediaType): Loader {

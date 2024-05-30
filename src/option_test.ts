@@ -1,7 +1,4 @@
-import {
-  resolveConditions,
-  type ResolveConditionsContext,
-} from "./conditions.ts";
+import { resolveConditions, type ResolveConditionsContext } from "./option.ts";
 import { describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
 

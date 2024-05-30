@@ -1,24 +1,28 @@
 import { type Module, type SourceFileInfo as Source } from "@deno/info";
 import {
-  type BuildOptions,
   type OnResolveArgs,
   type OnResolveResult,
   type Platform,
 } from "esbuild";
 import { format } from "@miyauci/format";
-import { logger, normalizePlatform } from "./utils.ts";
+import { logger } from "./utils.ts";
 import { type ResolveResult } from "./modules/types.ts";
 import type { PluginData } from "./types.ts";
 import { resolveModule, resolveModuleDependency } from "./modules/module.ts";
 import { resolveBrowserMap } from "./browser.ts";
 import { type Context as CjsContext } from "./npm/cjs/types.ts";
 import { assertModule, assertModuleEntry } from "./modules/utils.ts";
-import { resolveConditions } from "./conditions.ts";
-import { resolveMainFields } from "./main_fields.ts";
 import { Msg } from "./constants.ts";
 import { Namespace } from "./constants.ts";
 import { type Strategy } from "./strategy.ts";
 import { Writer } from "./writer.ts";
+import {
+  type DependentBuildOptions,
+  normalizePlatform,
+  normalizeResolveExtensions,
+  resolveConditions,
+  resolveMainFields,
+} from "./option.ts";
 
 interface ResolveOptions extends
   Pick<
@@ -171,7 +175,7 @@ export function toOnResolveResult(
 }
 
 export function createResolve(
-  buildOptions: BuildOptions,
+  buildOptions: DependentBuildOptions,
   args: Pick<
     ResolveOptions,
     | "info"
@@ -210,18 +214,3 @@ export function createResolve(
     }, context);
   };
 }
-
-function normalizeResolveExtensions(resolveExtensions?: string[]): string[] {
-  if (resolveExtensions) return resolveExtensions;
-
-  return defaultResolveExtensions;
-}
-
-const defaultResolveExtensions = [
-  ".tsx",
-  ".ts",
-  ".jsx",
-  ".js",
-  ".css",
-  ".json",
-];
