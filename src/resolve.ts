@@ -1,9 +1,9 @@
 import { type Module, type SourceFileInfo as Source } from "@deno/info";
-import type {
-  BuildOptions,
-  OnResolveArgs,
-  OnResolveResult,
-  Platform,
+import {
+  type BuildOptions,
+  type OnResolveArgs,
+  type OnResolveResult,
+  type Platform,
 } from "esbuild";
 import { format } from "@miyauci/format";
 import { logger, normalizePlatform } from "./utils.ts";
@@ -23,7 +23,13 @@ import { Writer } from "./writer.ts";
 interface ResolveOptions extends
   Pick<
     CjsContext,
-    "conditions" | "existDir" | "mainFields" | "existFile" | "readFile" | "root"
+    | "conditions"
+    | "existDir"
+    | "mainFields"
+    | "existFile"
+    | "readFile"
+    | "root"
+    | "extensions"
   >,
   Pick<Strategy, "getPackageURL"> {
   platform: Platform;
@@ -187,6 +193,7 @@ export function createResolve(
 ) => Promise<OnResolveResult> {
   const platform = normalizePlatform(buildOptions.platform);
   const mainFields = resolveMainFields(buildOptions.mainFields, { platform });
+  const extensions = normalizeResolveExtensions(buildOptions.resolveExtensions);
 
   return (specifier, referrer, options, context) => {
     const conditions = resolveConditions(buildOptions.conditions, {
@@ -199,6 +206,22 @@ export function createResolve(
       conditions,
       mainFields,
       platform,
+      extensions,
     }, context);
   };
 }
+
+function normalizeResolveExtensions(resolveExtensions?: string[]): string[] {
+  if (resolveExtensions) return resolveExtensions;
+
+  return defaultResolveExtensions;
+}
+
+const defaultResolveExtensions = [
+  ".tsx",
+  ".ts",
+  ".jsx",
+  ".js",
+  ".css",
+  ".json",
+];

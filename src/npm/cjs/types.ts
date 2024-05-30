@@ -6,6 +6,11 @@ export type Format = "commonjs" | "json" | "module" | "wasm";
 export interface Context extends IO, Pick<Strategy, "root"> {
   conditions: string[];
   mainFields: string[];
+
+  /**
+   * @default [".js", ".json", ".node"]
+   */
+  extensions?: string[];
   resolve?(
     specifier: string,
     referrer: URL | string,

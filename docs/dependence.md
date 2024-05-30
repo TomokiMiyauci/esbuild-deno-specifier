@@ -24,6 +24,7 @@ The following fields may be referenced in the build options:
 - [`conditions`](https://esbuild.github.io/api/#conditions)
 - [`mainFields`](https://esbuild.github.io/api/#main-fields)
 - [`packages`](https://esbuild.github.io/api/#packages)
+- [`resolveExtensions`](https://esbuild.github.io/api/#resolve-extensions)
 - [`logLevel`](https://esbuild.github.io/api/#main-fields)
 
 ### Packages
@@ -48,3 +49,19 @@ import * as module from "npm:react";`,
   plugins: [denoSpecifierPlugin()],
 });
 ```
+
+### Log level
+
+If `logLevel` field is `verbose`, simple logs are output.
+
+```ts
+import { build } from "esbuild";
+import { denoSpecifierPlugin } from "@miyauci/esbuild-deno-specifier";
+
+await build({ logLevel: "verbose", plugins: [denoSpecifierPlugin()] });
+```
+
+### Others
+
+`conditions`, `mainFields` or `resolveExtensions` fields are specified, npm
+module resolution is performed using them in the same way as esbuild builtin.
