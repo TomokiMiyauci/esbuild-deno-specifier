@@ -100,4 +100,5 @@ export type DependentBuildOptions = Pick<
   | "conditions"
   | "logLevel"
   | "packages"
+  | "absWorkingDir"
 >;

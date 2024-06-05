@@ -19,6 +19,7 @@ The following flags are required to run this plugin:
 
 The following fields may be referenced in the build options:
 
+- [`absWorkingDir`](https://esbuild.github.io/api/#working-directory)
 - [`platform`](https://esbuild.github.io/api/#platform)
 - [`conditions`](https://esbuild.github.io/api/#conditions)
 - [`mainFields`](https://esbuild.github.io/api/#main-fields)

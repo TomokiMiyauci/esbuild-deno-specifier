@@ -1,7 +1,8 @@
-import { info } from "@deno/info";
+import { info, type InfoOptions } from "@deno/info";
 import type { LogLevel, Plugin } from "esbuild";
 import { DenoDir } from "@deno/cache-dir";
-import { fromFileUrl } from "@std/path";
+import { fromFileUrl } from "@std/path/from-file-url";
+import { toFileUrl } from "@std/path/to-file-url";
 import { type LevelName } from "@std/log/levels";
 import { setup } from "@std/log/setup";
 import { ConsoleHandler } from "@std/log/console-handler";
@@ -15,11 +16,14 @@ import { resolveReferrer } from "./referrer.ts";
 import { existDir, existFile, readFile, realURL } from "./io.ts";
 
 export interface DenoSpecifierPluginOptions {
-  /** Path to `node_modules` dir. */
-  nodeModulesDir?: string;
+  /** Enables or disables the use of a local node_modules folder for npm packages.
+   *
+   * @default false
+   */
+  nodeModulesDir?: boolean;
 
   /**
-   * @default new DenoDir().root
+   * @default DENO_DIR
    */
   denoDir?: string;
 }
@@ -31,18 +35,16 @@ export function denoSpecifierPlugin(
     name: "deno-specifier",
     setup(build) {
       const DENO_DIR = options.denoDir ?? new DenoDir().root;
-      const infoOptions = typeof options.nodeModulesDir === "string"
-        ? {
-          json: true,
-          noConfig: true,
-          nodeModulesDir: true,
-          env: { DENO_DIR },
-        } as const
-        : {
-          json: true,
-          noConfig: true,
-          env: { DENO_DIR },
-        } as const;
+      const cwd = build.initialOptions.absWorkingDir || Deno.cwd();
+      const baseOptions = {
+        json: true,
+        noConfig: true,
+        env: { DENO_DIR },
+        cwd,
+      } satisfies InfoOptions;
+      const infoOptions = options.nodeModulesDir
+        ? { ...baseOptions, nodeModulesDir: true } satisfies InfoOptions
+        : baseOptions;
       const cachedInfo = memo((specifier: string) =>
         info(specifier, infoOptions)
       );
@@ -61,7 +63,7 @@ export function denoSpecifierPlugin(
       }
 
       const strategy = options.nodeModulesDir
-        ? new LocalStrategy(options.nodeModulesDir)
+        ? new LocalStrategy(toFileUrl(cwd))
         : new GlobalStrategy(DENO_DIR);
 
       const resolveOptions = {

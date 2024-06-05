@@ -3,6 +3,7 @@ export interface InfoOptions {
   noConfig?: boolean;
   nodeModulesDir?: boolean;
   env?: Record<string, string>;
+  cwd?: URL | string;
 }
 
 /**
@@ -35,6 +36,7 @@ export async function info(
     env: options.env,
     stdout: "piped",
     stderr: "inherit",
+    cwd: options.cwd,
   } satisfies Deno.CommandOptions;
 
   if (typeof file === "string") args.push(file);
