@@ -1,3 +1,16 @@
+# [1.0.0-beta.9](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.8...1.0.0-beta.9) (2024-06-05)
+
+
+### Bug Fixes
+
+* **referrer:** change to converting importer to file url when it is not empty ([835e691](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/835e691fded0769aee5d31d33065d96ae2877e5e))
+
+
+### Features
+
+* **mod:** export related types ([c96d49a](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/c96d49a8149287ee0d16e5d4e2ebc04e0c5a64a4))
+* **plugin:** change `nodeModulesDir` filed to actual absolute path to node_modules ([ac97ee6](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/ac97ee616da89592acaefb2ad5725827b3b2bdaa))
+
 # [1.0.0-beta.8](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.7...1.0.0-beta.8) (2024-05-30)
 
 
