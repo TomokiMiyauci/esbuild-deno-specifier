@@ -14,7 +14,7 @@ import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
 import { resolveReferrer } from "./referrer.ts";
 import { existDir, existFile, readFile, realURL } from "./io.ts";
 
-export interface Options {
+export interface DenoSpecifierPluginOptions {
   /** Path to `node_modules` dir. */
   nodeModulesDir?: string;
 
@@ -24,7 +24,9 @@ export interface Options {
   denoDir?: string;
 }
 
-export function denoSpecifierPlugin(options: Options = {}): Plugin {
+export function denoSpecifierPlugin(
+  options: DenoSpecifierPluginOptions = {},
+): Plugin {
   return {
     name: "deno-specifier",
     setup(build) {
