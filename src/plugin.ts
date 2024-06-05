@@ -15,10 +15,8 @@ import { resolveReferrer } from "./referrer.ts";
 import { existDir, existFile, readFile, realURL } from "./io.ts";
 
 export interface Options {
-  /**
-   * @default false
-   */
-  nodeModulesDir?: boolean;
+  /** Path to `node_modules` dir. */
+  nodeModulesDir?: string;
 
   /**
    * @default new DenoDir().root
@@ -31,7 +29,7 @@ export function denoSpecifierPlugin(options: Options = {}): Plugin {
     name: "deno-specifier",
     setup(build) {
       const DENO_DIR = options.denoDir ?? new DenoDir().root;
-      const infoOptions = options.nodeModulesDir
+      const infoOptions = typeof options.nodeModulesDir === "string"
         ? {
           json: true,
           noConfig: true,
@@ -61,17 +59,7 @@ export function denoSpecifierPlugin(options: Options = {}): Plugin {
       }
 
       const strategy = options.nodeModulesDir
-        ? (() => {
-          const root = build.initialOptions.absWorkingDir;
-
-          if (!root) {
-            throw new Error(
-              `'absWorkingDir' is required when nodeModulesDir is 'true'`,
-            );
-          }
-
-          return new LocalStrategy(root);
-        })()
+        ? new LocalStrategy(options.nodeModulesDir)
         : new GlobalStrategy(DENO_DIR);
 
       const resolveOptions = {

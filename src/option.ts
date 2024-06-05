@@ -94,7 +94,6 @@ export function resolvePlatform(platForm: Platform): string | null {
 
 export type DependentBuildOptions = Pick<
   BuildOptions,
-  | "absWorkingDir"
   | "platform"
   | "mainFields"
   | "resolveExtensions"

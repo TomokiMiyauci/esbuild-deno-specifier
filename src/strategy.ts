@@ -1,5 +1,6 @@
 import { join } from "@std/url/join";
 import { toFileUrl } from "@std/path/to-file-url";
+import { dirname } from "@std/path/dirname";
 import { getParents } from "./npm/cjs/utils.ts";
 import { IO } from "./types.ts";
 import { createNpmRegistryURL } from "./utils.ts";
@@ -27,7 +28,8 @@ export class LocalStrategy implements Strategy {
 
   resolveSymbolic = true;
   constructor(nodeModulesDir: string) {
-    this.#root = toFileUrl(nodeModulesDir);
+    const rootDir = dirname(nodeModulesDir);
+    this.#root = toFileUrl(rootDir);
   }
 
   async getPackageURL(args: PackageArgs): Promise<URL | null> {
