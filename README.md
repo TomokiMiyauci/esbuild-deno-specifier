@@ -75,23 +75,19 @@ import * as esbuild from "esbuild";
 import { denoSpecifierPlugin } from "@miyauci/esbuild-deno-specifier";
 
 await esbuild.build({
-  plugins: [denoSpecifierPlugin({ nodeModulesDir: true })],
+  plugins: [denoSpecifierPlugin({ nodeModulesDir: "/path/to/node_modules" })],
   entryPoints: ["npm:react@^18"],
   bundle: true,
   format: "esm",
-  absWorkingDir: import.meta.dirname,
 });
 ```
 
-This requires the `absWorkingDir` field to be specified in esbuild options. If
-not specified, an error will be thrown.
-
 The specifier would be resolved as follows:
 
-| scheme | path                                   |
-| ------ | -------------------------------------- |
-| `jsr:` | `DENO_DIR`/deps/https/jsr.io/file      |
-| `npm:` | `absWorkingDir`/node_modules/name/file |
+| scheme | path                              |
+| ------ | --------------------------------- |
+| `jsr:` | `DENO_DIR`/deps/https/jsr.io/file |
+| `npm:` | `nodeModulesDir`/name/file        |
 
 ### Specify `DENO_DIR`
 
