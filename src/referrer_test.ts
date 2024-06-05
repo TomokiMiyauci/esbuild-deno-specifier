@@ -15,6 +15,15 @@ describe("resolveReferrer", () => {
         "file:///path/to/file",
       ],
       [
+        {
+          importer: "",
+          namespace: "file",
+          resolveDir: "/path/to",
+          path: "./main.ts",
+        },
+        "file:///path/to/main.ts",
+      ],
+      [
         { importer: "file:", namespace: "", resolveDir: "", path: "" },
         "file:",
       ],
