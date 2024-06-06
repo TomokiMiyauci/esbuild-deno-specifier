@@ -2,10 +2,12 @@ import { info, type InfoOptions } from "@deno/info";
 import type { LogLevel, Plugin } from "esbuild";
 import { DenoDir } from "@deno/cache-dir";
 import { fromFileUrl } from "@std/path/from-file-url";
+import { join } from "@std/path/join";
 import { toFileUrl } from "@std/path/to-file-url";
 import { type LevelName } from "@std/log/levels";
 import { setup } from "@std/log/setup";
 import { ConsoleHandler } from "@std/log/console-handler";
+import { isAbsolute } from "@std/path/is-absolute";
 import type { PluginData } from "./types.ts";
 import { Namespace } from "./constants.ts";
 import { memo } from "./utils.ts";
@@ -26,6 +28,9 @@ export interface DenoSpecifierPluginOptions {
    * @default DENO_DIR
    */
   denoDir?: string;
+
+  /** Check the specified lock file. */
+  lock?: string;
 }
 
 export function denoSpecifierPlugin(
@@ -36,9 +41,13 @@ export function denoSpecifierPlugin(
     setup(build) {
       const DENO_DIR = options.denoDir ?? new DenoDir().root;
       const cwd = build.initialOptions.absWorkingDir || Deno.cwd();
+      const lock = typeof options.lock === "string"
+        ? isAbsolute(options.lock) ? options.lock : join(cwd, options.lock)
+        : undefined;
       const baseOptions = {
         json: true,
         noConfig: true,
+        lock,
         env: { DENO_DIR },
         cwd,
       } satisfies InfoOptions;
