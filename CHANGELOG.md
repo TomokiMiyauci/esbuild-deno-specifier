@@ -1,3 +1,10 @@
+# [1.0.0-beta.11](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.10...1.0.0-beta.11) (2024-06-06)
+
+
+### Features
+
+* **plugin:** change plugin factory interface to accept `lock` field ([1c2f5e6](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/1c2f5e67fafc0b86fef68bc11c0cda1fe8e51a86))
+
 # [1.0.0-beta.10](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.9...1.0.0-beta.10) (2024-06-05)
 
 
