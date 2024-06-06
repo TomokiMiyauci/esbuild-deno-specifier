@@ -1,10 +1,26 @@
-export interface InfoOptions {
+export interface DenoInfoOptions {
+  /** Outputs the information in JSON format */
   json?: boolean;
+
+  /** Disable automatic loading of the configuration file. */
   noConfig?: boolean;
+
+  /** Enables or disables the use of a local node_modules folder for npm packages */
   nodeModulesDir?: boolean;
-  env?: Record<string, string>;
-  cwd?: URL | string;
 }
+
+export type InfoOptions =
+  & DenoInfoOptions
+  & Pick<
+    Deno.CommandOptions,
+    | "clearEnv"
+    | "cwd"
+    | "env"
+    | "gid"
+    | "signal"
+    | "uid"
+    | "windowsRawArguments"
+  >;
 
 /**
  * @throws {Error}
@@ -29,14 +45,14 @@ export async function info(
   file?: string,
   options: InfoOptions = {},
 ): Promise<Output | SourceFileInfo | string> {
-  const opt = resolveOptions(options);
+  const { json, noConfig, nodeModulesDir, ...cmdOptions } = options;
+  const opt = resolveOptions({ json, noConfig, nodeModulesDir });
   const args = ["info", ...opt];
   const commandOptions = {
+    ...cmdOptions,
     args,
-    env: options.env,
     stdout: "piped",
     stderr: "inherit",
-    cwd: options.cwd,
   } satisfies Deno.CommandOptions;
 
   if (typeof file === "string") args.push(file);
@@ -52,7 +68,7 @@ export async function info(
   return JSON.parse(txt);
 }
 
-function resolveOptions(options: InfoOptions): string[] {
+function resolveOptions(options: DenoInfoOptions): string[] {
   const set = new Set<string>();
 
   if (options.json) set.add("--json");
