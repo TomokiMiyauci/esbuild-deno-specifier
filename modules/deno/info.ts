@@ -7,6 +7,9 @@ export interface DenoInfoOptions {
 
   /** Enables or disables the use of a local node_modules folder for npm packages */
   nodeModulesDir?: boolean;
+
+  /** Check the specified lock file. */
+  lock?: string;
 }
 
 export type InfoOptions =
@@ -45,8 +48,14 @@ export async function info(
   file?: string,
   options: InfoOptions = {},
 ): Promise<Output | SourceFileInfo | string> {
-  const { json, noConfig, nodeModulesDir, ...cmdOptions } = options;
-  const opt = resolveOptions({ json, noConfig, nodeModulesDir });
+  const { json, noConfig, nodeModulesDir, lock, ...cmdOptions } = options;
+  const denoInfoOptions = {
+    json,
+    noConfig,
+    nodeModulesDir,
+    lock,
+  } satisfies DenoInfoOptions;
+  const opt = resolveOptions(denoInfoOptions);
   const args = ["info", ...opt];
   const commandOptions = {
     ...cmdOptions,
@@ -69,13 +78,14 @@ export async function info(
 }
 
 function resolveOptions(options: DenoInfoOptions): string[] {
-  const set = new Set<string>();
+  const args: string[] = [];
 
-  if (options.json) set.add("--json");
-  if (options.noConfig) set.add("--no-config");
-  if (options.nodeModulesDir) set.add("--node-modules-dir");
+  if (options.json) args.push("--json");
+  if (options.noConfig) args.push("--no-config");
+  if (options.nodeModulesDir) args.push("--node-modules-dir");
+  if (typeof options.lock === "string") args.push(`--lock`, options.lock);
 
-  return [...set];
+  return args;
 }
 
 export interface Output {
