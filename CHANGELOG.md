@@ -1,3 +1,15 @@
+# [1.0.0-beta.12](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.11...1.0.0-beta.12) (2024-06-12)
+
+
+### Bug Fixes
+
+* **referrer:** add checking importer filed is absolute path or not ([b0837a6](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/b0837a6a0e34eb1a10428c39cb55c71c5bca0284))
+
+
+### Features
+
+* resolve npm module type with `loader` option ([8883000](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/8883000ce15a0395106db390424da3f1aae4a01b))
+
 # [1.0.0-beta.11](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.10...1.0.0-beta.11) (2024-06-06)
 
 
