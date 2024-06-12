@@ -3,7 +3,7 @@ import type { MediaType, Module, SourceFileInfo as Source } from "@deno/info";
 export interface PluginData {
   module: Module;
   source: Source;
-  mediaType: MediaType;
+  mediaType: MediaType | undefined;
 }
 
 export type Subpath = `.${string}`;

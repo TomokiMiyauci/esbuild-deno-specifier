@@ -1,4 +1,9 @@
-import { type BuildOptions, type ImportKind, type Platform } from "esbuild";
+import {
+  type BuildOptions,
+  type ImportKind,
+  type Loader,
+  type Platform,
+} from "esbuild";
 
 /**
  * @see https://esbuild.github.io/api/#resolve-extensions
@@ -25,6 +30,48 @@ const defaultMainFields = {
  * @see https://esbuild.github.io/api/#platform
  */
 const defaultPlatform = "browser" satisfies Platform;
+
+/** Default map of extension and loader.
+ *
+ * @see https://esbuild.github.io/content-types/
+ */
+const defaultContentTypes = {
+  /**
+   * @see https://esbuild.github.io/content-types/#javascript
+   */
+  ".js": "js",
+  ".mjs": "js",
+  ".cjs": "js",
+
+  /**
+   * @see https://esbuild.github.io/content-types/#typescript
+   */
+  ".ts": "ts",
+  ".mts": "ts",
+  ".cts": "ts",
+
+  /**
+   * @see https://esbuild.github.io/content-types/#jsx
+   */
+  ".jsx": "jsx",
+  ".tsx": "tsx",
+
+  /**
+   * @see https://esbuild.github.io/content-types/#json
+   */
+  ".json": "json",
+
+  /**
+   * @see https://esbuild.github.io/content-types/#css
+   */
+  ".css": "css",
+  ".module.css": "local-css",
+
+  /**
+   * @see https://esbuild.github.io/content-types/#text
+   */
+  ".txt": "text",
+} satisfies Record<string, Loader>;
 
 export function normalizeResolveExtensions(
   resolveExtensions?: string[],
@@ -92,6 +139,15 @@ export function resolvePlatform(platForm: Platform): string | null {
   }
 }
 
+export function normalizeLoader(
+  loader?: Record<string, Loader>,
+): Record<string, Loader> {
+  return {
+    ...defaultContentTypes,
+    ...loader,
+  };
+}
+
 export type DependentBuildOptions = Pick<
   BuildOptions,
   | "platform"
@@ -101,4 +157,5 @@ export type DependentBuildOptions = Pick<
   | "logLevel"
   | "packages"
   | "absWorkingDir"
+  | "loader"
 >;

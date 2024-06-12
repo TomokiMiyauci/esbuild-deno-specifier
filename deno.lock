@@ -17,6 +17,7 @@
       "jsr:@std/assert@^0.225.3": "jsr:@std/assert@0.225.3",
       "jsr:@std/bytes@^0.218.2": "jsr:@std/bytes@0.218.2",
       "jsr:@std/collections@^0.221.0": "jsr:@std/collections@0.221.0",
+      "jsr:@std/collections@^0.224.2": "jsr:@std/collections@0.224.2",
       "jsr:@std/expect@0.224.0": "jsr:@std/expect@0.224.0",
       "jsr:@std/expect@^0.224.2": "jsr:@std/expect@0.224.2",
       "jsr:@std/fmt@^0.218.2": "jsr:@std/fmt@0.218.2",
@@ -49,6 +50,7 @@
       "npm:esbuild@0.21.3": "npm:esbuild@0.21.3",
       "npm:esbuild@^0.20.0": "npm:esbuild@0.20.2",
       "npm:esbuild@^0.20.2": "npm:esbuild@0.20.2",
+      "npm:esbuild@^0.21.0": "npm:esbuild@0.21.4",
       "npm:esbuild@^0.21.3": "npm:esbuild@0.21.3",
       "npm:esbuild@^0.21.4": "npm:esbuild@0.21.4"
     },
@@ -118,6 +120,9 @@
       },
       "@std/collections@0.221.0": {
         "integrity": "789a365bb79b06c4da79d2b93fe32ddfe03b93ab083e72c1de96303d12f84be5"
+      },
+      "@std/collections@0.224.2": {
+        "integrity": "e77819455294e92d4e7ddad1dbfd46f94174c09318e541e6621fac4a4d0ab326"
       },
       "@std/expect@0.224.0": {
         "integrity": "54bc071f7edcbd7bb4531f913e466e5ec3642f401dc3771fe5975f0693f25969",
@@ -612,6 +617,7 @@
       "jsr:@deno/cache-dir@^0.8.0",
       "jsr:@miyauci/format@^1.1.0",
       "jsr:@miyauci/node-esm-resolver@1.0.0-beta.8",
+      "jsr:@std/collections@^0.224.2",
       "jsr:@std/expect@^0.224.2",
       "jsr:@std/fs@^0.229.1",
       "jsr:@std/log@^0.224.1",

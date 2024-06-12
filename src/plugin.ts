@@ -16,6 +16,7 @@ import { loadDataURL, loadFileURL, loadHttpURL } from "./load.ts";
 import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
 import { resolveReferrer } from "./referrer.ts";
 import { existDir, existFile, readFile, realURL } from "./io.ts";
+import { normalizeLoader } from "./option.ts";
 
 export interface DenoSpecifierPluginOptions {
   /** Enables or disables the use of a local node_modules folder for npm packages.
@@ -139,6 +140,8 @@ export function denoSpecifierPlugin(
         },
       );
 
+      const loader = normalizeLoader(build.initialOptions.loader);
+
       build.onLoad(
         { filter: /.*/, namespace: Namespace.DenoUrl },
         (args) => {
@@ -151,7 +154,7 @@ export function denoSpecifierPlugin(
               return loadHttpURL(null, pluginData, readStrict);
 
             case "file:":
-              return loadFileURL(url, pluginData, readStrict);
+              return loadFileURL(url, pluginData, readStrict, loader);
 
             case "data:":
               return loadDataURL(url, pluginData);

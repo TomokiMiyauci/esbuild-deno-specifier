@@ -15,7 +15,6 @@ import { require } from "../npm/cjs/require.ts";
 import { assertModule, assertModuleEntry } from "./utils.ts";
 import type { Subpath } from "../types.ts";
 import { Msg } from "../constants.ts";
-import { fileFormat } from "../npm/cjs/file_format.ts";
 import { resolveSideEffects } from "../side_effects.ts";
 import { lookupPackageScope } from "../npm/cjs/lookup_package_scope.ts";
 
@@ -182,8 +181,6 @@ export async function toResolveResult(
       const finalURL = context.realURL
         ? (await context.realURL(url)) ?? url
         : url;
-      const format = await fileFormat(finalURL, context);
-      const mediaType = (format && formatToMediaType(format)) ?? "Unknown";
       const packageURL = await lookupPackageScope(finalURL, context);
 
       if (packageURL) {
@@ -196,15 +193,15 @@ export async function toResolveResult(
             fromFileUrl(finalURL),
           );
 
-          return { url: finalURL, mediaType, sideEffects };
+          return { url: finalURL, mediaType: undefined, sideEffects };
         }
       }
 
-      return { url: finalURL, mediaType, sideEffects: undefined };
+      return { url: finalURL, mediaType: undefined, sideEffects: undefined };
     }
 
     default: {
-      return { url, mediaType: "Unknown", sideEffects: undefined };
+      return { url, mediaType: undefined, sideEffects: undefined };
     }
   }
 }

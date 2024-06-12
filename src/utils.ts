@@ -2,6 +2,8 @@ import { type MediaType } from "@deno/info";
 import { toFileUrl } from "@std/path/to-file-url";
 import { join } from "@std/url/join";
 import { getLogger } from "@std/log/get-logger";
+import { runningReduce } from "@std/collections/running-reduce";
+import { extname } from "@std/path/extname";
 import { type Logger } from "@std/log/logger";
 
 import type { Loader } from "esbuild";
@@ -101,4 +103,41 @@ export function createNpmRegistryURL(denoDir: string): URL {
 
 export function createPjsonURL(packageURL: URL | string): URL {
   return join(packageURL, "package.json");
+}
+
+/**
+ * @param path
+ * @returns
+ */
+export function* splitExts(path: string): Generator<string> {
+  const ext = extname(path);
+
+  if (!ext) return;
+
+  yield ext;
+
+  path = path.slice(0, path.length - ext.length);
+
+  yield* splitExts(path);
+}
+
+/** Resolve path extension with longest match. */
+export function resolveLongestExt<T>(
+  path: string,
+  record: Record<string, T>,
+): T | undefined {
+  const allExts = getAllExtensions(path);
+
+  for (const ext of allExts) if (ext in record) return record[ext];
+}
+
+export function getAllExtensions(path: string): string[] {
+  const partOfExts = [...splitExts(path)];
+  const allExts = runningReduce(
+    partOfExts,
+    (acc, current) => current + acc,
+    "",
+  ).reverse();
+
+  return allExts;
 }
