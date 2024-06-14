@@ -1,4 +1,4 @@
-import type { MediaType, NpmModule, NpmPackage } from "@deno/info";
+import type { NpmModule, NpmPackage } from "@deno/info";
 import { fromFileUrl } from "@std/path/from-file-url";
 import { format } from "@miyauci/format";
 import { readPackageJson } from "@miyauci/node-esm-resolver";
@@ -10,7 +10,6 @@ import type {
   ResolveResult,
 } from "./types.ts";
 import { loadNodeModule } from "../npm/cjs/load_node_modules.ts";
-import type { Format } from "../npm/cjs/types.ts";
 import { require } from "../npm/cjs/require.ts";
 import { assertModule, assertModuleEntry } from "./utils.ts";
 import type { Subpath } from "../types.ts";
@@ -47,22 +46,6 @@ export async function resolveNpmModule(
   const message = format(Msg.NotFound, { specifier: context.specifier });
 
   throw new Error(message);
-}
-
-export function formatToMediaType(format: Format): MediaType {
-  switch (format) {
-    case "commonjs":
-      return "Mjs";
-    case "module":
-      return "Mjs";
-    case "json":
-      return "Json";
-    case "wasm":
-      return "Wasm";
-
-    default:
-      return "Unknown";
-  }
 }
 
 export interface Hint {
