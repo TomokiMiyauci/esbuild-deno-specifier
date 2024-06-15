@@ -39,7 +39,7 @@ export function denoSpecifierPlugin(
 ): Plugin {
   return {
     name: "deno-specifier",
-    setup(build) {
+    async setup(build) {
       const DENO_DIR = options.denoDir ?? new DenoDir().root;
       const cwd = build.initialOptions.absWorkingDir || Deno.cwd();
       const lock = typeof options.lock === "string"
@@ -101,18 +101,7 @@ export function denoSpecifierPlugin(
         });
       }
 
-      build.onResolve({ filter: /^file:/ }, (args) => {
-        const { path, kind, importer, resolveDir } = args;
-        const specifier = fromFileUrl(path);
-
-        return build.resolve(specifier, {
-          kind,
-          importer,
-          resolveDir,
-          namespace: "file",
-          with: args.with,
-        });
-      });
+      await fileURLResolverPlugin.setup(build);
 
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:|^data:|^node:/ },
@@ -172,6 +161,24 @@ export function denoSpecifierPlugin(
     },
   };
 }
+
+export const fileURLResolverPlugin: Plugin = {
+  name: "file-url",
+  setup(build) {
+    build.onResolve({ filter: /^file:/ }, (args) => {
+      const { path, kind, importer, resolveDir } = args;
+      const specifier = fromFileUrl(path);
+
+      return build.resolve(specifier, {
+        kind,
+        importer,
+        resolveDir,
+        namespace: "file",
+        with: args.with,
+      });
+    });
+  },
+};
 
 function logLevelToLevelName(logLevel: LogLevel): LevelName | null {
   switch (logLevel) {
