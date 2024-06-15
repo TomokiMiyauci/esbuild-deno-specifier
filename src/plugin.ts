@@ -104,10 +104,20 @@ export function denoSpecifierPlugin(
       await fileURLResolverPlugin.setup(build);
 
       build.onResolve(
-        { filter: /^npm:|^jsr:|^https?:|^data:|^node:/ },
+        { filter: /^npm:|^jsr:|^https?:^node:/ },
         (args) => {
           if (isExternal) return { external: true };
 
+          const referrer = resolveReferrer(args);
+          const { path: specifier, kind } = args;
+
+          return resolve(specifier, referrer, { kind });
+        },
+      );
+
+      build.onResolve(
+        { filter: /^data:/ },
+        (args) => {
           const referrer = resolveReferrer(args);
           const { path: specifier, kind } = args;
 
@@ -162,7 +172,7 @@ export function denoSpecifierPlugin(
   };
 }
 
-export const fileURLResolverPlugin: Plugin = {
+const fileURLResolverPlugin: Plugin = {
   name: "file-url",
   setup(build) {
     build.onResolve({ filter: /^file:/ }, (args) => {
