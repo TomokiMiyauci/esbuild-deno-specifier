@@ -10,7 +10,7 @@ import { ConsoleHandler } from "@std/log/console-handler";
 import { isAbsolute } from "@std/path/is-absolute";
 import { fromSpecifier } from "@deno/media-type";
 import type { PluginData } from "./types.ts";
-import { Namespace } from "./constants.ts";
+import { Msg, Namespace } from "./constants.ts";
 import { mediaTypeToLoader, memo } from "./utils.ts";
 import { createResolve } from "./resolve.ts";
 import { loadFileURL, loadHttpURL } from "./load.ts";
@@ -18,6 +18,7 @@ import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
 import { resolveReferrer } from "./referrer.ts";
 import { existDir, existFile, readFile, realURL } from "./io.ts";
 import { normalizeLoader } from "./option.ts";
+import { format } from "@miyauci/format";
 
 export interface DenoSpecifierPluginOptions {
   /** Enables or disables the use of a local node_modules folder for npm packages.
@@ -102,7 +103,7 @@ export function denoSpecifierPlugin(
         });
       }
 
-      await fileURLResolverPlugin.setup(build);
+      await denoLocalSpecifierPlugin.setup(build);
 
       build.onResolve(
         { filter: /^npm:|^jsr:|^https?:^node:/ },
@@ -115,52 +116,6 @@ export function denoSpecifierPlugin(
           return resolve(specifier, referrer, { kind });
         },
       );
-
-      build.onResolve(
-        { filter: /^data:/ },
-        (args) => {
-          const { path } = args;
-
-          const mediaType = fromSpecifier(path);
-
-          switch (mediaType) {
-            case "JavaScript":
-            case "JSX":
-            case "TypeScript":
-            case "TSX": {
-              return { path, namespace: "deno-data", pluginData: mediaType };
-            }
-
-            case "Json": {
-              throw new Error(
-                `Expected a JavaScript or TypeScript module, but identified a Json module. Consider importing Json modules with an import attribute with the type of "json".`,
-              );
-            }
-
-            case "Wasm": {
-              throw new Error(
-                `Expected a JavaScript or TypeScript module, but identified a Wasm module. Importing these types of modules is currently not supported.`,
-              );
-            }
-
-            default: {
-              throw new Error(
-                `Expected a JavaScript or TypeScript module, but identified a Unknown module. Importing these types of modules is currently not supported.`,
-              );
-            }
-          }
-        },
-      );
-
-      build.onLoad({ filter: /.*/, namespace: "deno-data" }, async (args) => {
-        const pluginData = args.pluginData as MediaType;
-
-        const response = await fetch(args.path);
-        const contents = await response.text();
-        const loader = mediaTypeToLoader(pluginData);
-
-        return { contents, loader };
-      });
 
       build.onResolve(
         { filter: /.*/, namespace: Namespace.DenoUrl },
@@ -206,24 +161,6 @@ export function denoSpecifierPlugin(
   };
 }
 
-const fileURLResolverPlugin: Plugin = {
-  name: "file-url",
-  setup(build) {
-    build.onResolve({ filter: /^file:/ }, (args) => {
-      const { path, kind, importer, resolveDir } = args;
-      const specifier = fromFileUrl(path);
-
-      return build.resolve(specifier, {
-        kind,
-        importer,
-        resolveDir,
-        namespace: "file",
-        with: args.with,
-      });
-    });
-  },
-};
-
 function logLevelToLevelName(logLevel: LogLevel): LevelName | null {
   switch (logLevel) {
     case "debug":
@@ -246,3 +183,73 @@ function normalizeLogLevel(logLevel: LogLevel | undefined): LogLevel {
 
   return logLevel;
 }
+
+const fileURLResolverPlugin: Plugin = {
+  name: "file-url",
+  setup(build) {
+    build.onResolve({ filter: /^file:/ }, (args) => {
+      const { path, kind, importer, resolveDir } = args;
+      const specifier = fromFileUrl(path);
+
+      return build.resolve(specifier, {
+        kind,
+        importer,
+        resolveDir,
+        namespace: "file",
+        with: args.with,
+      });
+    });
+  },
+};
+
+const denoLocalSpecifierPlugin: Plugin = {
+  name: "deno-local-specifier",
+  async setup(build) {
+    await fileURLResolverPlugin.setup(build);
+
+    build.onResolve(
+      { filter: /^data:/ },
+      (args) => {
+        const { path } = args;
+
+        const mediaType = fromSpecifier(path);
+
+        switch (mediaType) {
+          case "JavaScript":
+          case "JSX":
+          case "TypeScript":
+          case "TSX": {
+            return {
+              path,
+              namespace: Namespace.DenoData,
+              pluginData: mediaType,
+            };
+          }
+
+          case "Json": {
+            throw new Error(Msg.InvalidMediaTypeOfJson);
+          }
+
+          default: {
+            const message = format(Msg.InvalidMediaType, { mediaType });
+
+            throw new Error(message);
+          }
+        }
+      },
+    );
+
+    build.onLoad(
+      { filter: /.*/, namespace: Namespace.DenoData },
+      async (args) => {
+        const pluginData = args.pluginData as MediaType;
+
+        const response = await fetch(args.path);
+        const contents = await response.text();
+        const loader = mediaTypeToLoader(pluginData);
+
+        return { contents, loader };
+      },
+    );
+  },
+};
