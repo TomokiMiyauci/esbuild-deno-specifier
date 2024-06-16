@@ -1,4 +1,4 @@
-import { info, type InfoOptions } from "@deno/info";
+import { info, type InfoOptions, MediaType } from "@deno/info";
 import type { LogLevel, Plugin } from "esbuild";
 import { DenoDir } from "@deno/cache-dir";
 import { fromFileUrl } from "@std/path/from-file-url";
@@ -8,11 +8,12 @@ import { type LevelName } from "@std/log/levels";
 import { setup } from "@std/log/setup";
 import { ConsoleHandler } from "@std/log/console-handler";
 import { isAbsolute } from "@std/path/is-absolute";
+import { fromSpecifier } from "@deno/media-type";
 import type { PluginData } from "./types.ts";
 import { Namespace } from "./constants.ts";
-import { memo } from "./utils.ts";
+import { mediaTypeToLoader, memo } from "./utils.ts";
 import { createResolve } from "./resolve.ts";
-import { loadDataURL, loadFileURL, loadHttpURL } from "./load.ts";
+import { loadFileURL, loadHttpURL } from "./load.ts";
 import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
 import { resolveReferrer } from "./referrer.ts";
 import { existDir, existFile, readFile, realURL } from "./io.ts";
@@ -118,12 +119,48 @@ export function denoSpecifierPlugin(
       build.onResolve(
         { filter: /^data:/ },
         (args) => {
-          const referrer = resolveReferrer(args);
-          const { path: specifier, kind } = args;
+          const { path } = args;
 
-          return resolve(specifier, referrer, { kind });
+          const mediaType = fromSpecifier(path);
+
+          switch (mediaType) {
+            case "JavaScript":
+            case "JSX":
+            case "TypeScript":
+            case "TSX": {
+              return { path, namespace: "deno-data", pluginData: mediaType };
+            }
+
+            case "Json": {
+              throw new Error(
+                `Expected a JavaScript or TypeScript module, but identified a Json module. Consider importing Json modules with an import attribute with the type of "json".`,
+              );
+            }
+
+            case "Wasm": {
+              throw new Error(
+                `Expected a JavaScript or TypeScript module, but identified a Wasm module. Importing these types of modules is currently not supported.`,
+              );
+            }
+
+            default: {
+              throw new Error(
+                `Expected a JavaScript or TypeScript module, but identified a Unknown module. Importing these types of modules is currently not supported.`,
+              );
+            }
+          }
         },
       );
+
+      build.onLoad({ filter: /.*/, namespace: "deno-data" }, async (args) => {
+        const pluginData = args.pluginData as MediaType;
+
+        const response = await fetch(args.path);
+        const contents = await response.text();
+        const loader = mediaTypeToLoader(pluginData);
+
+        return { contents, loader };
+      });
 
       build.onResolve(
         { filter: /.*/, namespace: Namespace.DenoUrl },
@@ -154,9 +191,6 @@ export function denoSpecifierPlugin(
 
             case "file:":
               return loadFileURL(url, pluginData, readStrict, loader);
-
-            case "data:":
-              return loadDataURL(url, pluginData);
 
             default: {
               throw new Error("unsupported");

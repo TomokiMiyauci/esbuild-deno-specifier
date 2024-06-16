@@ -6,18 +6,6 @@ import { fromFileUrl } from "@std/path/from-file-url";
 import type { PluginData } from "./types.ts";
 import { mediaTypeToLoader, resolveLongestExt } from "./utils.ts";
 
-export async function loadDataURL(
-  url: URL,
-  pluginData: PluginData,
-): Promise<OnLoadResult> {
-  const result = await fetch(url);
-  const contents = await result.text();
-  const loader = pluginData.mediaType &&
-    mediaTypeToLoader(pluginData.mediaType);
-
-  return { contents, loader };
-}
-
 export async function loadFileURL(
   url: URL,
   pluginData: PluginData,
