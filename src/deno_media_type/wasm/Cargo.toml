@@ -1,0 +1,12 @@
+[package]
+name = "deno_media_type_wasm"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+deno_media_type = {version="0.1.4", feature=["module_specifier"]}
+url = "2.5.1"
+wasm-bindgen = "0.2.92"
+
+[lib]
+crate-type = ["cdylib"]
