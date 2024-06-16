@@ -2,12 +2,13 @@
   "name": "@miyauci/esbuild-deno-specifier",
   "tasks": {
     "test": "deno test --allow-env --allow-read --allow-run --doc",
-    "bench": "deno bench --allow-env --allow-read --allow-run"
+    "build-wasm": "deno run -A jsr:@deno/wasmbuild@^0.17.1 -p deno_media_type_wasm --out src/deno_media_type/js"
   },
-  "exclude": ["CHANGELOG.md"],
+  "exclude": ["CHANGELOG.md", "target"],
   "imports": {
     "@deno/cache-dir": "jsr:@deno/cache-dir@^0.8.0",
     "@deno/info": "./modules/deno/info.ts",
+    "@deno/media-type": "./src/deno_media_type/js/mod.ts",
     "@miyauci/esbuild-deno-specifier": "./src/mod.ts",
     "@miyauci/format": "jsr:@miyauci/format@^1.1.0",
     "@miyauci/node-esm-resolver": "jsr:@miyauci/node-esm-resolver@1.0.0-beta.8",
