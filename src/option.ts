@@ -2,6 +2,7 @@ import {
   type BuildOptions,
   type ImportKind,
   type Loader,
+  type LogLevel,
   type Platform,
 } from "esbuild";
 
@@ -159,3 +160,9 @@ export type DependentBuildOptions = Pick<
   | "absWorkingDir"
   | "loader"
 >;
+
+export function normalizeLogLevel(logLevel: LogLevel | undefined): LogLevel {
+  if (!logLevel) return "warning";
+
+  return logLevel;
+}

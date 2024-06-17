@@ -17,7 +17,7 @@ import { loadFileURL, loadHttpURL } from "./load.ts";
 import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
 import { resolveReferrer } from "./referrer.ts";
 import { existDir, existFile, readFile, realURL } from "./io.ts";
-import { normalizeLoader } from "./option.ts";
+import { normalizeLoader, normalizeLogLevel } from "./option.ts";
 import { format } from "@miyauci/format";
 
 export interface DenoSpecifierPluginOptions {
@@ -90,9 +90,6 @@ export function denoSpecifierPlugin(
 
       const logLevel = normalizeLogLevel(build.initialOptions.logLevel);
       const level = logLevelToLevelName(logLevel);
-
-      const resolve = createResolve(build.initialOptions, resolveOptions);
-
       if (level) {
         setup({
           handlers: { console: new ConsoleHandler(level) },
@@ -102,34 +99,13 @@ export function denoSpecifierPlugin(
         });
       }
 
+      const resolve = createResolve(build.initialOptions, resolveOptions);
+
       await denoLocalSpecifierPlugin.setup(build);
       await denoRemoteSpecifierPlugin({ read: readStrict, resolve })
         .setup(build);
     },
   };
-}
-
-function logLevelToLevelName(logLevel: LogLevel): LevelName | null {
-  switch (logLevel) {
-    case "debug":
-      return "DEBUG";
-    case "error":
-      return "ERROR";
-    case "info":
-      return "INFO";
-    case "warning":
-      return "WARN";
-    case "verbose":
-      return "NOTSET";
-    case "silent":
-      return null;
-  }
-}
-
-function normalizeLogLevel(logLevel: LogLevel | undefined): LogLevel {
-  if (!logLevel) return "warning";
-
-  return logLevel;
 }
 
 const fileURLResolverPlugin: Plugin = {
@@ -202,13 +178,13 @@ const denoLocalSpecifierPlugin: Plugin = {
   },
 };
 
-interface DenoRemoveSpecifierPluginArgs {
+interface DenoRemoteSpecifierPluginArgs {
   read(url: URL): Promise<string> | string;
   resolve: Resolve;
 }
 
 function denoRemoteSpecifierPlugin(
-  context: DenoRemoveSpecifierPluginArgs,
+  context: DenoRemoteSpecifierPluginArgs,
 ): Plugin {
   return {
     name: "deno-remote-specifier",
@@ -268,4 +244,21 @@ function denoRemoteSpecifierPlugin(
       });
     },
   };
+}
+
+function logLevelToLevelName(logLevel: LogLevel): LevelName | null {
+  switch (logLevel) {
+    case "debug":
+      return "DEBUG";
+    case "error":
+      return "ERROR";
+    case "info":
+      return "INFO";
+    case "warning":
+      return "WARN";
+    case "verbose":
+      return "NOTSET";
+    case "silent":
+      return null;
+  }
 }
