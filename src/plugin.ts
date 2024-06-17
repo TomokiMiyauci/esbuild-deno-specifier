@@ -12,7 +12,7 @@ import { fromSpecifier } from "@deno/media-type";
 import type { PluginData } from "./types.ts";
 import { Msg, Namespace } from "./constants.ts";
 import { mediaTypeToLoader, memo } from "./utils.ts";
-import { createResolve } from "./resolve.ts";
+import { createResolve, type Resolve } from "./resolve.ts";
 import { loadFileURL, loadHttpURL } from "./load.ts";
 import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
 import { resolveReferrer } from "./referrer.ts";
@@ -90,7 +90,6 @@ export function denoSpecifierPlugin(
 
       const logLevel = normalizeLogLevel(build.initialOptions.logLevel);
       const level = logLevelToLevelName(logLevel);
-      const isExternal = build.initialOptions.packages === "external";
 
       const resolve = createResolve(build.initialOptions, resolveOptions);
 
@@ -104,59 +103,8 @@ export function denoSpecifierPlugin(
       }
 
       await denoLocalSpecifierPlugin.setup(build);
-
-      build.onResolve(
-        { filter: /^npm:|^jsr:|^https?:^node:/ },
-        (args) => {
-          if (isExternal) return { external: true };
-
-          const referrer = resolveReferrer(args);
-          const { path: specifier, kind } = args;
-
-          return resolve(specifier, referrer, { kind });
-        },
-      );
-
-      build.onResolve(
-        { filter: /.*/, namespace: Namespace.DenoUrl },
-        async (args) => {
-          const pluginData = args.pluginData as PluginData;
-          const { module, source } = pluginData;
-          const { path: specifier, importer: referrer, kind } = args;
-
-          return await resolve(specifier, referrer, { kind }, {
-            module,
-            source,
-          });
-        },
-      );
-
-      const loader = normalizeLoader(build.initialOptions.loader);
-
-      build.onLoad(
-        { filter: /.*/, namespace: Namespace.DenoUrl },
-        (args) => {
-          const url = new URL(args.path);
-          const pluginData = args.pluginData as PluginData;
-
-          switch (url.protocol) {
-            case "http:":
-            case "https:":
-              return loadHttpURL(null, pluginData, readStrict);
-
-            case "file:":
-              return loadFileURL(url, pluginData, readStrict, loader);
-
-            default: {
-              throw new Error("unsupported");
-            }
-          }
-        },
-      );
-
-      build.onLoad({ filter: /.*/, namespace: Namespace.Disabled }, () => {
-        return { contents: "" };
-      });
+      await denoRemoteSpecifierPlugin({ read: readStrict, resolve })
+        .setup(build);
     },
   };
 }
@@ -253,3 +201,71 @@ const denoLocalSpecifierPlugin: Plugin = {
     );
   },
 };
+
+interface DenoRemoveSpecifierPluginArgs {
+  read(url: URL): Promise<string> | string;
+  resolve: Resolve;
+}
+
+function denoRemoteSpecifierPlugin(
+  context: DenoRemoveSpecifierPluginArgs,
+): Plugin {
+  return {
+    name: "deno-remote-specifier",
+    setup(build) {
+      const isExternal = build.initialOptions.packages === "external";
+      const loader = normalizeLoader(build.initialOptions.loader);
+
+      build.onResolve(
+        { filter: /^npm:|^jsr:|^https?:^node:/ },
+        (args) => {
+          if (isExternal) return { external: true };
+
+          const referrer = resolveReferrer(args);
+          const { path: specifier, kind } = args;
+
+          return context.resolve(specifier, referrer, { kind });
+        },
+      );
+
+      build.onResolve(
+        { filter: /.*/, namespace: Namespace.DenoUrl },
+        async (args) => {
+          const pluginData = args.pluginData as PluginData;
+          const { module, source } = pluginData;
+          const { path: specifier, importer: referrer, kind } = args;
+
+          return await context.resolve(specifier, referrer, { kind }, {
+            module,
+            source,
+          });
+        },
+      );
+
+      build.onLoad(
+        { filter: /.*/, namespace: Namespace.DenoUrl },
+        (args) => {
+          const url = new URL(args.path);
+          const pluginData = args.pluginData as PluginData;
+
+          switch (url.protocol) {
+            case "http:":
+            case "https:":
+              return loadHttpURL(null, pluginData, context.read);
+
+            case "file:":
+              return loadFileURL(url, pluginData, context.read, loader);
+
+            default: {
+              throw new Error("unsupported");
+            }
+          }
+        },
+      );
+
+      build.onLoad({ filter: /.*/, namespace: Namespace.Disabled }, () => {
+        return { contents: "" };
+      });
+    },
+  };
+}

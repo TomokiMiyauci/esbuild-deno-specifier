@@ -174,6 +174,18 @@ export function toOnResolveResult(
   }
 }
 
+export interface Resolve {
+  (
+    specifier: string,
+    referrer: URL | string,
+    options: Pick<OnResolveArgs, "kind">,
+    context?: {
+      module: Module;
+      source: Source;
+    },
+  ): Promise<OnResolveResult>;
+}
+
 export function createResolve(
   buildOptions: DependentBuildOptions,
   args: Pick<
