@@ -1,3 +1,11 @@
+# [1.0.0-beta.13](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.12...1.0.0-beta.13) (2024-06-17)
+
+
+### Features
+
+* **plugin:** data url changed to bundle anytime ([d3857b3](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/d3857b3635f3c93dd50e89dc65d2d8bcf666894a))
+* **plugin:** resolve data url to native instead of deno info ([260b6a9](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/260b6a94fecc9f2c29c573311c762519792931a5))
+
 # [1.0.0-beta.12](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.11...1.0.0-beta.12) (2024-06-12)
 
 
