@@ -13,7 +13,6 @@ import { resolveBrowserMap } from "./browser.ts";
 import { type Context as CjsContext } from "./npm/cjs/types.ts";
 import { assertModule, assertModuleEntry } from "./modules/utils.ts";
 import { Msg } from "./constants.ts";
-import { Namespace } from "./constants.ts";
 import { type Strategy } from "./strategy.ts";
 import { Writer } from "./writer.ts";
 import {
@@ -37,6 +36,8 @@ interface ResolveOptions extends
   >,
   Pick<Strategy, "getPackageURL"> {
   platform: Platform;
+  namespace?: string;
+  disabled?: { namespace?: string };
   info: (specifier: string) => Promise<Source> | Source;
   realURL?(url: URL): Promise<URL | undefined | null> | URL | undefined | null;
 }
@@ -68,7 +69,7 @@ export async function resolve(
       })
     : undefined;
   referrer = new URL(referrer);
-
+  options.namespace;
   if (context) {
     const result = await resolveModuleDependency(
       context.module,
@@ -87,7 +88,8 @@ export async function resolve(
       specifier,
       platform,
       writer,
-      disabled,
+      disabled: { value: disabled, namespace: options.disabled?.namespace },
+      namespace: options.namespace,
     });
   }
 
@@ -114,8 +116,14 @@ export async function resolve(
     specifier,
     platform,
     writer,
-    disabled,
+    disabled: { value: disabled, namespace: options.disabled?.namespace },
+    namespace: options.namespace,
   });
+}
+
+interface Disabled {
+  namespace?: string;
+  value: boolean;
 }
 
 export function toOnResolveResult(
@@ -126,18 +134,19 @@ export function toOnResolveResult(
     module: Module;
     platform: Platform;
     writer: Writer;
-    disabled: boolean;
+    disabled: Disabled;
+    namespace?: string;
   },
 ): OnResolveResult {
   const { specifier } = context;
   const path = result.url.toString();
 
-  if (context.disabled) {
+  if (context.disabled.value) {
     context.writer.addLine(`Mark as disabled`);
     context.writer.addLine(``);
     logger().debug(() => context.writer.done());
 
-    return { namespace: Namespace.Disabled, path };
+    return { namespace: context.disabled.namespace, path };
   }
 
   const sideEffects = result.sideEffects;
@@ -169,7 +178,7 @@ export function toOnResolveResult(
 
       logger().debug(() => context.writer.done());
 
-      return { path, namespace: Namespace.DenoUrl, pluginData, sideEffects };
+      return { path, namespace: context.namespace, pluginData, sideEffects };
     }
   }
 }
@@ -178,7 +187,9 @@ export interface Resolve {
   (
     specifier: string,
     referrer: URL | string,
-    options: Pick<OnResolveArgs, "kind">,
+    options: Pick<OnResolveArgs, "kind" | "namespace"> & {
+      disabled: { namespace?: string };
+    },
     context?: {
       module: Module;
       source: Source;
@@ -198,15 +209,7 @@ export function createResolve(
     | "root"
     | "getPackageURL"
   >,
-): (
-  specifier: string,
-  referrer: URL | string,
-  options: Pick<OnResolveArgs, "kind">,
-  context?: {
-    module: Module;
-    source: Source;
-  },
-) => Promise<OnResolveResult> {
+): Resolve {
   const platform = normalizePlatform(buildOptions.platform);
   const mainFields = resolveMainFields(buildOptions.mainFields, { platform });
   const extensions = normalizeResolveExtensions(buildOptions.resolveExtensions);
@@ -223,6 +226,8 @@ export function createResolve(
       mainFields,
       platform,
       extensions,
+      namespace: options.namespace,
+      disabled: options.disabled,
     }, context);
   };
 }

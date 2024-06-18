@@ -200,7 +200,11 @@ function denoRemoteSpecifierPlugin(
           const referrer = resolveReferrer(args);
           const { path: specifier, kind } = args;
 
-          return context.resolve(specifier, referrer, { kind });
+          return context.resolve(specifier, referrer, {
+            kind,
+            namespace: Namespace.DenoUrl,
+            disabled: { namespace: Namespace.Disabled },
+          });
         },
       );
 
@@ -211,10 +215,11 @@ function denoRemoteSpecifierPlugin(
           const { module, source } = pluginData;
           const { path: specifier, importer: referrer, kind } = args;
 
-          return await context.resolve(specifier, referrer, { kind }, {
-            module,
-            source,
-          });
+          return await context.resolve(specifier, referrer, {
+            kind,
+            namespace: Namespace.DenoUrl,
+            disabled: { namespace: Namespace.Disabled },
+          }, { module, source });
         },
       );
 
