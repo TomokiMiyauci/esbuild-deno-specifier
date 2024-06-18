@@ -1,4 +1,4 @@
-import { info, type InfoOptions, MediaType } from "@deno/info";
+import { info, type InfoOptions } from "@deno/info";
 import type { LogLevel, Plugin } from "esbuild";
 import { DenoDir } from "@deno/cache-dir";
 import { fromFileUrl } from "@std/path/from-file-url";
@@ -11,7 +11,7 @@ import { isAbsolute } from "@std/path/is-absolute";
 import { fromSpecifier } from "@deno/media-type";
 import type { PluginData } from "./types.ts";
 import { Msg, Namespace } from "./constants.ts";
-import { mediaTypeToLoader, memo } from "./utils.ts";
+import { isMediaType, mediaTypeToLoader, memo } from "./utils.ts";
 import { createResolve, type Resolve } from "./resolve.ts";
 import { loadFileURL, loadHttpURL } from "./load.ts";
 import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
@@ -126,55 +126,53 @@ export const fileURLResolverPlugin: Plugin = {
   },
 };
 
-const denoLocalSpecifierPlugin: Plugin = {
-  name: "deno-local-specifier",
-  async setup(build) {
-    await fileURLResolverPlugin.setup(build);
+export const denoDataURLSpecifierPlugin: Plugin = {
+  name: "deno-data-url-specifier",
+  setup(build) {
+    build.onResolve({ filter: /^data:/ }, (args) => {
+      const { path } = args;
+      const mediaType = fromSpecifier(path);
 
-    build.onResolve(
-      { filter: /^data:/ },
-      (args) => {
-        const { path } = args;
+      switch (mediaType) {
+        case "JavaScript":
+        case "JSX":
+        case "TypeScript":
+        case "TSX":
+          return { path, namespace: Namespace.DenoData, pluginData: mediaType };
 
-        const mediaType = fromSpecifier(path);
+        case "Json":
+          throw new Error(Msg.InvalidMediaTypeOfJson);
 
-        switch (mediaType) {
-          case "JavaScript":
-          case "JSX":
-          case "TypeScript":
-          case "TSX": {
-            return {
-              path,
-              namespace: Namespace.DenoData,
-              pluginData: mediaType,
-            };
-          }
+        default: {
+          const message = format(Msg.InvalidMediaType, { mediaType });
 
-          case "Json": {
-            throw new Error(Msg.InvalidMediaTypeOfJson);
-          }
-
-          default: {
-            const message = format(Msg.InvalidMediaType, { mediaType });
-
-            throw new Error(message);
-          }
+          throw new Error(message);
         }
-      },
-    );
+      }
+    });
 
     build.onLoad(
       { filter: /.*/, namespace: Namespace.DenoData },
       async (args) => {
-        const pluginData = args.pluginData as MediaType;
+        const pluginData = args.pluginData as unknown;
 
-        const response = await fetch(args.path);
-        const contents = await response.text();
-        const loader = mediaTypeToLoader(pluginData);
+        if (isMediaType(pluginData)) {
+          const response = await fetch(args.path);
+          const contents = await response.text();
+          const loader = mediaTypeToLoader(pluginData);
 
-        return { contents, loader };
+          return { contents, loader };
+        }
       },
     );
+  },
+};
+
+const denoLocalSpecifierPlugin: Plugin = {
+  name: "deno-local-specifier",
+  async setup(build) {
+    await fileURLResolverPlugin.setup(build);
+    await denoDataURLSpecifierPlugin.setup(build);
   },
 };
 

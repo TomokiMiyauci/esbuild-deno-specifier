@@ -1,6 +1,7 @@
 import {
   getAllExtensions,
   isLikePath,
+  isMediaType,
   type Package,
   parseNpmPkg,
   resolveLongestExt,
@@ -146,6 +147,64 @@ describe("splitExts", () => {
 
     for (const [input, expected] of table) {
       expect([...splitExts(input)]).toEqual(expected);
+    }
+  });
+});
+
+describe("isMediaType", () => {
+  it("should return true", () => {
+    const table = [
+      "Cjs",
+      "Cts",
+      "Dcts",
+      "Dmts",
+      "Dts",
+      "JSX",
+      "JavaScript",
+      "Json",
+      "Mjs",
+      "Mts",
+      "SourceMap",
+      "TSX",
+      "TsBuildInfo",
+      "TypeScript",
+      "Unknown",
+      "Wasm",
+    ];
+
+    for (const input of table) {
+      expect(isMediaType(input)).toBeTruthy();
+    }
+  });
+
+  it("should return false", () => {
+    const table = [
+      "a",
+      0,
+      null,
+      undefined,
+      {},
+      [],
+      "cjs",
+      "cts",
+      "dcts",
+      "dmts",
+      "dts",
+      "jsx",
+      "javascript",
+      "json",
+      "mjs",
+      "mts",
+      "sourcemap",
+      "tsx",
+      "tsbuildinfo",
+      "typescript",
+      "unknown",
+      "wasm",
+    ];
+
+    for (const input of table) {
+      expect(isMediaType(input)).toBeFalsy();
     }
   });
 });

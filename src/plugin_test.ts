@@ -1,13 +1,13 @@
-import { fileURLResolverPlugin } from "./plugin.ts";
+import { denoDataURLSpecifierPlugin, fileURLResolverPlugin } from "./plugin.ts";
 import { afterAll, describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
 import { build, stop } from "esbuild";
 
-describe("fileURLResolverPlugin", () => {
-  afterAll(() => {
-    return stop();
-  });
+afterAll(() => {
+  return stop();
+});
 
+describe("fileURLResolverPlugin", () => {
   it("should resolve file url to local path", async () => {
     const result = await build({
       stdin: {
@@ -42,5 +42,58 @@ describe("fileURLResolverPlugin", () => {
     });
 
     expect(result.outputFiles[0].text).toBe("");
+  });
+});
+
+describe("denoDataURLSpecifierPlugin", () => {
+  it("should resolve data url with media type of typescript", async () => {
+    const result = await build({
+      stdin: {
+        contents:
+          `import "data:text/typescript,type A = string;console.log();";`,
+      },
+      plugins: [denoDataURLSpecifierPlugin],
+      bundle: true,
+      format: "esm",
+      write: false,
+      minify: true,
+    });
+
+    expect(result.outputFiles[0].text).toBe(
+      `console.log();
+`,
+    );
+  });
+
+  it("should throw error if the media type is json", async () => {
+    await expect(build({
+      stdin: {
+        contents: `import "data:application/json,{}";`,
+      },
+      plugins: [denoDataURLSpecifierPlugin],
+      bundle: true,
+      format: "esm",
+      write: false,
+      minify: true,
+      logLevel: "silent",
+    })).rejects.toThrow(
+      `Expected a JavaScript or TypeScript module, but identified a Json module. Consider importing Json modules with an import attribute with the type of "json".`,
+    );
+  });
+
+  it("should throw error if the media type is not supported", async () => {
+    await expect(build({
+      stdin: {
+        contents: `import "data:text/unknown,";`,
+      },
+      plugins: [denoDataURLSpecifierPlugin],
+      bundle: true,
+      format: "esm",
+      write: false,
+      minify: true,
+      logLevel: "silent",
+    })).rejects.toThrow(
+      `Expected a JavaScript or TypeScript module, but identified a Unknown module. Importing these types of modules is currently not supported.`,
+    );
   });
 });

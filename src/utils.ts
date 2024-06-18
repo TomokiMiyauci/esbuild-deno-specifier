@@ -141,3 +141,26 @@ export function getAllExtensions(path: string): string[] {
 
   return allExts;
 }
+
+const mediaType = /* @__PURE__ */ new Set<unknown>([
+  "Cjs",
+  "Cts",
+  "Dcts",
+  "Dmts",
+  "Dts",
+  "JSX",
+  "JavaScript",
+  "Json",
+  "Mjs",
+  "Mts",
+  "SourceMap",
+  "TSX",
+  "TsBuildInfo",
+  "TypeScript",
+  "Unknown",
+  "Wasm",
+]);
+
+export function isMediaType(input: unknown): input is MediaType {
+  return mediaType.has(input);
+}
