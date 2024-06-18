@@ -1,5 +1,5 @@
 import { info, type InfoOptions } from "@deno/info";
-import type { LogLevel, Plugin } from "esbuild";
+import type { Loader, LogLevel, OnLoadResult, Plugin } from "esbuild";
 import { DenoDir } from "@deno/cache-dir";
 import { fromFileUrl } from "@std/path/from-file-url";
 import { join } from "@std/path/join";
@@ -9,11 +9,16 @@ import { setup } from "@std/log/setup";
 import { ConsoleHandler } from "@std/log/console-handler";
 import { isAbsolute } from "@std/path/is-absolute";
 import { fromSpecifier } from "@deno/media-type";
+import { dirname } from "@std/path/dirname";
 import type { PluginData } from "./types.ts";
 import { Msg, Namespace } from "./constants.ts";
-import { isMediaType, mediaTypeToLoader, memo } from "./utils.ts";
+import {
+  isMediaType,
+  mediaTypeToLoader,
+  memo,
+  resolveLongestExt,
+} from "./utils.ts";
 import { createResolve, type Resolve } from "./resolve.ts";
-import { loadFileURL, loadHttpURL } from "./load.ts";
 import { GlobalStrategy, LocalStrategy } from "./strategy.ts";
 import { resolveReferrer } from "./referrer.ts";
 import { existDir, existFile, readFile, realURL } from "./io.ts";
@@ -181,7 +186,7 @@ interface DenoRemoteSpecifierPluginArgs {
   resolve: Resolve;
 }
 
-function denoRemoteSpecifierPlugin(
+export function denoRemoteSpecifierPlugin(
   context: DenoRemoteSpecifierPluginArgs,
 ): Plugin {
   return {
@@ -241,6 +246,46 @@ function denoRemoteSpecifierPlugin(
       });
     },
   };
+}
+
+export async function loadFileURL(
+  fileURL: URL,
+  pluginData: Pick<PluginData, "mediaType">,
+  readFile: (url: URL) => Promise<string> | string,
+  loaders: Record<string, Loader>,
+): Promise<OnLoadResult> {
+  const contents = await readFile(fileURL);
+
+  const path = fromFileUrl(fileURL);
+  const loader = pluginData.mediaType
+    ? mediaTypeToLoader(pluginData.mediaType)
+    : resolveLongestExt(path, loaders);
+  const resolveDir = dirname(path);
+
+  return { contents, loader, pluginData, resolveDir };
+}
+
+export async function loadHttpURL(
+  pluginData: Pick<PluginData, "mediaType" | "module">,
+  readFile: (url: URL) => Promise<string> | string,
+): Promise<OnLoadResult> {
+  if (pluginData.module.kind !== "esm") {
+    throw new Error("unreachable");
+  }
+
+  const localPath = pluginData.module.local;
+
+  if (typeof localPath !== "string") {
+    throw new Error("local file does not exist");
+  }
+
+  const fileUrl = toFileUrl(localPath);
+  const contents = await readFile(fileUrl);
+  const loader = pluginData.mediaType &&
+    mediaTypeToLoader(pluginData.mediaType);
+  const resolveDir = dirname(localPath);
+
+  return { contents, loader, pluginData, resolveDir };
 }
 
 function logLevelToLevelName(logLevel: LogLevel): LevelName | null {
