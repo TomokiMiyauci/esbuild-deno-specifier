@@ -108,7 +108,7 @@ export function denoSpecifierPlugin(
   };
 }
 
-const fileURLResolverPlugin: Plugin = {
+export const fileURLResolverPlugin: Plugin = {
   name: "file-url",
   setup(build) {
     build.onResolve({ filter: /^file:/ }, (args) => {
