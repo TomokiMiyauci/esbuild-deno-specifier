@@ -46,6 +46,24 @@ describe("fileURLResolverPlugin", () => {
 });
 
 describe("denoDataURLSpecifierPlugin", () => {
+  it("should resolve data url with media type of javascript", async () => {
+    const result = await build({
+      stdin: {
+        contents: `import "data:text/javascript,console.log();";`,
+      },
+      plugins: [denoDataURLSpecifierPlugin],
+      bundle: true,
+      format: "esm",
+      write: false,
+      minify: true,
+    });
+
+    expect(result.outputFiles[0].text).toBe(
+      `console.log();
+`,
+    );
+  });
+
   it("should resolve data url with media type of typescript", async () => {
     const result = await build({
       stdin: {
@@ -61,6 +79,43 @@ describe("denoDataURLSpecifierPlugin", () => {
 
     expect(result.outputFiles[0].text).toBe(
       `console.log();
+`,
+    );
+  });
+
+  it("should resolve data url with media type of jsx", async () => {
+    const result = await build({
+      stdin: {
+        contents: `import "data:text/jsx,console.log(<div />);"`,
+      },
+      plugins: [denoDataURLSpecifierPlugin],
+      bundle: true,
+      format: "esm",
+      write: false,
+    });
+
+    expect(result.outputFiles[0].text).toBe(
+      `// deno-data:data:text/jsx,console.log(<div />);
+console.log(/* @__PURE__ */ React.createElement("div", null));
+`,
+    );
+  });
+
+  it("should resolve data url with media type of tsx", async () => {
+    const result = await build({
+      stdin: {
+        contents:
+          `import "data:text/tsx,type A = string;console.log(<div />);"`,
+      },
+      plugins: [denoDataURLSpecifierPlugin],
+      bundle: true,
+      format: "esm",
+      write: false,
+    });
+
+    expect(result.outputFiles[0].text).toBe(
+      `// deno-data:data:text/tsx,type A = string;console.log(<div />);
+console.log(/* @__PURE__ */ React.createElement("div", null));
 `,
     );
   });
