@@ -1,30 +1,28 @@
 import type { Loader, OnLoadResult } from "esbuild";
-import * as Path from "@std/path/dirname";
-import { dirname } from "@std/url/dirname";
+import { dirname } from "@std/path/dirname";
 import { toFileUrl } from "@std/path/to-file-url";
 import { fromFileUrl } from "@std/path/from-file-url";
 import type { PluginData } from "./types.ts";
 import { mediaTypeToLoader, resolveLongestExt } from "./utils.ts";
 
 export async function loadFileURL(
-  url: URL,
+  fileURL: URL,
   pluginData: PluginData,
   readFile: (url: URL) => Promise<string> | string,
   loaders: Record<string, Loader>,
 ): Promise<OnLoadResult> {
-  const contents = await readFile(url);
+  const contents = await readFile(fileURL);
 
+  const path = fromFileUrl(fileURL);
   const loader = pluginData.mediaType
     ? mediaTypeToLoader(pluginData.mediaType)
-    : resolveLongestExt(fromFileUrl(url), loaders) ?? "default";
-
-  const resolveDir = fromFileUrl(dirname(url));
+    : resolveLongestExt(path, loaders);
+  const resolveDir = dirname(path);
 
   return { contents, loader, pluginData, resolveDir };
 }
 
 export async function loadHttpURL(
-  _: unknown,
   pluginData: PluginData,
   readFile: (url: URL) => Promise<string> | string,
 ): Promise<OnLoadResult> {
@@ -40,10 +38,9 @@ export async function loadHttpURL(
 
   const fileUrl = toFileUrl(localPath);
   const contents = await readFile(fileUrl);
-
   const loader = pluginData.mediaType &&
     mediaTypeToLoader(pluginData.mediaType);
-  const resolveDir = Path.dirname(localPath);
+  const resolveDir = dirname(localPath);
 
   return { contents, loader, pluginData, resolveDir };
 }
