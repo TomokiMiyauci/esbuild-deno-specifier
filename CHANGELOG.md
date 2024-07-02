@@ -1,3 +1,10 @@
+# [1.0.0-beta.14](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.13...1.0.0-beta.14) (2024-07-02)
+
+
+### Features
+
+* update deps version ([adb2799](https://github.com/TomokiMiyauci/esbuild-deno-specifier/commit/adb2799d9dabe6367cb544d60c8f3b6823a247e5))
+
 # [1.0.0-beta.13](https://github.com/TomokiMiyauci/esbuild-deno-specifier/compare/1.0.0-beta.12...1.0.0-beta.13) (2024-06-17)
 
 
